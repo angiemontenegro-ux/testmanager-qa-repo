@@ -42,7 +42,11 @@ results:
         actual: ""
         phase: when
         text: the user clicks the Open Kiosk Admin button
-        attachments: []
+        attachments:
+          - name: 1780323590809-step-3.png
+            path: attachments/TR-14/1780323590809-step-3.png
+            mimeType: image/png
+            size: 142983
       - order: 4
         status: not-run
         actual: ""
@@ -346,5 +350,5 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:19:39.202Z"
+  updatedAt: "2026-06-01T14:19:51.968Z"
 startedAt: "2026-06-01T14:17:28.038Z"
