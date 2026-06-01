@@ -28,7 +28,7 @@ results:
             mimeType: image/png
             size: 281208
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: the Kiosk Mode > Settings page is open showing the configured Kiosk Admin URL
@@ -48,7 +48,11 @@ results:
         actual: ""
         phase: then
         text: the browser is redirected to the configured KioskAdminURL with a token query parameter
-        attachments: []
+        attachments:
+          - name: 1780323577341-step-4.png
+            path: attachments/TR-14/1780323577341-step-4.png
+            mimeType: image/png
+            size: 175119
       - order: 5
         status: not-run
         actual: ""
@@ -342,5 +346,5 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:17:40.119Z"
+  updatedAt: "2026-06-01T14:19:39.202Z"
 startedAt: "2026-06-01T14:17:28.038Z"
