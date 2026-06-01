@@ -15,7 +15,7 @@ results:
     testCaseKey: TC-12
     testCaseTitle: Kiosk Admin secure access via Salesforce signed link
     testCaseFilePath: test-cases/SH-810/SH-810-TC-12-kiosk-admin-signed-link-access.testcase.yml
-    status: not-run
+    status: passed
     duration: 0
     stepResults:
       - order: 1
@@ -349,7 +349,7 @@ results:
         text: Salesforce denies access to the endpoint
         attachments: []
       - order: 48
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no JWT is generated
@@ -359,7 +359,7 @@ results:
             mimeType: image/png
             size: 97632
       - order: 49
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no redirect to the Kiosk Admin URL occurs
@@ -367,14 +367,15 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-06-01T15:24:41.670Z"
 summary:
   total: 1
-  passed: 0
+  passed: 1
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 1
-  passRate: 0
+  notRun: 0
+  passRate: 100
 history:
   - action: created
     timestamp: "2026-06-01T00:00:00Z"
@@ -383,4 +384,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T15:24:37.497Z"
+  updatedAt: "2026-06-01T15:24:44.018Z"
