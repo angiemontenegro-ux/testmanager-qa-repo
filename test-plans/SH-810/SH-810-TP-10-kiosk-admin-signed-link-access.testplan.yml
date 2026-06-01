@@ -1,0 +1,31 @@
+schemaVersion: "1.0"
+id: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+key: "TP-10"
+title: "SH-810 Kiosk Admin secure access via signed link"
+description: "Test plan covering the full security and functional scope of SH-810: signed JWT generation from Salesforce, token validation in the kiosk backend, session management, audit logging, rejection of expired/tampered/invalid tokens, and JWT attack resistance."
+status: "draft"
+scope:
+  milestone: "SH-810"
+  targetDate: "2026-06-10"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "f3a2b1c0-d4e5-4f60-a7b8-9c0d1e2f3a4b"
+    key: "TC-12"
+    title: "Kiosk Admin secure access via Salesforce signed link"
+    filePath: "test-cases/SH-810/SH-810-TC-12-kiosk-admin-signed-link-access.testcase.yml"
+    assignees:
+      - username: "codex"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-810"
+      url: "https://veevart.atlassian.net/browse/SH-810"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-06-01T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-06-01T00:00:00Z"
