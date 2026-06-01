@@ -135,7 +135,7 @@ results:
         text: the browser navigates to /admin?token=<expired_token>
         attachments: []
       - order: 17
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the response is HTTP 401
@@ -145,7 +145,7 @@ results:
             mimeType: image/png
             size: 274794
       - order: 18
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: >-
@@ -157,19 +157,19 @@ results:
             mimeType: image/png
             size: 275973
       - order: 19
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no session cookie is issued
         attachments: []
       - order: 20
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a valid signed token is obtained
         attachments: []
       - order: 21
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: >-
@@ -177,67 +177,71 @@ results:
           re-submitted with the original signature
         attachments: []
       - order: 22
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the modified token is sent to /admin?token=<tampered_token>
         attachments: []
       - order: 23
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the response is HTTP 401 in both cases
         attachments: []
       - order: 24
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no session cookie is issued
         attachments: []
       - order: 25
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the failure is recorded in the audit log with the source IP and reason
         attachments: []
       - order: 26
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: the browser has no active session cookie and no token
         attachments: []
       - order: 27
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the user navigates directly to /admin, /admin/locations, or any other /admin/* route
         attachments: []
       - order: 28
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: every request returns HTTP 401
         attachments: []
       - order: 29
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no dashboard content or sensitive admin data is rendered
         attachments: []
       - order: 30
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: no active session cookie exists
         attachments: []
       - order: 31
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: a request is made to /admin?orgId=<valid_org_id> with no token
-        attachments: []
+        attachments:
+          - name: 1780325071541-step-31.png
+            path: attachments/TR-14/1780325071541-step-31.png
+            mimeType: image/png
+            size: 304653
       - order: 32
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: a request is made to /admin?token= with an empty value
@@ -363,4 +367,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:43:23.403Z"
+  updatedAt: "2026-06-01T14:44:33.489Z"
