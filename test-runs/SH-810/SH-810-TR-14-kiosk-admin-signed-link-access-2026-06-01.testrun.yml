@@ -38,7 +38,7 @@ results:
             mimeType: image/png
             size: 281208
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the user clicks the Open Kiosk Admin button
@@ -48,7 +48,7 @@ results:
             mimeType: image/png
             size: 142983
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the browser is redirected to the configured KioskAdminURL with a token query parameter
@@ -62,7 +62,11 @@ results:
         actual: ""
         phase: then
         text: the JWT payload contains an orgId claim equal to UserInfo.getOrganizationId()
-        attachments: []
+        attachments:
+          - name: 1780324303401-step-5.png
+            path: attachments/TR-14/1780324303401-step-5.png
+            mimeType: image/png
+            size: 133368
       - order: 6
         status: not-run
         actual: ""
@@ -350,5 +354,5 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:19:51.968Z"
+  updatedAt: "2026-06-01T14:31:45.055Z"
 startedAt: "2026-06-01T14:17:28.038Z"
