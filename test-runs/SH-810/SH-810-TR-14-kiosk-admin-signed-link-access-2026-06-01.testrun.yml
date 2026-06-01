@@ -22,7 +22,11 @@ results:
         actual: ""
         phase: given
         text: the QA user is logged into Salesforce with Veevart Settings permission
-        attachments: []
+        attachments:
+          - name: 1780323453582-step-1.png
+            path: attachments/TR-14/1780323453582-step-1.png
+            mimeType: image/png
+            size: 281208
       - order: 2
         status: not-run
         actual: ""
@@ -338,5 +342,5 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:17:28.038Z"
+  updatedAt: "2026-06-01T14:17:35.114Z"
 startedAt: "2026-06-01T14:17:28.038Z"
