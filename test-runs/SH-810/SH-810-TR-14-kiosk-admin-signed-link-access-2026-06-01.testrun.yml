@@ -93,43 +93,43 @@ results:
         text: the browser lands on /admin?token=<valid_token>
         attachments: []
       - order: 10
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the response is HTTP 200
         attachments: []
       - order: 11
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: a session cookie is issued by the backend
         attachments: []
       - order: 12
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the user is redirected to the Kiosk Admin dashboard without being shown a login screen
         attachments: []
       - order: 13
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: an audit log entry is created containing the Salesforce user ID, timestamp, and source IP
         attachments: []
       - order: 14
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: subsequent requests to /admin/* routes succeed using the session cookie without re-authentication
         attachments: []
       - order: 15
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a previously valid signed token whose exp timestamp is in the past (more than 5 minutes elapsed)
         attachments: []
       - order: 16
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the browser navigates to /admin?token=<expired_token>
@@ -139,7 +139,11 @@ results:
         actual: ""
         phase: then
         text: the response is HTTP 401
-        attachments: []
+        attachments:
+          - name: 1780324993993-step-17.png
+            path: attachments/TR-14/1780324993993-step-17.png
+            mimeType: image/png
+            size: 274794
       - order: 18
         status: not-run
         actual: ""
@@ -355,4 +359,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:41:53.143Z"
+  updatedAt: "2026-06-01T14:43:15.835Z"
