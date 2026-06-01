@@ -1,0 +1,14 @@
+schemaVersion: "1.0"
+project:
+  name: "QA Forms Workspace"
+  prefix: "TC"
+  counters:
+    testCase: 12
+    testSuite: 0
+    testPlan: 10
+    testRun: 14
+settings:
+  defaultPriority: "medium"
+  defaultType: "functional"
+  requireApproval: false
+  attachmentsMaxSizeMb: 10
