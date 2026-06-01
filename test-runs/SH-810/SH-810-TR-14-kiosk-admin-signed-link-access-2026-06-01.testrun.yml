@@ -251,7 +251,7 @@ results:
             mimeType: image/png
             size: 304653
       - order: 33
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: a request is made to /admin?token=abc123notajwt with a non-JWT string
@@ -261,49 +261,49 @@ results:
             mimeType: image/png
             size: 304653
       - order: 34
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: all three requests return HTTP 401
         attachments: []
       - order: 35
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the backend ignores the plain orgId query parameter and does not grant a session
         attachments: []
       - order: 36
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no stack trace or internal error detail is exposed in the response
         attachments: []
       - order: 37
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a JWT is crafted with alg set to none in the header and a valid-looking payload, submitted without a signature
         attachments: []
       - order: 38
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the crafted token is sent to /admin?token=<alg_none_token>
         attachments: []
       - order: 39
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the response is HTTP 401
         attachments: []
       - order: 40
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the backend rejects the token without evaluating the payload claims
         attachments: []
       - order: 41
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a JWT is signed with the correct secret but has an incorrect iss or aud value in the payload
@@ -375,4 +375,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:44:57.665Z"
+  updatedAt: "2026-06-01T15:23:36.489Z"
