@@ -319,7 +319,11 @@ results:
         actual: ""
         phase: then
         text: the response is HTTP 401
-        attachments: []
+        attachments:
+          - name: 1780327453063-step-43.png
+            path: attachments/TR-14/1780327453063-step-43.png
+            mimeType: image/png
+            size: 97632
       - order: 44
         status: not-run
         actual: ""
@@ -375,4 +379,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T15:23:36.489Z"
+  updatedAt: "2026-06-01T15:24:14.723Z"
