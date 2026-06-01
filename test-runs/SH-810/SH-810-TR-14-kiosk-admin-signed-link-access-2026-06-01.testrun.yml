@@ -245,7 +245,11 @@ results:
         actual: ""
         phase: when
         text: a request is made to /admin?token= with an empty value
-        attachments: []
+        attachments:
+          - name: 1780325082932-step-32.png
+            path: attachments/TR-14/1780325082932-step-32.png
+            mimeType: image/png
+            size: 304653
       - order: 33
         status: not-run
         actual: ""
@@ -367,4 +371,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:44:33.489Z"
+  updatedAt: "2026-06-01T14:44:44.307Z"
