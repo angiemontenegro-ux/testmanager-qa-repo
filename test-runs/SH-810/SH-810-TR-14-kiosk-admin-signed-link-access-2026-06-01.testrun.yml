@@ -309,13 +309,13 @@ results:
         text: a JWT is signed with the correct secret but has an incorrect iss or aud value in the payload
         attachments: []
       - order: 42
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the token is submitted to /admin?token=<invalid_claims_token>
         attachments: []
       - order: 43
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the response is HTTP 401
@@ -325,25 +325,25 @@ results:
             mimeType: image/png
             size: 97632
       - order: 44
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the backend rejects the token based on issuer or audience mismatch before granting access
         attachments: []
       - order: 45
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a Salesforce user who does not have the Veevart Settings permission set is logged in
         attachments: []
       - order: 46
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: the user attempts to invoke the Apex endpoint that generates the signed token
         attachments: []
       - order: 47
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: Salesforce denies access to the endpoint
@@ -353,7 +353,11 @@ results:
         actual: ""
         phase: then
         text: no JWT is generated
-        attachments: []
+        attachments:
+          - name: 1780327476195-step-48.png
+            path: attachments/TR-14/1780327476195-step-48.png
+            mimeType: image/png
+            size: 97632
       - order: 49
         status: not-run
         actual: ""
@@ -379,4 +383,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T15:24:14.723Z"
+  updatedAt: "2026-06-01T15:24:37.497Z"
