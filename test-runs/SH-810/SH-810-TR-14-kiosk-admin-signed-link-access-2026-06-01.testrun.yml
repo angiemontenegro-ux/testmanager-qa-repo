@@ -3,7 +3,7 @@ id: b9c8d7e6-f5a4-4b3c-2d1e-0f9a8b7c6d5e
 key: TR-14
 title: "Run TP-10: SH-810 Kiosk Admin secure access via signed link"
 testPlanId: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
-status: in-progress
+status: completed
 environment:
   name: qa
   browser: brave
@@ -388,4 +388,5 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T15:26:09.234Z"
+  updatedAt: "2026-06-01T15:26:10.413Z"
+completedAt: "2026-06-01T15:26:10.413Z"
