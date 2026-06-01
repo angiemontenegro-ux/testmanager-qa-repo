@@ -151,7 +151,11 @@ results:
         text: >-
           the page displays a message indicating the link has expired and instructs the user to open from Salesforce
           again
-        attachments: []
+        attachments:
+          - name: 1780325002187-step-18.png
+            path: attachments/TR-14/1780325002187-step-18.png
+            mimeType: image/png
+            size: 275973
       - order: 19
         status: not-run
         actual: ""
@@ -359,4 +363,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:43:15.835Z"
+  updatedAt: "2026-06-01T14:43:23.403Z"
