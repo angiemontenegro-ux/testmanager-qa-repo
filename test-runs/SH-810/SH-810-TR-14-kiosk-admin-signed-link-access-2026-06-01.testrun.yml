@@ -255,7 +255,11 @@ results:
         actual: ""
         phase: when
         text: a request is made to /admin?token=abc123notajwt with a non-JWT string
-        attachments: []
+        attachments:
+          - name: 1780325096463-step-33.png
+            path: attachments/TR-14/1780325096463-step-33.png
+            mimeType: image/png
+            size: 304653
       - order: 34
         status: not-run
         actual: ""
@@ -371,4 +375,4 @@ metadata:
   createdBy: codex
   createdAt: "2026-06-01T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-01T14:44:44.307Z"
+  updatedAt: "2026-06-01T14:44:57.665Z"
