@@ -1,0 +1,134 @@
+schemaVersion: "1.0"
+id: "58100b93-b62b-4d15-a43a-174856cf9bf1"
+key: "TC-1"
+title: "Log creation on failed barcode/QR scan when adding item to cart in POS"
+description: "Validates that a Salesforce log record is created with all required fields when a barcode/QR scan fails during the add-to-cart flow in POS. Covers SH-809 acceptance criteria: timestamp, User ID, Store/Register ID, raw payload, error message + stack trace, Cart ID + cart state, resolved SKU (if available), and device info."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "User is authenticated in POS and has an active session"
+  - "A cart is open (Cart ID is available)"
+  - "Salesforce org is accessible and log objects are deployed"
+  - "Test environment allows triggering barcode/QR scan failures (e.g., invalid barcode, item not in catalog)"
+scenarios:
+  - title: "Unrecognized barcode format - log created with all required fields"
+    tags:
+      - "happy-path"
+    given:
+      - "A POS user (User ID: test-user-001) is logged in at Store ID: store-001, Register ID: reg-001"
+      - "Cart ID: cart-abc123 is open with at least one existing item"
+      - "The device is online"
+    when:
+      - "The user scans a barcode with an unrecognized format (raw payload: INVALID_BARCODE_001)"
+      - "POS displays an error message: Item not found. Please try again."
+    then:
+      - "A log record is created in Salesforce within 5 seconds"
+      - "The log contains Timestamp with timezone (e.g., 2026-06-16T10:00:00-05:00)"
+      - "The log contains User ID: test-user-001 and Store ID: store-001, Register ID: reg-001"
+      - "The log contains Raw scanned payload: INVALID_BARCODE_001"
+      - "The log contains Error message shown to user plus internal error code or stack trace"
+      - "The log contains Cart ID: cart-abc123 and the current cart state (number of items, subtotal)"
+      - "The log field for Resolved SKU/Item ID is null (parsing failed before resolution)"
+      - "The log contains Device info: app version, OS, online_status: online"
+  - title: "Item not found in catalog - log includes resolved SKU from parsing"
+    tags:
+      - "happy-path"
+    given:
+      - "A POS user is logged in with a valid session"
+      - "Cart ID: cart-xyz456 is open"
+      - "The scanned QR code is syntactically valid but references SKU 99999 which does not exist in the catalog"
+    when:
+      - "The user scans the QR code"
+      - "POS attempts catalog lookup and fails, displaying: Product not found in catalog"
+    then:
+      - "A log record is created in Salesforce"
+      - "The log contains the raw QR payload before parsing failure"
+      - "The log contains Error message: Product not found in catalog and the internal lookup error code"
+      - "The Resolved SKU/Item ID field contains 99999 (parsing succeeded; lookup failed)"
+      - "All other required fields (timestamp, user, store, cart, device) are populated"
+  - title: "Partial parse - SKU resolved before failure is captured in log"
+    tags:
+      - "edge-case"
+    given:
+      - "The barcode payload is valid and SKU is extracted successfully"
+      - "The lookup to the inventory service fails after SKU resolution (e.g., timeout or HTTP 500)"
+      - "POS displays: Unable to add item. Service unavailable."
+    when:
+      - "The scan flow completes SKU parsing but fails at the inventory lookup step"
+    then:
+      - "The log record includes Resolved SKU/Item ID with the extracted SKU value"
+      - "The internal error code reflects the inventory service failure (not a parse error)"
+      - "The raw payload, cart state, and all other required fields are present in the log"
+  - title: "Device offline - offline status captured in log"
+    tags:
+      - "edge-case"
+    given:
+      - "The POS device is in offline mode (no network connectivity)"
+      - "The user attempts a barcode scan to add an item to the cart"
+      - "POS displays an error indicating offline mode prevents item lookup"
+    when:
+      - "The scan fails because the device cannot reach the backend"
+    then:
+      - "A log record is created (or queued and synced when back online)"
+      - "The log Device info field contains online_status: offline"
+      - "All other mandatory fields (timestamp, user, store, raw payload, error message, cart) are present"
+  - title: "Log write failure is non-blocking - UX remains unaffected"
+    tags:
+      - "negative"
+    given:
+      - "The Salesforce logging endpoint is temporarily unavailable (simulated timeout or 503)"
+      - "A barcode scan failure occurs in POS"
+    when:
+      - "POS attempts to write a log record and the write fails"
+    then:
+      - "The error message is still displayed to the user normally"
+      - "The POS cart remains stable - no crash, no freeze, no data loss"
+      - "No error about logging is surfaced to the end user"
+      - "A console/backend error is emitted silently for internal monitoring"
+  - title: "Mandatory log fields are never empty for a scan failure event"
+    tags:
+      - "negative"
+    given:
+      - "A scan failure occurs under any condition (invalid format, not found, offline, etc.)"
+    when:
+      - "The log record is written to Salesforce"
+    then:
+      - "Timestamp, User ID, Store ID, Register ID, Raw payload, and Error message are never null or empty string"
+      - "Cart ID is present if a cart was open; otherwise the field is explicitly set to null (not omitted)"
+      - "Device info fields (app version, OS) are populated from the device session context"
+  - title: "Logs are queryable by User ID, Store ID, and date range in Salesforce"
+    tags:
+      - "functional"
+    given:
+      - "At least 3 log records exist for different users, stores, and dates"
+    when:
+      - "A support engineer queries logs filtering by User ID: test-user-001"
+      - "A support engineer queries logs filtering by Store ID: store-001"
+      - "A support engineer queries logs filtering by a specific date range (last 7 days)"
+    then:
+      - "Only records matching User ID: test-user-001 are returned in the first query"
+      - "Only records matching Store ID: store-001 are returned in the second query"
+      - "Only records within the date range are returned in the third query"
+      - "Combined filters (User ID + Store ID + date range) return the correct intersection"
+tags:
+  - "sh-809"
+  - "pos"
+  - "barcode-scan"
+  - "logging"
+  - "salesforce"
+parameters: []
+links:
+  jira:
+    - key: "SH-809"
+      url: "https://veevart.atlassian.net/browse/SH-809"
+      type: "story"
+  external: []
+estimatedDuration: 35
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-06-16T00:00:00-05:00"
+  updatedBy: "codex"
+  updatedAt: "2026-06-16T00:00:00-05:00"
+  version: 1
