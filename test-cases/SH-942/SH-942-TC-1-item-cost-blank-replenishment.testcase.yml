@@ -1,0 +1,107 @@
+schemaVersion: "1.0"
+id: "833e8631-2bda-45d8-8a86-414855a5f1d5"
+key: "TC-1"
+title: "Item Cost stays blank when adding a Stock Replenishment Order"
+description: "Validates SH-942: when a Shop Item or Variant is selected in a Stock Replenishment Order row, the Item Cost field must remain blank and editable."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Usuario autenticado con acceso a Purchase Orders"
+  - "Existe al menos un Purchase Order abierto"
+  - "Existe al menos un Shop Item activo con al menos un Variant"
+  - "Se ha seleccionado una Location valida en el Purchase Order"
+scenarios:
+  - title: "Item Cost stays blank when selecting a Shop Item"
+    tags:
+      - "happy-path"
+    given:
+      - "Estoy en Stock Replenishment Orders dentro de un Purchase Order"
+    when:
+      - "Selecciono un Shop Item en el campo Search Shop Item"
+    then:
+      - "El campo Item Cost permanece en blanco"
+      - "El campo Item Cost es editable"
+  - title: "Item Cost stays blank when selecting a Variant"
+    tags:
+      - "happy-path"
+    given:
+      - "He seleccionado un Shop Item con Item Cost en blanco"
+    when:
+      - "Selecciono un Variant en Choose Variant"
+    then:
+      - "El campo Item Cost sigue en blanco"
+  - title: "Manually entered Item Cost is preserved after Save"
+    tags:
+      - "happy-path"
+    given:
+      - "He seleccionado un Shop Item y un Variant con Item Cost en blanco"
+    when:
+      - "Ingreso 25.00 en Item Cost y clic en Save All Stock Orders"
+    then:
+      - "El valor ingresado se preserva y el registro se guarda en Salesforce"
+  - title: "Order Cost is calculated as Item Cost x Order Quantity"
+    tags:
+      - "happy-path"
+    given:
+      - "He seleccionado un Shop Item con Item Cost en blanco"
+    when:
+      - "Ingreso 50.00 en Item Cost y 3 en Order Quantity"
+    then:
+      - "Order Cost muestra 150.00 automaticamente"
+  - title: "Each row handles Item Cost independently"
+    tags:
+      - "edge-case"
+    given:
+      - "Tengo multiples filas de Stock Replenishment Order"
+    when:
+      - "Selecciono un Shop Item en la primera fila"
+    then:
+      - "Solo el Item Cost de la primera fila queda en blanco"
+      - "El Item Cost de las demas filas no cambia"
+  - title: "Item Cost = 0 is valid"
+    tags:
+      - "edge-case"
+    given:
+      - "He seleccionado un Shop Item con Item Cost en blanco"
+    when:
+      - "Ingreso 0 en Item Cost y 5 en Order Quantity"
+    then:
+      - "Order Cost muestra 0 y el formulario permite guardar"
+  - title: "Save without Item Cost - validation"
+    tags:
+      - "negative"
+    given:
+      - "He seleccionado un Shop Item con Item Cost en blanco"
+    when:
+      - "Intento guardar sin llenar Item Cost"
+    then:
+      - "Si es requerido muestra validacion, si no guarda con null"
+  - title: "Item Cost solo acepta valores numericos"
+    tags:
+      - "negative"
+    given:
+      - "He seleccionado un Shop Item con Item Cost en blanco"
+    when:
+      - "Ingreso texto abc en Item Cost"
+    then:
+      - "El campo muestra error de validacion"
+tags:
+  - "sh-942"
+  - "stock-replenishment"
+  - "item-cost"
+parameters: []
+links:
+  jira:
+    - key: "SH-942"
+      url: "https://veevart.atlassian.net/browse/SH-942"
+      type: "story"
+  external: []
+estimatedDuration: 40
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-06-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-06-16T00:00:00Z"
+  version: 1
