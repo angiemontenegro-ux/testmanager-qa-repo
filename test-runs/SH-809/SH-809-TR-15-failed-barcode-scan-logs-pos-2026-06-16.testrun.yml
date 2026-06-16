@@ -3,359 +3,358 @@ id: "091866f0-ea72-416f-8e9f-60326a885804"
 key: "TR-15"
 title: "Run TP-1: SH-809 Add logs for failed barcode/QR scans when adding items to cart in POS"
 testPlanId: "2650c81c-c264-48ae-a2cf-e33e5fa636c2"
-status: pending
+status: planned
 environment:
   name: qa
   browser: brave
   os: macOS
   buildVersion: SH-809
-startedAt: "2026-06-16T00:00:00-05:00"
 results:
   - testCaseId: "58100b93-b62b-4d15-a43a-174856cf9bf1"
     testCaseKey: "TC-1"
     testCaseTitle: "Log creation on failed barcode/QR scan when adding item to cart in POS"
     testCaseFilePath: "test-cases/SH-809/SH-809-TC-1-failed-barcode-scan-logs-pos.testcase.yml"
-    status: pending
+    status: not-run
     duration: 0
     stepResults:
       - order: 1
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "A POS user (User ID: test-user-001) is logged in at Store ID: store-001, Register ID: reg-001"
         attachments: []
       - order: 2
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "Cart ID: cart-abc123 is open with at least one existing item"
         attachments: []
       - order: 3
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The device is online"
         attachments: []
       - order: 4
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "The user scans a barcode with an unrecognized format (raw payload: INVALID_BARCODE_001)"
         attachments: []
       - order: 5
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "POS displays an error message: Item not found. Please try again."
         attachments: []
       - order: 6
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "A log record is created in Salesforce within 5 seconds"
         attachments: []
       - order: 7
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains Timestamp with timezone (e.g., 2026-06-16T10:00:00-05:00)"
         attachments: []
       - order: 8
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains User ID: test-user-001 and Store ID: store-001, Register ID: reg-001"
         attachments: []
       - order: 9
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains Raw scanned payload: INVALID_BARCODE_001"
         attachments: []
       - order: 10
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains Error message shown to user plus internal error code or stack trace"
         attachments: []
       - order: 11
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains Cart ID: cart-abc123 and the current cart state (number of items, subtotal)"
         attachments: []
       - order: 12
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log field for Resolved SKU/Item ID is null (parsing failed before resolution)"
         attachments: []
       - order: 13
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains Device info: app version, OS, online_status: online"
         attachments: []
       - order: 14
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "A POS user is logged in with a valid session"
         attachments: []
       - order: 15
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "Cart ID: cart-xyz456 is open"
         attachments: []
       - order: 16
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The scanned QR code is syntactically valid but references SKU 99999 which does not exist in the catalog"
         attachments: []
       - order: 17
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "The user scans the QR code"
         attachments: []
       - order: 18
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "POS attempts catalog lookup and fails, displaying: Product not found in catalog"
         attachments: []
       - order: 19
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "A log record is created in Salesforce"
         attachments: []
       - order: 20
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains the raw QR payload before parsing failure"
         attachments: []
       - order: 21
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log contains Error message: Product not found in catalog and the internal lookup error code"
         attachments: []
       - order: 22
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The Resolved SKU/Item ID field contains 99999 (parsing succeeded; lookup failed)"
         attachments: []
       - order: 23
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "All other required fields (timestamp, user, store, cart, device) are populated"
         attachments: []
       - order: 24
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The barcode payload is valid and SKU is extracted successfully"
         attachments: []
       - order: 25
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The lookup to the inventory service fails after SKU resolution (e.g., timeout or HTTP 500)"
         attachments: []
       - order: 26
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "POS displays: Unable to add item. Service unavailable."
         attachments: []
       - order: 27
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "The scan flow completes SKU parsing but fails at the inventory lookup step"
         attachments: []
       - order: 28
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log record includes Resolved SKU/Item ID with the extracted SKU value"
         attachments: []
       - order: 29
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The internal error code reflects the inventory service failure (not a parse error)"
         attachments: []
       - order: 30
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The raw payload, cart state, and all other required fields are present in the log"
         attachments: []
       - order: 31
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The POS device is in offline mode (no network connectivity)"
         attachments: []
       - order: 32
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The user attempts a barcode scan to add an item to the cart"
         attachments: []
       - order: 33
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "POS displays an error indicating offline mode prevents item lookup"
         attachments: []
       - order: 34
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "The scan fails because the device cannot reach the backend"
         attachments: []
       - order: 35
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "A log record is created (or queued and synced when back online)"
         attachments: []
       - order: 36
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The log Device info field contains online_status: offline"
         attachments: []
       - order: 37
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "All other mandatory fields (timestamp, user, store, raw payload, error message, cart) are present"
         attachments: []
       - order: 38
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "The Salesforce logging endpoint is temporarily unavailable (simulated timeout or 503)"
         attachments: []
       - order: 39
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "A barcode scan failure occurs in POS"
         attachments: []
       - order: 40
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "POS attempts to write a log record and the write fails"
         attachments: []
       - order: 41
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The error message is still displayed to the user normally"
         attachments: []
       - order: 42
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "The POS cart remains stable - no crash, no freeze, no data loss"
         attachments: []
       - order: 43
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "No error about logging is surfaced to the end user"
         attachments: []
       - order: 44
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "A console/backend error is emitted silently for internal monitoring"
         attachments: []
       - order: 45
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "A scan failure occurs under any condition (invalid format, not found, offline, etc.)"
         attachments: []
       - order: 46
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "The log record is written to Salesforce"
         attachments: []
       - order: 47
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Timestamp, User ID, Store ID, Register ID, Raw payload, and Error message are never null or empty string"
         attachments: []
       - order: 48
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Cart ID is present if a cart was open; otherwise the field is explicitly set to null (not omitted)"
         attachments: []
       - order: 49
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Device info fields (app version, OS) are populated from the device session context"
         attachments: []
       - order: 50
-        status: pending
+        status: not-run
         actual: ""
         phase: given
         text: "At least 3 log records exist for different users, stores, and dates"
         attachments: []
       - order: 51
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "A support engineer queries logs filtering by User ID: test-user-001"
         attachments: []
       - order: 52
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "A support engineer queries logs filtering by Store ID: store-001"
         attachments: []
       - order: 53
-        status: pending
+        status: not-run
         actual: ""
         phase: when
         text: "A support engineer queries logs filtering by a specific date range (last 7 days)"
         attachments: []
       - order: 54
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Only records matching User ID: test-user-001 are returned in the first query"
         attachments: []
       - order: 55
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Only records matching Store ID: store-001 are returned in the second query"
         attachments: []
       - order: 56
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Only records within the date range are returned in the third query"
         attachments: []
       - order: 57
-        status: pending
+        status: not-run
         actual: ""
         phase: then
         text: "Combined filters (User ID + Store ID + date range) return the correct intersection"
@@ -363,7 +362,6 @@ results:
     notes: ""
     attachments: []
     defects: []
-    executedAt: ""
 summary:
   total: 1
   passed: 0
