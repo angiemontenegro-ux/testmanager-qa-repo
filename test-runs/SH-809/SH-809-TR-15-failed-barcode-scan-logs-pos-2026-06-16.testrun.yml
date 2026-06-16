@@ -57,7 +57,7 @@ results:
         status: not-run
         actual: ""
         phase: then
-        text: "The log contains Timestamp with timezone (e.g., 2026-06-16T10:00:00-05:00)"
+        text: "The log contains Timestamp with timezone (e.g., 2026-06-16T10:00:00Z)"
         attachments: []
       - order: 8
         status: not-run
@@ -372,10 +372,10 @@ summary:
   passRate: 0
 history:
   - action: created
-    timestamp: "2026-06-16T00:00:00-05:00"
+    timestamp: "2026-06-16T00:00:00Z"
     user: codex
 metadata:
   createdBy: codex
-  createdAt: "2026-06-16T00:00:00-05:00"
+  createdAt: "2026-06-16T00:00:00Z"
   updatedBy: codex
-  updatedAt: "2026-06-16T00:00:00-05:00"
+  updatedAt: "2026-06-16T00:00:00Z"
