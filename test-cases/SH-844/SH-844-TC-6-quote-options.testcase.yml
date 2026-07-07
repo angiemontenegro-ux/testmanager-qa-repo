@@ -1,0 +1,50 @@
+schemaVersion: "1.0"
+id: "bfad068f-6dd4-4206-9807-b017a4b5aded"
+key: "TC-6"
+title: "Discount quote / offer preview"
+description: "QA coverage for SH-844 POST /discounts/quote-options: returns candidate offers for an item with the full quote_option shape, and surfaces conditional offers (e.g. Membership Benefit) with an applicability_note when the buyer does not yet meet the condition."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discounts Engine is reachable and quote-options is synchronous and read-only (never mutates current_usage)."
+scenarios:
+  - title: "Quote returns applicable offers for an item"
+    tags:
+      - "happy-path"
+      - "quote"
+    given:
+      - "an item in the catalog, a quote context with channel = Online, and two Active promotions A and B that apply to that item"
+    when:
+      - "the caller invokes POST /discounts/quote-options"
+    then:
+      - "the engine returns 200 with a quote_option for each of A and B"
+      - "each quote_option includes promotion_id, description, promotion_type, percentage, quoted_final_value, and applicability_note (nullable)"
+  - title: "Quote returns conditional offers with an applicability note"
+    tags:
+      - "edge-case"
+      - "quote"
+    given:
+      - "the buyer is not a member and a Membership Benefit promotion M would apply if the buyer were a member"
+    when:
+      - "the caller invokes quote-options for an item M targets"
+    then:
+      - "the response includes a conditional quote_option for M with applicability_note = Available with active membership"
+tags:
+  - "sh-844"
+  - "quote-options"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
