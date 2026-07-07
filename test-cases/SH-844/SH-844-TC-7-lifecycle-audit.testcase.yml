@@ -1,0 +1,63 @@
+schemaVersion: "1.0"
+id: "61261465-67cd-46b6-a03f-c8c0e1116f0a"
+key: "TC-7"
+title: "Discount lifecycle & field-level audit"
+description: "QA coverage for SH-844 lifecycle and audit: archiving excludes a promotion from evaluate/quote candidate sets while preserving historical logs, reactivation re-validates the full payload against current rules, and tracked-field changes write field_history_records rows surfaced by the History view."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discounts Engine is reachable and field_history_records backs the discount detail History view."
+scenarios:
+  - title: "Archive a promotion"
+    tags:
+      - "happy-path"
+      - "lifecycle"
+    given:
+      - "an Active promotion exists"
+    when:
+      - "the admin sets status to Archived"
+    then:
+      - "the engine marks the promotion Archived and excludes it from evaluate and quote-options candidate sets"
+      - "historical evaluate logs referring to it remain intact"
+  - title: "Reactivate a promotion re-validates the full payload"
+    tags:
+      - "edge-case"
+      - "lifecycle"
+    given:
+      - "a promotion has status Draft or Archived"
+    when:
+      - "the admin sets status to Active"
+    then:
+      - "the engine re-validates the full payload against current rules"
+      - "the promotion becomes Active only when all validations pass"
+  - title: "Field-level audit on tracked fields"
+    tags:
+      - "happy-path"
+      - "audit"
+    given:
+      - "a Promotion exists"
+    when:
+      - "any tracked field (status, percentage, customer_facing_code, applicable_modules, rules, restrictions, current_usage) is Created / Updated / Deleted"
+    then:
+      - "the engine writes a field_history_records row with record id, object type, field name, old value, new value, acting user, and timestamp"
+      - "the History view on the discount detail page reads from field_history_records"
+tags:
+  - "sh-844"
+  - "lifecycle"
+  - "audit"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
