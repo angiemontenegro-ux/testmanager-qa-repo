@@ -1,0 +1,104 @@
+schemaVersion: "1.0"
+id: "d3754bb7-e8b0-48ba-b04b-705c4e1f7526"
+key: "TC-8"
+title: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+description: "Scenarios sourced from the Notion Gherkin doc that describe an ASPIRATIONAL / V2 design and do NOT match SH-844 (V1). Kept for traceability only. Per the Technical Contract, confirm activation and STACKED are V2, and V1 stacking is exclusive (highest wins), not additive. DO NOT run against V1 — these will fail by design. Status is draft; activate per-scenario only when the matching V2 story ships."
+type: "functional"
+priority: "low"
+status: "draft"
+format: "gherkin"
+preconditions:
+  - "Do not execute against the V1 engine. These document V2 behavior only."
+  - "V1 source of truth is SH-844; on any conflict SH-844 wins."
+scenarios:
+  - title: "[V2] Additive stacking of two stackable codes"
+    tags:
+      - "v2"
+      - "out-of-scope-v1"
+      - "stacking"
+    given:
+      - "two stackable codes of 10% and 5% on a $100 ticket line"
+    when:
+      - "both are applied"
+    then:
+      - "the total discount is $15 additive (not $14.50 compound)"
+      - "CONTRADICTS V1: SH-844 stacking is exclusive (highest single discount wins). V2 only."
+  - title: "[V2] confirmDiscountUsage transitions Resolved to Confirmed (idempotent)"
+    tags:
+      - "v2"
+      - "out-of-scope-v1"
+      - "counter-lifecycle"
+    given:
+      - "a discount usage in state Resolved for an order"
+    when:
+      - "confirmDiscountUsage is called (and called again)"
+    then:
+      - "the counter moves Resolved -> Confirmed and repeat calls are idempotent"
+      - "NOT IN V1: SH-844 has no Resolved/Confirmed pre-reservation lifecycle; current_usage increments on confirmed redemption. V2 only."
+  - title: "[V2] reverseDiscountUsage transitions Resolved to Reverted and frees quota (idempotent)"
+    tags:
+      - "v2"
+      - "out-of-scope-v1"
+      - "counter-lifecycle"
+    given:
+      - "a discount usage in state Resolved"
+    when:
+      - "reverseDiscountUsage is called (and called again)"
+    then:
+      - "the counter moves Resolved -> Reverted, quota is freed, and repeat calls are idempotent"
+      - "NOT IN V1 as framed: SH-844 refunds/voids do NOT decrement current_usage. V2 only."
+  - title: "[V2] Counter state machine Available/Resolved/Confirmed/Reverted/Exhausted"
+    tags:
+      - "v2"
+      - "out-of-scope-v1"
+      - "counter-lifecycle"
+    given:
+      - "a new code with overallUsage max=1"
+    when:
+      - "clients apply, confirm, revert, and exhaust the code"
+    then:
+      - "the counter walks Available -> Resolved -> Confirmed/Reverted, reaching Exhausted at the max"
+      - "NOT IN V1: SH-844 uses a simple current_usage counter. V2 only."
+  - title: "[V2] applyCustomerCode pre-reserves a slot before confirmation"
+    tags:
+      - "v2"
+      - "out-of-scope-v1"
+      - "api-surface"
+    given:
+      - "a customer-facing code with remaining quota"
+    when:
+      - "applyCustomerCode is invoked"
+    then:
+      - "a slot is pre-reserved (Resolved) and usage errors (ALREADY_USED / USAGE_LIMIT / TICKET_LIMIT) are surfaced"
+      - "NOT IN V1: SH-844 exposes POST /discounts/evaluate and /discounts/quote-options, not applyCustomerCode. V2 only."
+  - title: "[V2] checkCustomerFacingCodeAvailability is a pure read (no quota consumed)"
+    tags:
+      - "v2"
+      - "out-of-scope-v1"
+      - "api-surface"
+    given:
+      - "a code with overallUsage max=1 and current=0"
+    when:
+      - "availability is checked repeatedly"
+    then:
+      - "available=true/false is returned with a reason and no counter is modified"
+      - "NOT IN V1: no equivalent endpoint in SH-844. V2 only."
+tags:
+  - "sh-844"
+  - "v2"
+  - "out-of-scope-v1"
+  - "traceability"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
