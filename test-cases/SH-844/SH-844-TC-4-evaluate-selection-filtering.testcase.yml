@@ -1,0 +1,138 @@
+schemaVersion: "1.0"
+id: "32e90479-11e7-4a0b-8513-1fafe5e17f46"
+key: "TC-4"
+title: "Discount evaluation — selection, stacking & candidate filtering"
+description: "QA coverage for SH-844 POST /discounts/evaluate: single-discount application, exclusive best-for-user stacking (highest effective discount wins, no additive stacking), tie behavior, and candidate filtering by members-only, channel, mixed application_mode per-line constraint, date/time, email domain, POS reason gate, and usage limits."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discounts Engine is reachable and evaluation is synchronous via POST /discounts/evaluate."
+  - "Stacking policy is exclusive: the engine returns exactly one selected outcome, never an additive combination (V1)."
+scenarios:
+  - title: "Evaluate a single percent discount at checkout"
+    tags:
+      - "happy-path"
+      - "evaluate"
+    given:
+      - "an Active Discount Code promotion SAVE20 with percentage = 20"
+      - "the buyer's cart contains 1 Ticketing line at $100 and the request channel is Online"
+    when:
+      - "the caller invokes POST /discounts/evaluate with code = SAVE20 and the cart context"
+    then:
+      - "the engine returns 200 with selected_promotion_id = SAVE20 and effective_discount = 20.00"
+      - "the response includes a per-item breakdown showing 20.00 applied to the ticket line"
+  - title: "Stacking is exclusive — highest effective discount wins"
+    tags:
+      - "happy-path"
+      - "stacking"
+    given:
+      - "two eligible promotions A (item-level, $5 off item 1) and B (order-level, 10% of the $200 subtotal = $20)"
+    when:
+      - "the caller invokes evaluate"
+    then:
+      - "the engine selects B and returns selected_promotion_id = B.id"
+      - "the engine returns only one selected outcome (no additive stacking)"
+  - title: "Tie behavior returns a single arbitrary selection"
+    tags:
+      - "edge-case"
+      - "stacking"
+    given:
+      - "two eligible promotions produce exactly the same effective_discount"
+    when:
+      - "the caller invokes evaluate"
+    then:
+      - "the engine selects one of them and always names a single selected_promotion_id (never null when at least one applies)"
+  - title: "Members Only restriction excludes non-members"
+    tags:
+      - "negative"
+      - "filter"
+    given:
+      - "an Active promotion with members_only = true and a buyer who is not a member"
+    when:
+      - "the caller invokes evaluate"
+    then:
+      - "the promotion is excluded from the candidate set before any computation"
+  - title: "Channel filtering — POS-only promotion is not selectable online"
+    tags:
+      - "filter"
+      - "channels"
+    given:
+      - "an Active promotion with resolved posAvailable = true and onlineAvailable = false, request channel = Online"
+    when:
+      - "the caller invokes evaluate"
+    then:
+      - "the promotion is excluded from the candidate set and never returned as selected"
+  - title: "Mixed promotion — application_mode constrains the Ticketing line at evaluation"
+    tags:
+      - "edge-case"
+      - "application-mode"
+    given:
+      - "an Active mixed promotion with resolved Online = true and POS = true, one Ticketing rule application_mode = Code Required, and one Shop rule"
+    when:
+      - "the caller invokes evaluate at POS with a cart containing one Ticketing line and one Shop line"
+    then:
+      - "the Shop line is eligible but the Ticketing line is NOT (Code Required restricts it to Online)"
+      - "evaluating Online with the same cart makes both lines eligible"
+  - title: "Date/time range and specific-allowed-dates restrictions filter candidates"
+    tags:
+      - "filter"
+      - "restrictions"
+    given:
+      - "an Active promotion restricted to Apr 1 - May 31, Mon/Wed/Fri, 10:00-18:00 (range mode), and another restricted to specific date 2026-05-22"
+    when:
+      - "the caller invokes evaluate outside the window / on a non-listed date"
+    then:
+      - "the promotion is excluded; evaluating inside the window or on 2026-05-22 keeps it in the candidate set"
+  - title: "Email-domain restriction applies online only"
+    tags:
+      - "filter"
+      - "restrictions"
+    given:
+      - "an Active online-only promotion with allowed_email_domains = [example.org]"
+    when:
+      - "the caller invokes evaluate online with buyer email user@other.com"
+    then:
+      - "the promotion is excluded with reason code EMAIL_DOMAIN_NOT_ALLOWED; user@example.org keeps it in the candidate set"
+  - title: "POS reason gate does not silently substitute a promotion"
+    tags:
+      - "negative"
+      - "restrictions"
+    given:
+      - "an Active promotion with pos_require_discount_reason = true and request channel = POS"
+    when:
+      - "the caller invokes evaluate without a reason field"
+    then:
+      - "the engine returns the promotion as not applied with reason code POS_REASON_REQUIRED and does not substitute a different promotion"
+      - "supplying a non-empty reason puts the promotion back in the candidate set"
+  - title: "Usage limits block evaluate"
+    tags:
+      - "negative"
+      - "usage"
+    given:
+      - "an Active promotion with per_person_usage_limit = 1 already redeemed once by the buyer, and another with overall_usage_limit = 100 and current_usage = 100"
+    when:
+      - "the caller invokes evaluate"
+    then:
+      - "the first is excluded with reason code PER_PERSON_LIMIT_REACHED"
+      - "the second is excluded with reason code OVERALL_LIMIT_REACHED"
+tags:
+  - "sh-844"
+  - "discount-evaluate"
+  - "stacking"
+  - "filtering"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 55
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
