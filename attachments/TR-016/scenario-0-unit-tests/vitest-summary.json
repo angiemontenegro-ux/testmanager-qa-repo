@@ -1,0 +1,27 @@
+{
+  "numTotalTests": 1013,
+  "numPassedTests": 994,
+  "numFailedTests": 19,
+  "numTotalTestSuites": 302,
+  "failedTests": [
+    "DiscountsACLPlugin \u2014 registry integration manifest YAML parses with the expected pluginId + counts",
+    "DiscountsACLPlugin \u2014 registry integration PluginRegistry bootstrap passes all validations (manifest \u2194 code parity)",
+    "DiscountsACLPlugin \u2014 registry integration resolve() returns the matching translator for each (eventType, aws-to-sf)",
+    "DiscountsACLPlugin \u2014 registry integration manifest \u2194 code parity: syncContracts match",
+    "DiscountsACLPlugin \u2014 registry integration manifest \u2194 code parity: ownedConcepts match",
+    "DiscountsEngineController \u2014 POST /discounts/benefit-offers returns 400 when eventId is missing",
+    "DiscountsEngineController \u2014 POST /discounts/benefit-offers returns 400 when currency is missing",
+    "DiscountsEngineController \u2014 POST /discounts/benefit-offers returns 400 when audiences is missing",
+    "DiscountsEngineController \u2014 POST /discounts/benefit-offers returns 400 when audiences contains entry with missing audienceTypeId",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 when customerId is missing",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 when amountMinorUnits is a float",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 when amountMinorUnits is negative (C1)",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 when amountMinorUnits exceeds the max (C1)",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 when quantity is 0 (C1)",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 when the cart exceeds the array max (C2)",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 for an unknown top-level field (C3 \u2014 forbidNonWhitelisted)",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate returns 400 for an unknown field inside a cart line (C3 \u2014 forbidNonWhitelisted)",
+    "DiscountsEngineController (E2E) POST /discounts/evaluate rejects a body that tries to inject evaluatedAt (SEC \u2014 forbidNonWhitelisted)",
+    "DiscountsEngineController (E2E) POST /discounts/quote-options returns 400 when body is invalid"
+  ]
+}

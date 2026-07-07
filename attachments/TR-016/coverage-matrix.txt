@@ -1,0 +1,41 @@
+SH-844 — Scenario verdict matrix (57 scenarios) — acceptance validation of MERGED code
+Legend: PASS / FAIL / SKIP(V2)
+
+TC-1 Authoring application_mode & channels (7): 6 PASS / 1 FAIL
+  0 FAIL  Non-Ticketing rule w/ application_mode rejected  -> INTENTIONAL SH-916 deviation (silently dropped; code _FOR_MODULE not exist)
+  1 PASS  Ticketing missing application_mode -> APPLICATION_MODE_REQUIRED_FOR_TICKETING
+  2 PASS  Ticketing invalid application_mode -> APPLICATION_MODE_INVALID_VALUE
+  3 PASS  Ticketing-only derives channels from application_mode
+  4 PASS  Non-Ticketing takes channels from Step 3
+  5 PASS  No channel enabled -> CHANNEL_REQUIRED
+  6 PASS  Mixed: validates application_mode on Ticketing, channels from Step 3
+
+TC-2 Authoring validation/persistence (9): 9 PASS
+
+TC-3 Ticketing restrictions (8): 8 PASS
+
+TC-4 Evaluate selection/filtering (10): 8 PASS / 2 FAIL
+  5 FAIL  Mixed application_mode constrains Ticketing line at eval -> GAP: evaluate has no POS channel / Shop line / per-line application_mode
+  8 FAIL  POS reason gate -> GAP: no POS_REASON_REQUIRED code, evaluate has no POS channel
+
+TC-5 Usage counting/redemption (7): 6 PASS / 1 FAIL
+  5 FAIL  Engine failure contract -> GAP: unexpected internal errors fall to NestJS 500 without {error_code,request_id}
+
+TC-6 Quote-options (2): 0 PASS / 2 FAIL
+  0 FAIL  Contract drift: response lacks description/promotion_type/percentage/applicability_note (never in V1)
+  1 FAIL  No conditional-offer/applicability_note concept; Membership Benefit dropped for non-member
+
+TC-7 Lifecycle/audit (3): 1 PASS / 2 FAIL
+  1 FAIL  Reactivate Archived->Active -> INTENTIONAL deviation (recreate instead)
+  2 FAIL  Field-level audit: write OK+tested, but no History read endpoint/UI (BE+FE)
+
+TC-8 V2 counter/lifecycle/stacking (6): 6 SKIP  (testcase DRAFT: 'DO NOT run against V1' - V2 out of scope)
+
+TC-9 Known API bugs watchlist (5): 4 PASS / 1 FAIL
+  0 PASS  BUG-001 cross-tenant leak -> RESOLVED (SH-866 auth rewrite; JWT tenant; 401 when missing) [was CRITICAL]
+  1 PASS  BUG-002 body tenant ignored -> correct
+  2 PASS  BUG-003 GET /promotions/:id -> implemented (fixed)
+  3 FAIL  BUG-004 addRule 200 vs 201 -> still deviates (intentional, low severity)
+  4 PASS  BUG-005 response omits rules/restrictions -> fixed
+
+TOTAL: 42 PASS · 9 FAIL · 6 SKIP · passRate 74%

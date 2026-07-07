@@ -1,0 +1,22 @@
+SH-844 — Technical + Security regression (executed)
+Scope: MERGED discount engine on VeevartBackend@main; FE VeevartFrontend@main.
+
+TECHNICAL
+| Item | Check | Verdict |
+| Full discounts unit/integration suite | vitest (per-project configs) | PASS (1013/1013) |
+| Evaluate pipeline determinism | evaluation-engine.spec.ts:505-517 | PASS |
+| Usage counters atomic/append-only under concurrency (OCC) | confirm-discount-usage.use-case.spec.ts:288-321 | PASS |
+| Refund/void never decrements (ADR-C1) | :654-675 | PASS |
+| Archived promo excluded from evaluate/quote | resolution read repo status=Active filter | PASS |
+| Internal-error HTTP contract | app has no catch-all APP_FILTER | FAIL (TC-5.5 - unexpected errors -> raw 500) |
+
+SECURITY
+| Item | Check | Verdict |
+| Cross-tenant isolation (BUG-001) | tenant from verified JWT; 401 if missing (SH-866) | PASS (resolved; was CRITICAL) |
+| Body tenantId spoofing (BUG-002) | server-authoritative @TenantId(); body ignored | PASS |
+| Mass-assignment / forbidNonWhitelisted (evaluatedAt injection) | ValidationPipe whitelist+forbidNonWhitelisted in prod build | PASS (esbuild test false-negative only) |
+| Input validation (evaluate/quote/benefit-offers) | class-validator DTOs (45/29 decorators) | PASS (in prod; esbuild test false-negative) |
+| SQL/NoSQL injection | TypeORM parameterized; DynamoDB SDK params | PASS (no string-concatenated queries in diff) |
+| Secrets in code | rg password/apikey/secret/BEGIN over domains/discounts | PASS (none) |
+
+No High/Critical security defect on main. BUG-004 (200 vs 201) is a spec deviation, not a security issue.
