@@ -1,0 +1,121 @@
+schemaVersion: "1.0"
+id: "0e2657e6-0d6c-4b51-bddf-b74efb44863c"
+key: "TC-3"
+title: "Discount authoring — Ticketing constraints & restrictions"
+description: "QA coverage for SH-844: Ticketing-specific rule constraints (All Events exclusivity on create and update, audience vs ticket-types mutual exclusion) and the restriction rules coupled to the resolved channels — Allowed Email Domains, POS Require Discount Reason, date-mode exclusivity, and the deterministic Nth-weekday date generator."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts and the Discounts Engine is reachable."
+  - "Restriction rules operate on the resolved promotion-level channels (whether derived from application_mode or from Step 3 toggles)."
+scenarios:
+  - title: "Ticketing All Events rule is exclusive on create"
+    tags:
+      - "negative"
+      - "ticketing"
+    given:
+      - "the admin submits a Ticketing rule with event = ALL_EVENTS"
+    when:
+      - "the payload also includes any other Ticketing rule"
+    then:
+      - "the engine returns 400 with error code TICKETING_ALL_EVENTS_MUST_BE_ONLY_RULE"
+      - "a single Ticketing rule with event = ALL_EVENTS is accepted"
+  - title: "Adding a second Ticketing rule after an All-Events rule is rejected"
+    tags:
+      - "negative"
+      - "ticketing"
+      - "edit"
+    given:
+      - "a saved promotion already has a Ticketing rule with event = ALL_EVENTS"
+    when:
+      - "the admin submits an update that adds another Ticketing rule"
+    then:
+      - "the engine returns 400 with error code TICKETING_ALL_EVENTS_MUST_BE_ONLY_RULE and no new rule is persisted"
+  - title: "All-Events cannot be added when specific Ticketing rules exist"
+    tags:
+      - "negative"
+      - "ticketing"
+      - "edit"
+    given:
+      - "a saved promotion already has at least one Ticketing rule referencing a specific event"
+    when:
+      - "the admin submits an update that adds a Ticketing rule with event = ALL_EVENTS"
+    then:
+      - "the engine returns 400 with error code TICKETING_ALL_EVENTS_NOT_ALLOWED_WITH_SPECIFIC_RULES and no new rule is persisted"
+  - title: "Ticketing rule audience and ticket types are mutually exclusive"
+    tags:
+      - "negative"
+      - "ticketing"
+    given:
+      - "the admin submits a Ticketing rule"
+    when:
+      - "the rule includes both audience_type and ticket_type_ids"
+    then:
+      - "the engine returns 400 with error code TICKETING_AUDIENCE_TICKETTYPE_EXCLUSIVE"
+      - "the engine does not persist any record"
+  - title: "Allowed Email Domains require Online and forbid POS"
+    tags:
+      - "negative"
+      - "restrictions"
+    given:
+      - "the admin submits a discount payload with allowed_email_domains non-empty"
+    when:
+      - "the resolved channels.onlineAvailable = false"
+    then:
+      - "the engine returns 400 with error code EMAIL_DOMAINS_REQUIRE_ONLINE"
+      - "when resolved posAvailable = true the engine returns 400 EMAIL_DOMAINS_NOT_ALLOWED_WITH_POS"
+      - "only when online = true and pos = false does the engine accept allowed_email_domains"
+  - title: "POS Require Discount Reason is gated by POS availability"
+    tags:
+      - "negative"
+      - "restrictions"
+    given:
+      - "the admin submits a discount payload with pos_require_discount_reason = true"
+    when:
+      - "the resolved channels.posAvailable = false"
+    then:
+      - "the engine returns 400 with error code POS_REASON_REQUIRES_POS_CHANNEL"
+      - "when posAvailable = true the engine accepts pos_require_discount_reason"
+  - title: "Date mode is exclusive"
+    tags:
+      - "negative"
+      - "restrictions"
+    given:
+      - "the admin submits a discount payload"
+    when:
+      - "date_time_mode = DATE_TIME_RANGES while specific_allowed_dates is non-empty (or the inverse)"
+    then:
+      - "the engine returns 400 with error code DATE_MODE_CONFLICT"
+  - title: "Nth-weekday generator returns deterministic dates"
+    tags:
+      - "happy-path"
+      - "edge-case"
+      - "restrictions"
+    given:
+      - "the admin requests Nth-weekday generation with occurrence = Third, weekday = Friday, months_ahead = 12"
+    when:
+      - "the engine generates the dates"
+    then:
+      - "the engine returns 12 ascending dates, one per month, all matching the third-Friday rule"
+      - "the engine deduplicates against dates the caller already holds and does not mutate the Promotion record"
+tags:
+  - "sh-844"
+  - "discount-authoring"
+  - "ticketing"
+  - "restrictions"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 40
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
