@@ -6,14 +6,18 @@ status: completed
 environment:
   name: qa
   buildVersion: 'Backend TypeScript/NestJS (VeevartBackend@main domains/discounts) - acceptance validation of MERGED SH-844 discount engine; frontend (VeevartFrontend@main) checked for History view. Executed via vitest suite (994/994 relevant pass under project configs) + static code+spec mapping. Clasificacion: Pipeline/Backend (Mixed BE+FE check).'
+notes: "## Solution understood\nSH-844 shipped a hexagonal Discount Engine in VeevartBackend (domains/discounts) covering authoring (Promotion aggregate + ~14 guards), evaluation (9-stage pipeline, exclusive highest-wins selection), usage counting (event-sourced, increment-only, OCC), quote-options, benefit-offers and lifecycle/audit. Validated the MERGED code on main (no single PR - SH-844 is a multi-PR epic).\n\n## Test evidence\nRan the discounts vitest suite: 994 tests pass under the projects' intended configs. 19 tests that initially failed when the whole tree was forced through the ROOT vitest.config.ts were proven to be TEST-TOOLING ARTIFACTS, not product defects:\n - 14 controller-validation specs (evaluate/quote-options/benefit-offers) fail under esbuild because esbuild does not emit design:paramtypes, so Nest ValidationPipe cannot resolve the @Body() metatype and skips validation. Under swc (decoratorMetadata:true) all 23+22 pass. Production build (tsc) emits metadata, so validation\
+  \ returns 400 correctly.\n - 5 ACL plugin specs fail only when run from the workspace root (relative path src/manifest.yaml); from the ACL package root with its own vitest.config.mts all 9 pass.\nNet: no SH-844 business-logic regression in the failing tests.\n\n## Verdict categories for the 9 FAIL scenarios\nIntentional/documented deviations (align testcase, not defects): TC-1.0 (SH-916 drop application_mode), TC-7.1 (no Archived->Active reactivation), TC-9.3/BUG-004 (200 vs 201 on addRule).\nTestcase-vs-contract drift (fix testcase): TC-6.0, TC-6.1 (quote-options shape + conditional-offer concept never in V1).\nGenuine gaps worth a ticket: TC-4.5 & TC-4.8 (evaluate has no POS channel / Shop line / per-line application_mode - likely V2), TC-5.5 (no structured envelope for unexpected internal errors -> 500), TC-7.2 (field_history write exists but no History read endpoint/UI).\nOut of scope by design (skipped): TC-8.0-5 = V2 counter/lifecycle/stacking; testcase is DRAFT and states 'DO NOT\
+  \ run against V1'.\n\n## Security / OWASP\nCRITICAL watchlist item BUG-001 (cross-tenant leak on missing x-tenant-id) is RESOLVED by the SH-866 auth rewrite (tenant derived from verified JWT; 401 when absent). No High/Critical security defect found on main. OWASP A01 (access control) PASS; A03 (injection) PASS in production build. See attachments/regression-results.txt + owasp-top10-scan.txt.\n\n## LIMITATION\nAtlassian MCP is not authenticated in this non-interactive session: Jira ticket SH-844 could not be fetched and defects could not be auto-created. All FAILs are documented here with evidence for the user to open tickets. Executed against merged main, not a single PR.\n\n## Refresh 2026-07-07T19:35Z\nRegenerated after TC-1/TC-6/TC-7 were aligned to shipped V1 behavior (testcases v2). Four scenarios that were red only due to testcase drift/intentional deviations now PASS (TC-1.0, TC-6.0, TC-6.1, TC-7.1). Remaining 5 FAIL are genuine gaps: TC-4.5 & TC-4.8 (no POS channel/Shop line at\
+  \ evaluate), TC-5.5 (internal-error contract), TC-7.2 (audit read/History UI missing)."
 results:
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
   testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
-  scenarioTitle: Non-Ticketing rule carrying application_mode is rejected
+  scenarioTitle: Non-Ticketing rule carrying application_mode is accepted and the field is dropped
   scenarioIndex: 0
-  status: failed
+  status: passed
   stepResults:
   - order: 1
     status: passed
@@ -26,16 +30,22 @@ results:
     phase: when
     text: any Memberships, Shop, Courses/Camps, Groups, or Rentals rule includes an application_mode field
   - order: 3
-    status: failed
-    actual: Ver 'then' final
+    status: passed
+    actual: OK
     phase: then
-    text: the engine returns 400 with error code APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE
+    text: the engine accepts the payload (application_mode is only meaningful on Ticketing rules per Rule 0)
   - order: 4
-    status: failed
-    actual: El motor acepta el payload y descarta silenciosamente el applicationMode en reglas no-Ticketing en lugar de rechazarlo con 400.
+    status: passed
+    actual: OK
     phase: then
-    text: the engine does not persist any record
-  notes: 'FAIL — Desviacion INTENCIONAL (SH-916). guardApplicationModeConformance (shared/domain/aggregates/promotion-guards.ts:270-285) hace ''continue'' para reglas no-Ticketing; el codigo APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE no existe en domain.errors.ts. Pinned por promotion.g05.spec.ts:301-322 (not.toThrow). Recomendacion: alinear el testcase o reabrir la decision SH-916.'
+    text: the engine silently drops application_mode on the non-Ticketing rule and persists the record without it
+  - order: 5
+    status: passed
+    actual: El motor acepta el payload y descarta silenciosamente application_mode en la regla no-Ticketing; no lanza error (desviacion intencional SH-916).
+    phase: then
+    text: no APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE error is raised — intentional SH-916 deviation from SH-844's literal wording (adopted to avoid a frontend/backend deploy deadlock) pinned by promotion.g05.spec.ts
+  notes: PASS — comportamiento real V1 (testcase v2 alineado). guardApplicationModeConformance (promotion-guards.ts:270-285); spec promotion.g05.spec.ts:301-322 (not.toThrow).
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -58,7 +68,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
@@ -88,6 +97,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:277-280; domain.errors.ts:135-142; spec promotion.g05.spec.ts:264-282.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -110,7 +120,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
@@ -140,6 +149,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:281-283; domain.errors.ts:148-155; spec promotion.g05.spec.ts:284-299.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -162,7 +172,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
@@ -202,6 +211,7 @@ results:
     phase: then
     text: the payload's explicit Step 3 channel values, if any, are ignored
   notes: PASS — promotion-channel-resolution.ts:30-105; spec promotion.g05.spec.ts:12-121.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -224,7 +234,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
@@ -249,6 +258,7 @@ results:
     phase: then
     text: the engine accepts those Step 3 values as the source of truth for the promotion's channels
   notes: PASS — promotion-channel-resolution.ts:93-99; spec promotion.g05.spec.ts:123-149.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -271,7 +281,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
@@ -301,6 +310,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-channel-resolution.ts:94-97; domain.errors.ts:122-129; spec promotion.g05.spec.ts:151-168.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -323,7 +333,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
   testCaseKey: TC-1
   testCaseTitle: Discount authoring — application_mode & channel source of truth
@@ -358,6 +367,7 @@ results:
     phase: then
     text: if the Ticketing rule omits application_mode the engine returns 400 APPLICATION_MODE_REQUIRED_FOR_TICKETING
   notes: PASS — promotion.ts:372-382; promotion-guards.ts:270-276; repo persiste applicationMode solo en Ticketing.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -380,7 +390,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -420,6 +429,7 @@ results:
     phase: then
     text: status = Active is stored when explicitly set and created_at / updated_at are recorded
   notes: PASS — promotion.ts:399-434; create-promotion.use-case.ts:60-70; specs create-promotion.spec.ts:55-63, promotion.happy-path.spec.ts.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -442,7 +452,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -472,6 +481,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:41-51; domain.errors.ts:17-33; spec promotion.g01.spec.ts:10-32.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -494,7 +504,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -524,6 +533,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:54-58; spec promotion.g02.spec.ts:17-39.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -546,7 +556,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -576,6 +585,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:112-116; spec promotion.g04.spec.ts:7-14.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -598,7 +608,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -628,6 +637,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:119-128; spec promotion.g06.spec.ts:8-26.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -650,7 +660,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -680,6 +689,7 @@ results:
     phase: then
     text: if the submitted code already exists in the tenant the engine returns 409 CUSTOMER_FACING_CODE_TAKEN
   notes: PASS — promotion-guards.ts:90-96; create-promotion.use-case.ts:60-70; specs promotion.g03.spec.ts, create-promotion.spec.ts:141-152.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -702,7 +712,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -732,6 +741,7 @@ results:
     phase: then
     text: when no Ticketing rule needs a code, customer_facing_code is optional and the engine accepts the payload either way
   notes: PASS — promotion-guards.ts:98-108; spec promotion.g03.spec.ts:25-44.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -754,7 +764,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -789,6 +798,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:66-88; spec promotion.g03.spec.ts:46-104.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -811,7 +821,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
   testCaseKey: TC-2
   testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
@@ -841,6 +850,7 @@ results:
     phase: then
     text: the engine does not persist the code until the discount is saved
   notes: PASS — generate-customer-facing-code.use-case.ts:36-75; spec generate-code.spec.ts:21-39.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -863,7 +873,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -893,6 +902,7 @@ results:
     phase: then
     text: a single Ticketing rule with event = ALL_EVENTS is accepted
   notes: PASS — promotion-guards.ts:131-139; domain.errors.ts:170-177; spec promotion.g07.spec.ts:11-52.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -915,7 +925,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -940,6 +949,7 @@ results:
     phase: then
     text: the engine returns 400 with error code TICKETING_ALL_EVENTS_MUST_BE_ONLY_RULE and no new rule is persisted
   notes: PASS — promotion-guards.ts:147-163; add-rule.use-case.ts:24-26; spec promotion.g07.spec.ts:54-77.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -962,7 +972,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -987,6 +996,7 @@ results:
     phase: then
     text: the engine returns 400 with error code TICKETING_ALL_EVENTS_NOT_ALLOWED_WITH_SPECIFIC_RULES and no new rule is persisted
   notes: PASS — promotion-guards.ts:147-163; domain.errors.ts:179-186; spec promotion.g07.spec.ts:79-102.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1009,7 +1019,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -1039,6 +1048,7 @@ results:
     phase: then
     text: the engine does not persist any record
   notes: PASS — promotion-guards.ts:166-176; spec promotion.g08.spec.ts:8-26.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1061,7 +1071,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -1096,6 +1105,7 @@ results:
     phase: then
     text: only when online = true and pos = false does the engine accept allowed_email_domains
   notes: PASS — promotion-guards.ts:179-188; domain.errors.ts:201-217; spec promotion.g09.spec.ts:11-72.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1118,7 +1128,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -1148,6 +1157,7 @@ results:
     phase: then
     text: when posAvailable = true the engine accepts pos_require_discount_reason
   notes: PASS — promotion-guards.ts:191-195; domain.errors.ts:221-228; spec promotion.g10.spec.ts:8-50.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1170,7 +1180,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -1195,6 +1204,7 @@ results:
     phase: then
     text: the engine returns 400 with error code DATE_MODE_CONFLICT
   notes: PASS — promotion-guards.ts:198-209; domain.errors.ts:232-239; spec promotion.g11.spec.ts:8-33.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1217,7 +1227,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
   testCaseKey: TC-3
   testCaseTitle: Discount authoring — Ticketing constraints & restrictions
@@ -1247,6 +1256,7 @@ results:
     phase: then
     text: the engine deduplicates against dates the caller already holds and does not mutate the Promotion record
   notes: PASS — utils/nth-weekday-generator.ts:45-92; spec nth-weekday-generator.spec.ts:5-46.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1269,7 +1279,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1304,6 +1313,7 @@ results:
     phase: then
     text: the response includes a per-item breakdown showing 20.00 applied to the ticket line
   notes: 'PASS — evaluate-discounts.use-case.ts:60-64; discount-calculator.ts:24-52; e2e discounts-engine-happy-path.e2e-spec.ts:169. Nota: nombres/unidades difieren del texto del escenario (cosmetico).'
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1326,7 +1336,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1356,6 +1365,7 @@ results:
     phase: then
     text: the engine returns only one selected outcome (no additive stacking)
   notes: 'PASS — evaluation-engine.ts:260-291,449-457; spec evaluation-engine.spec.ts:435-445. Nota: el escenario asume monto fijo, que el sistema no permite crear (solo PERCENT_OFF).'
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1378,7 +1388,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1403,6 +1412,7 @@ results:
     phase: then
     text: the engine selects one of them and always names a single selected_promotion_id (never null when at least one applies)
   notes: PASS — evaluation-engine.ts:449-457; specs evaluation-engine.spec.ts:447-456, evaluation-engine-tie-break.spec.ts.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1425,7 +1435,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1450,6 +1459,7 @@ results:
     phase: then
     text: the promotion is excluded from the candidate set before any computation
   notes: PASS — evaluation-engine.ts:216-219,404; spec evaluation-engine.spec.ts:230-246.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1472,7 +1482,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1497,6 +1506,7 @@ results:
     phase: then
     text: the promotion is excluded from the candidate set and never returned as selected
   notes: PASS — evaluation-engine.ts:142-144,398; spec evaluation-engine.spec.ts:187-194.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1519,7 +1529,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1549,6 +1558,7 @@ results:
     phase: then
     text: evaluating Online with the same cart makes both lines eligible
   notes: FAIL — Gap funcional. controller hardcodea channel:'ticketing-online' (discounts-engine.controller.ts:255); CartLine.kind no tiene Shop (cart-line.ts:6-9); lineMatchesRule (evaluation-engine.ts:62-99) nunca lee rule.applicationMode. Escenario no ejecutable en la superficie evaluate V1.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1571,7 +1581,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1596,6 +1605,7 @@ results:
     phase: then
     text: the promotion is excluded; evaluating inside the window or on 2026-05-22 keeps it in the candidate set
   notes: PASS — date-time-window.ts:154-212; evaluation-engine.ts:146-162,401; spec date-time-window.spec.ts:176-230.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1618,7 +1628,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1643,6 +1652,7 @@ results:
     phase: then
     text: the promotion is excluded with reason code EMAIL_DOMAIN_NOT_ALLOWED; user@example.org keeps it in the candidate set
   notes: PASS — evaluation-engine.ts:164-172; specs evaluation-engine-manual-precedence.spec.ts:177-186, evaluation-engine.spec.ts:250-259.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1665,7 +1675,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1695,6 +1704,7 @@ results:
     phase: then
     text: supplying a non-empty reason puts the promotion back in the candidate set
   notes: FAIL — Gap funcional. rg POS_REASON_REQUIRED en domains/discounts = 0 hits; discount-evaluation-error.ts enumera 8 codigos, ninguno POS-reason; evaluation-context no tiene campo reason. posRequireDiscountReason solo se usa como guard de autoria (promotion-guards.ts:192).
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1717,7 +1727,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1747,6 +1756,7 @@ results:
     phase: then
     text: the second is excluded with reason code OVERALL_LIMIT_REACHED
   notes: PASS — evaluation-engine.ts:184-213; evaluate-discounts.use-case.ts:92-122; specs evaluate-discounts-usage-gates.spec.ts:146-201.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1769,7 +1779,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -1799,6 +1808,7 @@ results:
     phase: then
     text: current_usage updates only in response to a confirmed redemption event
   notes: PASS — evaluate-discounts.use-case.ts:92-122 (batchCounts, read-only); no hay escritura de contadores en el path evaluate/quote.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1821,7 +1831,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -1851,6 +1860,7 @@ results:
     phase: then
     text: a second confirmed sale applying the same promotion makes current_usage = 2
   notes: PASS — confirm-discount-usage.use-case.ts:290; overall-usage.aggregate.ts:89; spec confirm-discount-usage.use-case.spec.ts:268-279.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1873,7 +1883,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -1898,6 +1907,7 @@ results:
     phase: then
     text: the promotion is excluded with reason code OVERALL_LIMIT_REACHED
   notes: PASS — evaluation-engine.ts:190-192,352; spec evaluate-discounts-usage-gates.spec.ts:174-183.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1920,7 +1930,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -1950,6 +1959,7 @@ results:
     phase: then
     text: current_usage is never set to a value lower than the persisted value (no decrement)
   notes: PASS — confirm-discount-usage.use-case.ts (withOccRetry 433-459); overall-usage.aggregate.ts; specs confirm-discount-usage.use-case.spec.ts:288-321.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -1972,7 +1982,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -1997,6 +2006,7 @@ results:
     phase: then
     text: current_usage remains at 1 and a separate audit entry is written for the refund event
   notes: PASS — confirm-discount-usage.use-case.ts:219-249 (ADR-C1, never decrement); spec confirm-discount-usage.use-case.spec.ts:654-675.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2019,7 +2029,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -2049,6 +2058,7 @@ results:
     phase: then
     text: the engine does not return a partial outcome; retry and fallback are the caller's responsibility
   notes: 'FAIL — Gap de contrato/robustez. promotion-error.filter.ts:36 (@Catch(DomainError)) y validation-error.filter.ts:44 (@Catch(BadRequestException)) no cubren excepciones genericas; no hay APP_FILTER catch-all (app.module.ts:87-104). Comentarios lo admiten (controller:221 ''latent HTTP 500''; domain.errors.ts:52,262). Recomendado: ticket para envelope de error interno.'
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2071,7 +2081,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -2096,6 +2105,7 @@ results:
     phase: then
     text: both responses contain the same selected_promotion_id and the same effective_discount
   notes: PASS — evaluation-engine.ts EvaluationEngine.evaluate (funcion pura); spec evaluation-engine.spec.ts:505-517 (Determinism).
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2118,36 +2128,36 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: bfad068f-6dd4-4206-9807-b017a4b5aded
   testCaseKey: TC-6
   testCaseTitle: Discount quote / offer preview
   testCaseFilePath: test-cases/SH-844/SH-844-TC-6-quote-options.testcase.yml
-  scenarioTitle: Quote returns applicable offers for an item
+  scenarioTitle: Quote returns an option per eligible promotion for the cart
   scenarioIndex: 0
-  status: failed
+  status: passed
   stepResults:
   - order: 1
     status: passed
     actual: OK
     phase: given
-    text: an item in the catalog, a quote context with channel = Online, and two Active promotions A and B that apply to that item
+    text: a cart, a quote context with channel = ticketing-online, and two Active promotions A and B that both apply to the cart
   - order: 2
     status: passed
     actual: OK
     phase: when
     text: the caller invokes POST /discounts/quote-options
   - order: 3
-    status: failed
-    actual: Ver 'then' final
+    status: passed
+    actual: OK
     phase: then
-    text: the engine returns 200 with a quote_option for each of A and B
+    text: the engine returns 200 with { options, requestId } and one option for each of A and B
   - order: 4
-    status: failed
-    actual: La respuesta real solo trae promotionId, customerFacingCode, effectiveDiscountMinorUnits y perItemBreakdown; no existen description, promotion_type, percentage, quoted_final_value ni applicability_note.
+    status: passed
+    actual: 'quote-options devuelve 200 con { options, requestId } y una option por promo elegible: { promotionId, customerFacingCode, effectiveDiscountMinorUnits, perItemBreakdown }.'
     phase: then
-    text: each quote_option includes promotion_id, description, promotion_type, percentage, quoted_final_value, and applicability_note (nullable)
-  notes: 'FAIL — Divergencia de contrato testcase<->V1. quote-options-response.dto.ts:7-12; evaluation-result.ts:16-21; controller:143-150. rg de los campos esperados = 0 hits. Recomendado: corregir el testcase contra el contrato V1 shipeado.'
+    text: each option includes promotionId, customerFacingCode, effectiveDiscountMinorUnits, and perItemBreakdown (the shipped V1 quote_option shape)
+  notes: PASS — contrato real V1 (testcase v2 alineado). controller:143-152; evaluation-result.ts:16-21; spec evaluation-engine-quote-options.spec.ts.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2170,31 +2180,36 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: bfad068f-6dd4-4206-9807-b017a4b5aded
   testCaseKey: TC-6
   testCaseTitle: Discount quote / offer preview
   testCaseFilePath: test-cases/SH-844/SH-844-TC-6-quote-options.testcase.yml
-  scenarioTitle: Quote returns conditional offers with an applicability note
+  scenarioTitle: Ineligible promotions are excluded from quote-options (no conditional offers in V1)
   scenarioIndex: 1
-  status: failed
+  status: passed
   stepResults:
   - order: 1
     status: passed
     actual: OK
     phase: given
-    text: the buyer is not a member and a Membership Benefit promotion M would apply if the buyer were a member
+    text: the buyer is not a member and a Membership Benefit promotion M would only apply to active members
   - order: 2
     status: passed
     actual: OK
     phase: when
-    text: the caller invokes quote-options for an item M targets
+    text: the caller invokes quote-options for a cart M targets
   - order: 3
-    status: failed
-    actual: Si el cliente no es miembro, la promo Membership Benefit se descarta por completo del pipeline; no existe oferta condicional ni applicability_note.
+    status: passed
+    actual: OK
     phase: then
-    text: the response includes a conditional quote_option for M with applicability_note = Available with active membership
-  notes: 'FAIL — Concepto inexistente en V1. evaluation-engine.ts:297-312,~404 (passesMembersOnly => continue); spec evaluation-engine-quote-options.spec.ts:98-104 (array vacio). Recomendado: corregir testcase o crear historia V2.'
+    text: M is filtered out by the members-only gate and does not appear in the options list
+  - order: 4
+    status: passed
+    actual: Una promo Membership Benefit para un no-miembro se filtra por el gate members-only y no aparece en options; V1 no tiene oferta condicional.
+    phase: then
+    text: V1 has no conditional-offer / applicability_note concept — the response returns only the surviving eligible offers (an empty list when none are eligible)
+  notes: PASS — comportamiento real V1 (testcase v2 alineado). evaluation-engine.ts (passesMembersOnly, ~404); spec evaluation-engine-quote-options.spec.ts:98-104.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2217,7 +2232,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 61261465-67cd-46b6-a03f-c8c0e1116f0a
   testCaseKey: TC-7
   testCaseTitle: Discount lifecycle & field-level audit
@@ -2247,6 +2261,7 @@ results:
     phase: then
     text: historical evaluate logs referring to it remain intact
   notes: PASS — promotion.ts:1053-1075; read repo filtra status=Active (postgres-discount-resolution-read.repository.ts:80,146); spec promotion.lifecycle.spec.ts:21-25.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2269,36 +2284,36 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 61261465-67cd-46b6-a03f-c8c0e1116f0a
   testCaseKey: TC-7
   testCaseTitle: Discount lifecycle & field-level audit
   testCaseFilePath: test-cases/SH-844/SH-844-TC-7-lifecycle-audit.testcase.yml
-  scenarioTitle: Reactivate a promotion re-validates the full payload
+  scenarioTitle: Activation re-validates the full payload; Archived cannot be reactivated
   scenarioIndex: 1
-  status: failed
+  status: passed
   stepResults:
   - order: 1
     status: passed
     actual: OK
     phase: given
-    text: a promotion has status Draft or Archived
+    text: a promotion has status Draft (Archived promotions cannot be reactivated — the model requires recreating the promotion instead)
   - order: 2
     status: passed
     actual: OK
     phase: when
     text: the admin sets status to Active
   - order: 3
-    status: failed
-    actual: Ver 'then' final
+    status: passed
+    actual: OK
     phase: then
-    text: the engine re-validates the full payload against current rules
+    text: the engine re-validates the full payload against current rules and becomes Active only when all validations pass
   - order: 4
-    status: failed
-    actual: 'Reactivar una promo Archived NO esta soportado: el motor lanza InvalidStateTransitionError (Archived->Active) antes de re-validar; solo Draft->Active funciona.'
+    status: passed
+    actual: Activacion estricta Draft->Active que re-valida el payload; activar una Archived se rechaza con InvalidStateTransitionError.
     phase: then
-    text: the promotion becomes Active only when all validations pass
-  notes: 'FAIL — Desviacion INTENCIONAL (''recreate the promotion instead''). promotion.ts:987-996; spec promotion.lifecycle.spec.ts:54-59. rg ''reactivat'' = 0 hits. Recomendado: alinear el testcase con la decision de diseno.'
+    text: attempting to activate an Archived promotion is rejected with InvalidStateTransitionError — only Draft -> Active is supported
+  notes: PASS — comportamiento real V1 (testcase v2 alineado). promotion.ts:987-996; spec promotion.lifecycle.spec.ts:54-59.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2321,7 +2336,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: 61261465-67cd-46b6-a03f-c8c0e1116f0a
   testCaseKey: TC-7
   testCaseTitle: Discount lifecycle & field-level audit
@@ -2351,6 +2365,7 @@ results:
     phase: then
     text: the History view on the discount detail page reads from field_history_records
   notes: 'FAIL — Implementacion parcial. Write: field-history-record.ts:7-15, migration 1748000000000:122-133, promotion-audit.spec.ts. Read: sin endpoint en promotions.controller.ts; VeevartFrontend sin componente que lea field_history_records. Recomendado: ticket para el read/UI de History.'
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2373,7 +2388,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2403,6 +2417,7 @@ results:
     phase: then
     text: 'CONTRADICTS V1: SH-844 stacking is exclusive (highest single discount wins). V2 only.'
   notes: 'SKIPPED — Testcase en estado DRAFT: ''DO NOT run against V1 - will fail by design''. V2 fuera de alcance de SH-844 V1. Comportamiento V1 (exclusivo) es correcto.'
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2425,7 +2440,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2455,6 +2469,7 @@ results:
     phase: then
     text: 'NOT IN V1: SH-844 has no Resolved/Confirmed pre-reservation lifecycle; current_usage increments on confirmed redemption. V2 only.'
   notes: SKIPPED — V2 (draft). SH-844 V1 no tiene lifecycle Resolved/Confirmed. confirm-discount-usage.use-case.ts:1-33.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2477,7 +2492,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2507,6 +2521,7 @@ results:
     phase: then
     text: 'NOT IN V1 as framed: SH-844 refunds/voids do NOT decrement current_usage. V2 only.'
   notes: SKIPPED — V2 (draft). rg reverseDiscountUsage/'Reverted' = 0 hits. V1 correcto por diseno.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2529,7 +2544,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2559,6 +2573,7 @@ results:
     phase: then
     text: 'NOT IN V1: SH-844 uses a simple current_usage counter. V2 only.'
   notes: SKIPPED — V2 (draft). overall-usage.aggregate.ts modela un contador simple.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2581,7 +2596,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2611,6 +2625,7 @@ results:
     phase: then
     text: 'NOT IN V1: SH-844 exposes POST /discounts/evaluate and /discounts/quote-options, not applyCustomerCode. V2 only.'
   notes: SKIPPED — V2 (draft). rg applyCustomerCode = 0 hits.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2633,7 +2648,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2663,6 +2677,7 @@ results:
     phase: then
     text: 'NOT IN V1: no equivalent endpoint in SH-844. V2 only.'
   notes: SKIPPED — V2 (draft). check-customer-facing-code-availability.use-case.ts es chequeo de autoria (unicidad), no de cupo.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2685,7 +2700,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
   testCaseKey: TC-9
   testCaseTitle: '[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations'
@@ -2715,6 +2729,7 @@ results:
     phase: then
     text: 'EXPECTED FAILURE until fix: currently returns cross-tenant data.'
   notes: 'PASS (watchlist RESUELTO, era CRITICO) — BUG-001 cerrado por reescritura auth SH-866. tenant-id.decorator.ts:27-67; stub-cognito-token.validator.ts:36-53 (401); e2e promotions.e2e-spec.ts:1136-1142. Sugerido: smoke test en API viva para cerrar el item.'
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2737,7 +2752,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
   testCaseKey: TC-9
   testCaseTitle: '[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations'
@@ -2762,6 +2776,7 @@ results:
     phase: then
     text: the engine uses the tenant_id from the header, not the body
   notes: PASS — BUG-002 se mantiene correcto. create-promotion.dto.ts:229-242; promotions.controller.ts:212-214; e2e promotions.e2e-spec.ts:693-699.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2784,7 +2799,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
   testCaseKey: TC-9
   testCaseTitle: '[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations'
@@ -2814,6 +2828,7 @@ results:
     phase: then
     text: 'EXPECTED FAILURE: endpoint declared in spec but not implemented.'
   notes: PASS — BUG-003 FIXED. promotions.controller.ts:150-158; e2e promotions.e2e-spec.ts:665-720.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2836,7 +2851,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
   testCaseKey: TC-9
   testCaseTitle: '[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations'
@@ -2866,6 +2880,7 @@ results:
     phase: then
     text: 'KNOWN DEVIATION: spec says 201 Created; implementation returns 200.'
   notes: FAIL — BUG-004 (desviacion conocida, deliberada). promotions.controller.ts:399-401 (@HttpCode(OK)); e2e promotions.e2e-spec.ts:930-943 asrt 200. Severidad baja.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2888,7 +2903,6 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
   testCaseKey: TC-9
   testCaseTitle: '[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations'
@@ -2918,6 +2932,7 @@ results:
     phase: then
     text: 'EXPECTED FAILURE: currently omitted from the response.'
   notes: PASS — BUG-005 FIXED. promotion-response.dto.ts:117-149 (toPromotionDetailResponse); e2e promotions.e2e-spec.ts:279-288,665-693.
+  executedAt: '2026-07-07T19:35:00.000Z'
   attachments:
   - name: coverage-matrix.txt
     path: attachments/TR-016/coverage-matrix.txt
@@ -2940,20 +2955,16 @@ results:
     mimeType: application/json
     size: 2370
   defects: []
-  executedAt: '2026-07-07T19:05:00.000Z'
 summary:
   total: 57
-  passed: 42
-  failed: 9
+  passed: 46
+  failed: 5
   blocked: 0
   skipped: 6
   notRun: 0
-  passRate: 74
+  passRate: 81
 metadata:
   createdBy: testmanager
   createdAt: '2026-07-07T17:56:04.573Z'
   updatedBy: codex
-  updatedAt: '2026-07-07T19:05:00.000Z'
-notes: "## Solution understood\nSH-844 shipped a hexagonal Discount Engine in VeevartBackend (domains/discounts) covering authoring (Promotion aggregate + ~14 guards), evaluation (9-stage pipeline, exclusive highest-wins selection), usage counting (event-sourced, increment-only, OCC), quote-options, benefit-offers and lifecycle/audit. Validated the MERGED code on main (no single PR - SH-844 is a multi-PR epic).\n\n## Test evidence\nRan the discounts vitest suite: 994 tests pass under the projects' intended configs. 19 tests that initially failed when the whole tree was forced through the ROOT vitest.config.ts were proven to be TEST-TOOLING ARTIFACTS, not product defects:\n - 14 controller-validation specs (evaluate/quote-options/benefit-offers) fail under esbuild because esbuild does not emit design:paramtypes, so Nest ValidationPipe cannot resolve the @Body() metatype and skips validation. Under swc (decoratorMetadata:true) all 23+22 pass. Production build (tsc) emits metadata, so validation\
-  \ returns 400 correctly.\n - 5 ACL plugin specs fail only when run from the workspace root (relative path src/manifest.yaml); from the ACL package root with its own vitest.config.mts all 9 pass.\nNet: no SH-844 business-logic regression in the failing tests.\n\n## Verdict categories for the 9 FAIL scenarios\nIntentional/documented deviations (align testcase, not defects): TC-1.0 (SH-916 drop application_mode), TC-7.1 (no Archived->Active reactivation), TC-9.3/BUG-004 (200 vs 201 on addRule).\nTestcase-vs-contract drift (fix testcase): TC-6.0, TC-6.1 (quote-options shape + conditional-offer concept never in V1).\nGenuine gaps worth a ticket: TC-4.5 & TC-4.8 (evaluate has no POS channel / Shop line / per-line application_mode - likely V2), TC-5.5 (no structured envelope for unexpected internal errors -> 500), TC-7.2 (field_history write exists but no History read endpoint/UI).\nOut of scope by design (skipped): TC-8.0-5 = V2 counter/lifecycle/stacking; testcase is DRAFT and states 'DO NOT\
-  \ run against V1'.\n\n## Security / OWASP\nCRITICAL watchlist item BUG-001 (cross-tenant leak on missing x-tenant-id) is RESOLVED by the SH-866 auth rewrite (tenant derived from verified JWT; 401 when absent). No High/Critical security defect found on main. OWASP A01 (access control) PASS; A03 (injection) PASS in production build. See attachments/regression-results.txt + owasp-top10-scan.txt.\n\n## LIMITATION\nAtlassian MCP is not authenticated in this non-interactive session: Jira ticket SH-844 could not be fetched and defects could not be auto-created. All FAILs are documented here with evidence for the user to open tickets. Executed against merged main, not a single PR."
+  updatedAt: '2026-07-07T19:35:00.000Z'
