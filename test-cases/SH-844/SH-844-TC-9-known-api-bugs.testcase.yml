@@ -1,0 +1,87 @@
+schemaVersion: "1.0"
+id: "dd51650f-ba79-447d-acb8-4517b5a8b6b5"
+key: "TC-9"
+title: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
+description: "Known-issue regression scenarios sourced from the Notion api_security doc (BUG-001..005). These target the promotions admin API surface and document deviations tracked as expected failures until fixed. Some are security-critical (cross-tenant leak). Run as a watchlist: an expected-failure that starts passing means the fix landed; a should-pass that fails is a regression."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target the Discount Engine admin API. These reference the /promotions surface from the Notion contract; confirm the endpoint mapping against the shipped V1 before running."
+scenarios:
+  - title: "BUG-001 (D4) Cross-tenant leak when x-tenant-id header is missing"
+    tags:
+      - "security"
+      - "critical"
+      - "known-issue"
+      - "expected-failure"
+    given:
+      - "GET /promotions is called without the x-tenant-id header"
+    when:
+      - "the request is processed"
+    then:
+      - "the response must NOT include data from other tenants and should return 400 or 401 when the header is missing"
+      - "EXPECTED FAILURE until fix: currently returns cross-tenant data."
+  - title: "BUG-002 (D1) tenant_id in the body is ignored in favor of the header"
+    tags:
+      - "known-issue"
+      - "should-pass"
+    given:
+      - "a request with x-tenant-id = tenant-A and a body containing tenantId = tenant-B"
+    when:
+      - "the request is processed"
+    then:
+      - "the engine uses the tenant_id from the header, not the body"
+  - title: "BUG-003 (D2) GET /promotions/:id is not implemented"
+    tags:
+      - "known-issue"
+      - "expected-failure"
+    given:
+      - "the spec declares GET /promotions/:id"
+    when:
+      - "GET /promotions/promo-001 is called"
+    then:
+      - "the response is 404 Not Found"
+      - "EXPECTED FAILURE: endpoint declared in spec but not implemented."
+  - title: "BUG-004 (NS-5) addRule returns 200 instead of 201"
+    tags:
+      - "known-issue"
+      - "deviation"
+    given:
+      - "a valid new rule payload"
+    when:
+      - "POST /promotions/:id/rules is called"
+    then:
+      - "the response is 200 OK"
+      - "KNOWN DEVIATION: spec says 201 Created; implementation returns 200."
+  - title: "BUG-005 (D6) Response omits rules and restrictions"
+    tags:
+      - "known-issue"
+      - "expected-failure"
+    given:
+      - "a promotion with rules and restrictions"
+    when:
+      - "the promotion is fetched"
+    then:
+      - "the body should include rules and restrictions"
+      - "EXPECTED FAILURE: currently omitted from the response."
+tags:
+  - "sh-844"
+  - "known-issue"
+  - "api-security"
+  - "regression"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
