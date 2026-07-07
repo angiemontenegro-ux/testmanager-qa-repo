@@ -12,18 +12,20 @@ preconditions:
   - "The Discounts Engine microservice is reachable and persists discounts in DynamoDB under tenant-scoped keys."
   - "The engine supports three kinds (Discount Code, Automatic, Membership Benefit) and six modules (Memberships, Ticketing, Courses/Camps, Shop, Groups, Rentals)."
 scenarios:
-  - title: "Non-Ticketing rule carrying application_mode is rejected"
+  - title: "Non-Ticketing rule carrying application_mode is accepted and the field is dropped"
     tags:
-      - "negative"
+      - "happy-path"
       - "rule-0"
       - "application-mode"
+      - "sh-916"
     given:
       - "the admin submits a discount payload"
     when:
       - "any Memberships, Shop, Courses/Camps, Groups, or Rentals rule includes an application_mode field"
     then:
-      - "the engine returns 400 with error code APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE"
-      - "the engine does not persist any record"
+      - "the engine accepts the payload (application_mode is only meaningful on Ticketing rules per Rule 0)"
+      - "the engine silently drops application_mode on the non-Ticketing rule and persists the record without it"
+      - "no APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE error is raised — intentional SH-916 deviation from SH-844's literal wording (adopted to avoid a frontend/backend deploy deadlock) pinned by promotion.g05.spec.ts"
   - title: "Ticketing rule missing application_mode is rejected"
     tags:
       - "negative"
@@ -110,5 +112,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-07T14:18:36Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-07T14:18:36Z"
-  version: 1
+  updatedAt: "2026-07-07T19:20:00Z"
+  version: 2

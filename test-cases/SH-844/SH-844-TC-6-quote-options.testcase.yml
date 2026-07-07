@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "bfad068f-6dd4-4206-9807-b017a4b5aded"
 key: "TC-6"
 title: "Discount quote / offer preview"
-description: "QA coverage for SH-844 POST /discounts/quote-options: returns candidate offers for an item with the full quote_option shape, and surfaces conditional offers (e.g. Membership Benefit) with an applicability_note when the buyer does not yet meet the condition."
+description: "QA coverage for SH-844 POST /discounts/quote-options: returns ALL eligible promotion offers for a cart. Each option carries the shipped V1 shape { promotionId, customerFacingCode, effectiveDiscountMinorUnits, perItemBreakdown }. The call is synchronous and read-only (never mutates current_usage). V1 has no conditional-offer / applicability_note concept: promotions the buyer is not eligible for are filtered out by the same gates as evaluate, not surfaced as conditional offers."
 type: "functional"
 priority: "medium"
 status: "active"
@@ -10,27 +10,28 @@ format: "gherkin"
 preconditions:
   - "The Discounts Engine is reachable and quote-options is synchronous and read-only (never mutates current_usage)."
 scenarios:
-  - title: "Quote returns applicable offers for an item"
+  - title: "Quote returns an option per eligible promotion for the cart"
     tags:
       - "happy-path"
       - "quote"
     given:
-      - "an item in the catalog, a quote context with channel = Online, and two Active promotions A and B that apply to that item"
+      - "a cart, a quote context with channel = ticketing-online, and two Active promotions A and B that both apply to the cart"
     when:
       - "the caller invokes POST /discounts/quote-options"
     then:
-      - "the engine returns 200 with a quote_option for each of A and B"
-      - "each quote_option includes promotion_id, description, promotion_type, percentage, quoted_final_value, and applicability_note (nullable)"
-  - title: "Quote returns conditional offers with an applicability note"
+      - "the engine returns 200 with { options, requestId } and one option for each of A and B"
+      - "each option includes promotionId, customerFacingCode, effectiveDiscountMinorUnits, and perItemBreakdown (the shipped V1 quote_option shape)"
+  - title: "Ineligible promotions are excluded from quote-options (no conditional offers in V1)"
     tags:
       - "edge-case"
       - "quote"
     given:
-      - "the buyer is not a member and a Membership Benefit promotion M would apply if the buyer were a member"
+      - "the buyer is not a member and a Membership Benefit promotion M would only apply to active members"
     when:
-      - "the caller invokes quote-options for an item M targets"
+      - "the caller invokes quote-options for a cart M targets"
     then:
-      - "the response includes a conditional quote_option for M with applicability_note = Available with active membership"
+      - "M is filtered out by the members-only gate and does not appear in the options list"
+      - "V1 has no conditional-offer / applicability_note concept — the response returns only the surviving eligible offers (an empty list when none are eligible)"
 tags:
   - "sh-844"
   - "quote-options"
@@ -46,5 +47,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-07T14:18:36Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-07T14:18:36Z"
-  version: 1
+  updatedAt: "2026-07-07T19:20:00Z"
+  version: 2

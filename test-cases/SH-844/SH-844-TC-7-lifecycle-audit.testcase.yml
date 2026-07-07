@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "61261465-67cd-46b6-a03f-c8c0e1116f0a"
 key: "TC-7"
 title: "Discount lifecycle & field-level audit"
-description: "QA coverage for SH-844 lifecycle and audit: archiving excludes a promotion from evaluate/quote candidate sets while preserving historical logs, reactivation re-validates the full payload against current rules, and tracked-field changes write field_history_records rows surfaced by the History view."
+description: "QA coverage for SH-844 lifecycle and audit: archiving excludes a promotion from evaluate/quote candidate sets while preserving historical logs; activation is a strict Draft -> Active transition that re-validates the full payload (Archived promotions are NOT reactivated — recreate instead, per promotion.ts state machine); and tracked-field changes write field_history_records rows. NOTE: the read/History-view side of the audit is not yet implemented (write path only)."
 type: "functional"
 priority: "medium"
 status: "active"
@@ -21,17 +21,17 @@ scenarios:
     then:
       - "the engine marks the promotion Archived and excludes it from evaluate and quote-options candidate sets"
       - "historical evaluate logs referring to it remain intact"
-  - title: "Reactivate a promotion re-validates the full payload"
+  - title: "Activation re-validates the full payload; Archived cannot be reactivated"
     tags:
       - "edge-case"
       - "lifecycle"
     given:
-      - "a promotion has status Draft or Archived"
+      - "a promotion has status Draft (Archived promotions cannot be reactivated — the model requires recreating the promotion instead)"
     when:
       - "the admin sets status to Active"
     then:
-      - "the engine re-validates the full payload against current rules"
-      - "the promotion becomes Active only when all validations pass"
+      - "the engine re-validates the full payload against current rules and becomes Active only when all validations pass"
+      - "attempting to activate an Archived promotion is rejected with InvalidStateTransitionError — only Draft -> Active is supported"
   - title: "Field-level audit on tracked fields"
     tags:
       - "happy-path"
@@ -59,5 +59,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-07T14:18:36Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-07T14:18:36Z"
-  version: 1
+  updatedAt: "2026-07-07T19:20:00Z"
+  version: 2
