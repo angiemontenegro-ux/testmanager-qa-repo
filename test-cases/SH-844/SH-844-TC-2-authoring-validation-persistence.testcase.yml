@@ -1,0 +1,132 @@
+schemaVersion: "1.0"
+id: "9953ee27-f7ce-4a38-8210-3a83df6c3033"
+key: "TC-2"
+title: "Discount authoring — validation, persistence & customer-facing codes"
+description: "QA coverage for SH-844: percent-only enforcement (fixed-amount rejected at the contract boundary), percentage bounds, at-least-one-rule, module gating, and the customer_facing_code rules that depend on kind (Discount Code / Automatic / Membership Benefit) and the Ticketing rule's application_mode."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts and the Discounts Engine is reachable."
+  - "The engine enforces percent-only discounts; fixed-amount authoring has been removed."
+scenarios:
+  - title: "Create a Discount Code with a percent value"
+    tags:
+      - "happy-path"
+      - "persistence"
+    given:
+      - "the admin submits a discount with kind = Discount Code"
+      - "the payload includes a code name, a customer-facing code, percentage = 20, and at least one applicable module"
+    when:
+      - "the engine validates the payload"
+    then:
+      - "the engine creates the Promotion record with discount_type = PERCENT_OFF"
+      - "the customer-facing code is stored as unique within the tenant"
+      - "status = Active is stored when explicitly set and created_at / updated_at are recorded"
+  - title: "Reject any fixed-amount discount at the contract boundary"
+    tags:
+      - "negative"
+      - "percent-only"
+    given:
+      - "the admin submits a discount payload"
+    when:
+      - "discount_type is anything other than PERCENT_OFF, or a fixed-amount field (fixed_amount, amount_off) is present"
+    then:
+      - "the engine returns 400 with error code DISCOUNT_TYPE_NOT_ALLOWED (or FIXED_AMOUNT_NOT_ALLOWED for a fixed-amount field)"
+      - "the engine does not persist any record"
+  - title: "Validate percentage bounds"
+    tags:
+      - "negative"
+      - "edge-case"
+    given:
+      - "the admin submits a discount payload"
+    when:
+      - "percentage is missing, <= 0, or > 100"
+    then:
+      - "the engine returns 400 with error code PERCENTAGE_OUT_OF_RANGE"
+      - "the engine does not persist any record"
+  - title: "At least one rule is required"
+    tags:
+      - "negative"
+    given:
+      - "the admin submits a discount payload"
+    when:
+      - "the rules array is empty"
+    then:
+      - "the engine returns 400 with error code AT_LEAST_ONE_RULE_REQUIRED"
+      - "the engine does not persist any record"
+  - title: "Per-module rules are gated by applicable modules"
+    tags:
+      - "negative"
+    given:
+      - "the admin submits a discount payload"
+    when:
+      - "any rule references a module not present in applicable_modules"
+    then:
+      - "the engine returns 400 with error code RULE_MODULE_NOT_APPLICABLE"
+      - "the engine does not persist any record"
+  - title: "Discount Code kind requires a unique customer-facing code"
+    tags:
+      - "negative"
+      - "customer-facing-code"
+    given:
+      - "the admin submits a discount payload with kind = Discount Code"
+    when:
+      - "customer_facing_code is missing"
+    then:
+      - "the engine returns 400 with error code CUSTOMER_FACING_CODE_REQUIRED"
+      - "if the submitted code already exists in the tenant the engine returns 409 CUSTOMER_FACING_CODE_TAKEN"
+  - title: "Membership Benefit requires a code only when a Ticketing rule needs one"
+    tags:
+      - "edge-case"
+      - "customer-facing-code"
+    given:
+      - "the admin submits a discount payload with kind = Membership Benefit"
+    when:
+      - "at least one Ticketing rule has application_mode in (Code Required, Both) and customer_facing_code is missing"
+    then:
+      - "the engine returns 400 with error code CUSTOMER_FACING_CODE_REQUIRED"
+      - "when no Ticketing rule needs a code, customer_facing_code is optional and the engine accepts the payload either way"
+  - title: "Automatic kind must not carry a customer-facing code or application_mode"
+    tags:
+      - "negative"
+      - "customer-facing-code"
+    given:
+      - "the admin submits a discount payload with kind = Automatic"
+    when:
+      - "customer_facing_code is non-null"
+    then:
+      - "the engine returns 400 with error code CUSTOMER_FACING_CODE_NOT_ALLOWED_FOR_KIND"
+      - "if any Ticketing rule has application_mode in (Code Required, Both) the engine returns 400 APPLICATION_MODE_NOT_ALLOWED_FOR_KIND"
+      - "the engine does not persist any record"
+  - title: "Generate a unique customer-facing code on demand"
+    tags:
+      - "happy-path"
+      - "customer-facing-code"
+    given:
+      - "the admin requests a generated customer-facing code"
+    when:
+      - "the engine generates the code"
+    then:
+      - "the engine returns a unique alphanumeric code not currently used by another active promotion in the tenant"
+      - "the engine does not persist the code until the discount is saved"
+tags:
+  - "sh-844"
+  - "discount-authoring"
+  - "validation"
+  - "percent-only"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 45
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
