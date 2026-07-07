@@ -1,0 +1,107 @@
+schemaVersion: "1.0"
+id: "1a27b483-5a53-4c37-82e4-bb447e93eed4"
+key: "TC-5"
+title: "Discount usage counting & redemption"
+description: "QA coverage for SH-844 usage tracking: evaluate and quote-options never mutate current_usage; current_usage increments by 1 only on a confirmed redemption; increments are atomic and append-only under concurrency; refunds/voids never decrement; plus the engine failure contract and evaluation determinism."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discounts Engine is reachable and persists usage counters in DynamoDB under tenant-scoped keys."
+  - "current_usage starts at 0 and only a confirmed redemption event mutates it."
+scenarios:
+  - title: "Evaluate and quote never mutate usage"
+    tags:
+      - "happy-path"
+      - "usage"
+    given:
+      - "any Active promotion"
+    when:
+      - "the caller invokes evaluate or quote-options any number of times"
+    then:
+      - "current_usage does not change as a result of these calls"
+      - "current_usage updates only in response to a confirmed redemption event"
+  - title: "A confirmed redemption increments current_usage by 1"
+    tags:
+      - "happy-path"
+      - "usage"
+    given:
+      - "an Active promotion with overall_usage_limit = 100 and current_usage = 0"
+    when:
+      - "a sale that applies this promotion is confirmed (one ticket sold)"
+    then:
+      - "the engine records a redemption event and current_usage becomes 1"
+      - "a second confirmed sale applying the same promotion makes current_usage = 2"
+  - title: "current_usage reaching the overall limit makes the promotion ineligible"
+    tags:
+      - "edge-case"
+      - "usage"
+    given:
+      - "an Active promotion with overall_usage_limit = N and current_usage = N"
+    when:
+      - "the caller invokes evaluate"
+    then:
+      - "the promotion is excluded with reason code OVERALL_LIMIT_REACHED"
+  - title: "Redemption increments are atomic and append-only under concurrency"
+    tags:
+      - "edge-case"
+      - "concurrency"
+      - "usage"
+    given:
+      - "two concurrent redemption events for the same promotion"
+    when:
+      - "both are confirmed"
+    then:
+      - "current_usage is incremented exactly twice (no lost updates) and both events are written to the audit trail"
+      - "current_usage is never set to a value lower than the persisted value (no decrement)"
+  - title: "Refund or voided sale does not decrement current_usage"
+    tags:
+      - "edge-case"
+      - "usage"
+    given:
+      - "a confirmed redemption already incremented current_usage from 0 to 1"
+    when:
+      - "the originating sale is later refunded or voided"
+    then:
+      - "current_usage remains at 1 and a separate audit entry is written for the refund event"
+  - title: "Engine failure contract returns a structured error"
+    tags:
+      - "negative"
+      - "contract"
+    given:
+      - "any evaluate or quote-options request"
+    when:
+      - "the engine encounters an internal error"
+    then:
+      - "the engine returns a structured error response with an error code and request id"
+      - "the engine does not return a partial outcome; retry and fallback are the caller's responsibility"
+  - title: "Evaluation is deterministic"
+    tags:
+      - "happy-path"
+      - "contract"
+    given:
+      - "identical evaluate inputs and identical persisted state"
+    when:
+      - "the caller invokes evaluate twice"
+    then:
+      - "both responses contain the same selected_promotion_id and the same effective_discount"
+tags:
+  - "sh-844"
+  - "usage"
+  - "redemption"
+  - "concurrency"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 40
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
