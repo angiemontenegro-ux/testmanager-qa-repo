@@ -1,0 +1,114 @@
+schemaVersion: "1.0"
+id: "01277a7d-0ed9-4ecb-8f96-390d6ce021f5"
+key: "TC-1"
+title: "Discount authoring — application_mode & channel source of truth"
+description: "QA coverage for SH-844 (Discount Authoring & Evaluation Business Logic): validates Rule 0 (application_mode exists ONLY on Ticketing rules) and the channel source-of-truth resolution — derived from application_mode when the promotion is Ticketing-only, or from the admin's Step 3 toggles when any non-Ticketing rule is present."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts."
+  - "The Discounts Engine microservice is reachable and persists discounts in DynamoDB under tenant-scoped keys."
+  - "The engine supports three kinds (Discount Code, Automatic, Membership Benefit) and six modules (Memberships, Ticketing, Courses/Camps, Shop, Groups, Rentals)."
+scenarios:
+  - title: "Non-Ticketing rule carrying application_mode is rejected"
+    tags:
+      - "negative"
+      - "rule-0"
+      - "application-mode"
+    given:
+      - "the admin submits a discount payload"
+    when:
+      - "any Memberships, Shop, Courses/Camps, Groups, or Rentals rule includes an application_mode field"
+    then:
+      - "the engine returns 400 with error code APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE"
+      - "the engine does not persist any record"
+  - title: "Ticketing rule missing application_mode is rejected"
+    tags:
+      - "negative"
+      - "application-mode"
+    given:
+      - "the admin submits a discount payload with one or more Ticketing rules"
+    when:
+      - "any Ticketing rule omits application_mode"
+    then:
+      - "the engine returns 400 with error code APPLICATION_MODE_REQUIRED_FOR_TICKETING"
+      - "the engine does not persist any record"
+  - title: "Ticketing rule with an invalid application_mode value is rejected"
+    tags:
+      - "negative"
+      - "application-mode"
+    given:
+      - "the admin submits a discount payload with a Ticketing rule"
+    when:
+      - "the Ticketing rule sets application_mode to anything other than Manually Entered, Code Required, or Both"
+    then:
+      - "the engine returns 400 with error code APPLICATION_MODE_INVALID_VALUE"
+      - "the engine does not persist any record"
+  - title: "Ticketing-only promotion derives channels from application_mode"
+    tags:
+      - "happy-path"
+      - "channels"
+    given:
+      - "the admin submits a discount payload where every rule is a Ticketing rule"
+    when:
+      - "all Ticketing rules have application_mode = Manually Entered"
+    then:
+      - "the engine sets channels.posAvailable = true and channels.onlineAvailable = false"
+      - "with application_mode = Code Required the engine sets onlineAvailable = true and posAvailable = false"
+      - "with any rule = Both, or a mix of Manually Entered and Code Required, the engine sets both channels true"
+      - "the payload's explicit Step 3 channel values, if any, are ignored"
+  - title: "Promotion with a non-Ticketing rule takes channels from Step 3 toggles"
+    tags:
+      - "happy-path"
+      - "channels"
+    given:
+      - "the admin submits a discount payload that includes at least one non-Ticketing rule (alone or mixed with Ticketing)"
+    when:
+      - "the payload sets channels.onlineAvailable and channels.posAvailable explicitly"
+    then:
+      - "the engine accepts those Step 3 values as the source of truth for the promotion's channels"
+  - title: "Promotion with no channel enabled is rejected"
+    tags:
+      - "negative"
+      - "channels"
+    given:
+      - "the admin submits a discount payload that includes at least one non-Ticketing rule"
+    when:
+      - "both channels.onlineAvailable = false and channels.posAvailable = false"
+    then:
+      - "the engine returns 400 with error code CHANNEL_REQUIRED"
+      - "the engine does not persist any record"
+  - title: "Mixed promotion validates application_mode on Ticketing but channels come from Step 3"
+    tags:
+      - "edge-case"
+      - "application-mode"
+      - "channels"
+    given:
+      - "the admin submits a payload with at least one Ticketing rule and at least one non-Ticketing rule"
+    when:
+      - "the Ticketing rule has a valid application_mode and Step 3 toggles are set"
+    then:
+      - "the engine accepts the payload and persists application_mode on the Ticketing rule for evaluation time"
+      - "the promotion-level channels come from the Step 3 toggles, not from application_mode"
+      - "if the Ticketing rule omits application_mode the engine returns 400 APPLICATION_MODE_REQUIRED_FOR_TICKETING"
+tags:
+  - "sh-844"
+  - "discount-authoring"
+  - "application-mode"
+  - "channels"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 35
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-07T14:18:36Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-07T14:18:36Z"
+  version: 1
