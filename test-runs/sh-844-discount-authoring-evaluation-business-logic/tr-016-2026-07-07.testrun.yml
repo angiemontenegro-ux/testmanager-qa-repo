@@ -1,0 +1,1796 @@
+schemaVersion: "1.0"
+id: tr-5151b956-9de5-4b8e-9cbb-d5d24a8eaee3
+key: TR-016
+title: "Run TP-1: SH-844 Discount Authoring & Evaluation Business Logic"
+status: planned
+environment:
+  name: qa
+results:
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Non-Ticketing rule carrying application_mode is rejected
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: any Memberships, Shop, Courses/Camps, Groups, or Rentals rule includes an application_mode field
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Ticketing rule missing application_mode is rejected
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with one or more Ticketing rules
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: any Ticketing rule omits application_mode
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code APPLICATION_MODE_REQUIRED_FOR_TICKETING
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Ticketing rule with an invalid application_mode value is rejected
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with a Ticketing rule
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the Ticketing rule sets application_mode to anything other than Manually Entered, Code Required, or Both
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code APPLICATION_MODE_INVALID_VALUE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Ticketing-only promotion derives channels from application_mode
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload where every rule is a Ticketing rule
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: all Ticketing rules have application_mode = Manually Entered
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine sets channels.posAvailable = true and channels.onlineAvailable = false
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: with application_mode = Code Required the engine sets onlineAvailable = true and posAvailable = false
+      - order: 5
+        status: not-run
+        actual: ""
+        phase: then
+        text: with any rule = Both, or a mix of Manually Entered and Code Required, the engine sets both channels true
+      - order: 6
+        status: not-run
+        actual: ""
+        phase: then
+        text: the payload's explicit Step 3 channel values, if any, are ignored
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Promotion with a non-Ticketing rule takes channels from Step 3 toggles
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: >-
+          the admin submits a discount payload that includes at least one non-Ticketing rule (alone or mixed with
+          Ticketing)
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the payload sets channels.onlineAvailable and channels.posAvailable explicitly
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine accepts those Step 3 values as the source of truth for the promotion's channels
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Promotion with no channel enabled is rejected
+    scenarioIndex: 5
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload that includes at least one non-Ticketing rule
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: both channels.onlineAvailable = false and channels.posAvailable = false
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code CHANNEL_REQUIRED
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 01277a7d-0ed9-4ecb-8f96-390d6ce021f5
+    testCaseKey: TC-1
+    testCaseTitle: Discount authoring — application_mode & channel source of truth
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-1-authoring-application-mode-channels.testcase.yml
+    scenarioTitle: Mixed promotion validates application_mode on Ticketing but channels come from Step 3
+    scenarioIndex: 6
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a payload with at least one Ticketing rule and at least one non-Ticketing rule
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the Ticketing rule has a valid application_mode and Step 3 toggles are set
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine accepts the payload and persists application_mode on the Ticketing rule for evaluation time
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the promotion-level channels come from the Step 3 toggles, not from application_mode
+      - order: 5
+        status: not-run
+        actual: ""
+        phase: then
+        text: if the Ticketing rule omits application_mode the engine returns 400 APPLICATION_MODE_REQUIRED_FOR_TICKETING
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Create a Discount Code with a percent value
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount with kind = Discount Code
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: given
+        text: the payload includes a code name, a customer-facing code, percentage = 20, and at least one applicable module
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: when
+        text: the engine validates the payload
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine creates the Promotion record with discount_type = PERCENT_OFF
+      - order: 5
+        status: not-run
+        actual: ""
+        phase: then
+        text: the customer-facing code is stored as unique within the tenant
+      - order: 6
+        status: not-run
+        actual: ""
+        phase: then
+        text: status = Active is stored when explicitly set and created_at / updated_at are recorded
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Reject any fixed-amount discount at the contract boundary
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: >-
+          discount_type is anything other than PERCENT_OFF, or a fixed-amount field (fixed_amount, amount_off) is
+          present
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the engine returns 400 with error code DISCOUNT_TYPE_NOT_ALLOWED (or FIXED_AMOUNT_NOT_ALLOWED for a
+          fixed-amount field)
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Validate percentage bounds
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: percentage is missing, <= 0, or > 100
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code PERCENTAGE_OUT_OF_RANGE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: At least one rule is required
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the rules array is empty
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code AT_LEAST_ONE_RULE_REQUIRED
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Per-module rules are gated by applicable modules
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: any rule references a module not present in applicable_modules
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code RULE_MODULE_NOT_APPLICABLE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Discount Code kind requires a unique customer-facing code
+    scenarioIndex: 5
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with kind = Discount Code
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: customer_facing_code is missing
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code CUSTOMER_FACING_CODE_REQUIRED
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: if the submitted code already exists in the tenant the engine returns 409 CUSTOMER_FACING_CODE_TAKEN
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Membership Benefit requires a code only when a Ticketing rule needs one
+    scenarioIndex: 6
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with kind = Membership Benefit
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: at least one Ticketing rule has application_mode in (Code Required, Both) and customer_facing_code is missing
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code CUSTOMER_FACING_CODE_REQUIRED
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          when no Ticketing rule needs a code, customer_facing_code is optional and the engine accepts the payload
+          either way
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Automatic kind must not carry a customer-facing code or application_mode
+    scenarioIndex: 7
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with kind = Automatic
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: customer_facing_code is non-null
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code CUSTOMER_FACING_CODE_NOT_ALLOWED_FOR_KIND
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          if any Ticketing rule has application_mode in (Code Required, Both) the engine returns 400
+          APPLICATION_MODE_NOT_ALLOWED_FOR_KIND
+      - order: 5
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 9953ee27-f7ce-4a38-8210-3a83df6c3033
+    testCaseKey: TC-2
+    testCaseTitle: Discount authoring — validation, persistence & customer-facing codes
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-2-authoring-validation-persistence.testcase.yml
+    scenarioTitle: Generate a unique customer-facing code on demand
+    scenarioIndex: 8
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin requests a generated customer-facing code
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the engine generates the code
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns a unique alphanumeric code not currently used by another active promotion in the tenant
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist the code until the discount is saved
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: Ticketing All Events rule is exclusive on create
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a Ticketing rule with event = ALL_EVENTS
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the payload also includes any other Ticketing rule
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code TICKETING_ALL_EVENTS_MUST_BE_ONLY_RULE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: a single Ticketing rule with event = ALL_EVENTS is accepted
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: Adding a second Ticketing rule after an All-Events rule is rejected
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a saved promotion already has a Ticketing rule with event = ALL_EVENTS
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the admin submits an update that adds another Ticketing rule
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code TICKETING_ALL_EVENTS_MUST_BE_ONLY_RULE and no new rule is persisted
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: All-Events cannot be added when specific Ticketing rules exist
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a saved promotion already has at least one Ticketing rule referencing a specific event
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the admin submits an update that adds a Ticketing rule with event = ALL_EVENTS
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the engine returns 400 with error code TICKETING_ALL_EVENTS_NOT_ALLOWED_WITH_SPECIFIC_RULES and no new rule is
+          persisted
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: Ticketing rule audience and ticket types are mutually exclusive
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a Ticketing rule
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the rule includes both audience_type and ticket_type_ids
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code TICKETING_AUDIENCE_TICKETTYPE_EXCLUSIVE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not persist any record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: Allowed Email Domains require Online and forbid POS
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with allowed_email_domains non-empty
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the resolved channels.onlineAvailable = false
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code EMAIL_DOMAINS_REQUIRE_ONLINE
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: when resolved posAvailable = true the engine returns 400 EMAIL_DOMAINS_NOT_ALLOWED_WITH_POS
+      - order: 5
+        status: not-run
+        actual: ""
+        phase: then
+        text: only when online = true and pos = false does the engine accept allowed_email_domains
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: POS Require Discount Reason is gated by POS availability
+    scenarioIndex: 5
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload with pos_require_discount_reason = true
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the resolved channels.posAvailable = false
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code POS_REASON_REQUIRES_POS_CHANNEL
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: when posAvailable = true the engine accepts pos_require_discount_reason
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: Date mode is exclusive
+    scenarioIndex: 6
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin submits a discount payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: date_time_mode = DATE_TIME_RANGES while specific_allowed_dates is non-empty (or the inverse)
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 400 with error code DATE_MODE_CONFLICT
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 0e2657e6-0d6c-4b51-bddf-b74efb44863c
+    testCaseKey: TC-3
+    testCaseTitle: Discount authoring — Ticketing constraints & restrictions
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-3-authoring-ticketing-restrictions.testcase.yml
+    scenarioTitle: Nth-weekday generator returns deterministic dates
+    scenarioIndex: 7
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the admin requests Nth-weekday generation with occurrence = Third, weekday = Friday, months_ahead = 12
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the engine generates the dates
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 12 ascending dates, one per month, all matching the third-Friday rule
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine deduplicates against dates the caller already holds and does not mutate the Promotion record
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Evaluate a single percent discount at checkout
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active Discount Code promotion SAVE20 with percentage = 20
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: given
+        text: the buyer's cart contains 1 Ticketing line at $100 and the request channel is Online
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes POST /discounts/evaluate with code = SAVE20 and the cart context
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 200 with selected_promotion_id = SAVE20 and effective_discount = 20.00
+      - order: 5
+        status: not-run
+        actual: ""
+        phase: then
+        text: the response includes a per-item breakdown showing 20.00 applied to the ticket line
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Stacking is exclusive — highest effective discount wins
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: two eligible promotions A (item-level, $5 off item 1) and B (order-level, 10% of the $200 subtotal = $20)
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine selects B and returns selected_promotion_id = B.id
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns only one selected outcome (no additive stacking)
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Tie behavior returns a single arbitrary selection
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: two eligible promotions produce exactly the same effective_discount
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the engine selects one of them and always names a single selected_promotion_id (never null when at least one
+          applies)
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Members Only restriction excludes non-members
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active promotion with members_only = true and a buyer who is not a member
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the promotion is excluded from the candidate set before any computation
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Channel filtering — POS-only promotion is not selectable online
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active promotion with resolved posAvailable = true and onlineAvailable = false, request channel = Online
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the promotion is excluded from the candidate set and never returned as selected
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Mixed promotion — application_mode constrains the Ticketing line at evaluation
+    scenarioIndex: 5
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: >-
+          an Active mixed promotion with resolved Online = true and POS = true, one Ticketing rule application_mode =
+          Code Required, and one Shop rule
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate at POS with a cart containing one Ticketing line and one Shop line
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the Shop line is eligible but the Ticketing line is NOT (Code Required restricts it to Online)
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: evaluating Online with the same cart makes both lines eligible
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Date/time range and specific-allowed-dates restrictions filter candidates
+    scenarioIndex: 6
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: >-
+          an Active promotion restricted to Apr 1 - May 31, Mon/Wed/Fri, 10:00-18:00 (range mode), and another
+          restricted to specific date 2026-05-22
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate outside the window / on a non-listed date
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the promotion is excluded; evaluating inside the window or on 2026-05-22 keeps it in the candidate set
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Email-domain restriction applies online only
+    scenarioIndex: 7
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active online-only promotion with allowed_email_domains = [example.org]
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate online with buyer email user@other.com
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the promotion is excluded with reason code EMAIL_DOMAIN_NOT_ALLOWED; user@example.org keeps it in the
+          candidate set
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: POS reason gate does not silently substitute a promotion
+    scenarioIndex: 8
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active promotion with pos_require_discount_reason = true and request channel = POS
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate without a reason field
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the engine returns the promotion as not applied with reason code POS_REASON_REQUIRED and does not substitute a
+          different promotion
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: supplying a non-empty reason puts the promotion back in the candidate set
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
+    testCaseKey: TC-4
+    testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-4-evaluate-selection-filtering.testcase.yml
+    scenarioTitle: Usage limits block evaluate
+    scenarioIndex: 9
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: >-
+          an Active promotion with per_person_usage_limit = 1 already redeemed once by the buyer, and another with
+          overall_usage_limit = 100 and current_usage = 100
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the first is excluded with reason code PER_PERSON_LIMIT_REACHED
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the second is excluded with reason code OVERALL_LIMIT_REACHED
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: Evaluate and quote never mutate usage
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: any Active promotion
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate or quote-options any number of times
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: current_usage does not change as a result of these calls
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: current_usage updates only in response to a confirmed redemption event
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: A confirmed redemption increments current_usage by 1
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active promotion with overall_usage_limit = 100 and current_usage = 0
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: a sale that applies this promotion is confirmed (one ticket sold)
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine records a redemption event and current_usage becomes 1
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: a second confirmed sale applying the same promotion makes current_usage = 2
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: current_usage reaching the overall limit makes the promotion ineligible
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active promotion with overall_usage_limit = N and current_usage = N
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the promotion is excluded with reason code OVERALL_LIMIT_REACHED
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: Redemption increments are atomic and append-only under concurrency
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: two concurrent redemption events for the same promotion
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: both are confirmed
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: current_usage is incremented exactly twice (no lost updates) and both events are written to the audit trail
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: current_usage is never set to a value lower than the persisted value (no decrement)
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: Refund or voided sale does not decrement current_usage
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a confirmed redemption already incremented current_usage from 0 to 1
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the originating sale is later refunded or voided
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: current_usage remains at 1 and a separate audit entry is written for the refund event
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: Engine failure contract returns a structured error
+    scenarioIndex: 5
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: any evaluate or quote-options request
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the engine encounters an internal error
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns a structured error response with an error code and request id
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine does not return a partial outcome; retry and fallback are the caller's responsibility
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
+    testCaseKey: TC-5
+    testCaseTitle: Discount usage counting & redemption
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-5-usage-counting-redemption.testcase.yml
+    scenarioTitle: Evaluation is deterministic
+    scenarioIndex: 6
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: identical evaluate inputs and identical persisted state
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes evaluate twice
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: both responses contain the same selected_promotion_id and the same effective_discount
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: bfad068f-6dd4-4206-9807-b017a4b5aded
+    testCaseKey: TC-6
+    testCaseTitle: Discount quote / offer preview
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-6-quote-options.testcase.yml
+    scenarioTitle: Quote returns applicable offers for an item
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: >-
+          an item in the catalog, a quote context with channel = Online, and two Active promotions A and B that apply to
+          that item
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes POST /discounts/quote-options
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine returns 200 with a quote_option for each of A and B
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          each quote_option includes promotion_id, description, promotion_type, percentage, quoted_final_value, and
+          applicability_note (nullable)
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: bfad068f-6dd4-4206-9807-b017a4b5aded
+    testCaseKey: TC-6
+    testCaseTitle: Discount quote / offer preview
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-6-quote-options.testcase.yml
+    scenarioTitle: Quote returns conditional offers with an applicability note
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the buyer is not a member and a Membership Benefit promotion M would apply if the buyer were a member
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the caller invokes quote-options for an item M targets
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the response includes a conditional quote_option for M with applicability_note = Available with active
+          membership
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 61261465-67cd-46b6-a03f-c8c0e1116f0a
+    testCaseKey: TC-7
+    testCaseTitle: Discount lifecycle & field-level audit
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-7-lifecycle-audit.testcase.yml
+    scenarioTitle: Archive a promotion
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: an Active promotion exists
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the admin sets status to Archived
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine marks the promotion Archived and excludes it from evaluate and quote-options candidate sets
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: historical evaluate logs referring to it remain intact
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 61261465-67cd-46b6-a03f-c8c0e1116f0a
+    testCaseKey: TC-7
+    testCaseTitle: Discount lifecycle & field-level audit
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-7-lifecycle-audit.testcase.yml
+    scenarioTitle: Reactivate a promotion re-validates the full payload
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a promotion has status Draft or Archived
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the admin sets status to Active
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine re-validates the full payload against current rules
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the promotion becomes Active only when all validations pass
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: 61261465-67cd-46b6-a03f-c8c0e1116f0a
+    testCaseKey: TC-7
+    testCaseTitle: Discount lifecycle & field-level audit
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-7-lifecycle-audit.testcase.yml
+    scenarioTitle: Field-level audit on tracked fields
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a Promotion exists
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: >-
+          any tracked field (status, percentage, customer_facing_code, applicable_modules, rules, restrictions,
+          current_usage) is Created / Updated / Deleted
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          the engine writes a field_history_records row with record id, object type, field name, old value, new value,
+          acting user, and timestamp
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the History view on the discount detail page reads from field_history_records
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
+    testCaseKey: TC-8
+    testCaseTitle: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-8-v2-counter-lifecycle-stacking.testcase.yml
+    scenarioTitle: "[V2] Additive stacking of two stackable codes"
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: two stackable codes of 10% and 5% on a $100 ticket line
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: both are applied
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the total discount is $15 additive (not $14.50 compound)
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "CONTRADICTS V1: SH-844 stacking is exclusive (highest single discount wins). V2 only."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
+    testCaseKey: TC-8
+    testCaseTitle: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-8-v2-counter-lifecycle-stacking.testcase.yml
+    scenarioTitle: "[V2] confirmDiscountUsage transitions Resolved to Confirmed (idempotent)"
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a discount usage in state Resolved for an order
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: confirmDiscountUsage is called (and called again)
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the counter moves Resolved -> Confirmed and repeat calls are idempotent
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          NOT IN V1: SH-844 has no Resolved/Confirmed pre-reservation lifecycle; current_usage increments on confirmed
+          redemption. V2 only.
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
+    testCaseKey: TC-8
+    testCaseTitle: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-8-v2-counter-lifecycle-stacking.testcase.yml
+    scenarioTitle: "[V2] reverseDiscountUsage transitions Resolved to Reverted and frees quota (idempotent)"
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a discount usage in state Resolved
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: reverseDiscountUsage is called (and called again)
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the counter moves Resolved -> Reverted, quota is freed, and repeat calls are idempotent
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "NOT IN V1 as framed: SH-844 refunds/voids do NOT decrement current_usage. V2 only."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
+    testCaseKey: TC-8
+    testCaseTitle: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-8-v2-counter-lifecycle-stacking.testcase.yml
+    scenarioTitle: "[V2] Counter state machine Available/Resolved/Confirmed/Reverted/Exhausted"
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a new code with overallUsage max=1
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: clients apply, confirm, revert, and exhaust the code
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the counter walks Available -> Resolved -> Confirmed/Reverted, reaching Exhausted at the max
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "NOT IN V1: SH-844 uses a simple current_usage counter. V2 only."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
+    testCaseKey: TC-8
+    testCaseTitle: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-8-v2-counter-lifecycle-stacking.testcase.yml
+    scenarioTitle: "[V2] applyCustomerCode pre-reserves a slot before confirmation"
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a customer-facing code with remaining quota
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: applyCustomerCode is invoked
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: a slot is pre-reserved (Resolved) and usage errors (ALREADY_USED / USAGE_LIMIT / TICKET_LIMIT) are surfaced
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: >-
+          NOT IN V1: SH-844 exposes POST /discounts/evaluate and /discounts/quote-options, not applyCustomerCode. V2
+          only.
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
+    testCaseKey: TC-8
+    testCaseTitle: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-8-v2-counter-lifecycle-stacking.testcase.yml
+    scenarioTitle: "[V2] checkCustomerFacingCodeAvailability is a pure read (no quota consumed)"
+    scenarioIndex: 5
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a code with overallUsage max=1 and current=0
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: availability is checked repeatedly
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: available=true/false is returned with a reason and no counter is modified
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "NOT IN V1: no equivalent endpoint in SH-844. V2 only."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
+    testCaseKey: TC-9
+    testCaseTitle: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-9-known-api-bugs.testcase.yml
+    scenarioTitle: BUG-001 (D4) Cross-tenant leak when x-tenant-id header is missing
+    scenarioIndex: 0
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: GET /promotions is called without the x-tenant-id header
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the request is processed
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the response must NOT include data from other tenants and should return 400 or 401 when the header is missing
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "EXPECTED FAILURE until fix: currently returns cross-tenant data."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
+    testCaseKey: TC-9
+    testCaseTitle: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-9-known-api-bugs.testcase.yml
+    scenarioTitle: BUG-002 (D1) tenant_id in the body is ignored in favor of the header
+    scenarioIndex: 1
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a request with x-tenant-id = tenant-A and a body containing tenantId = tenant-B
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the request is processed
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the engine uses the tenant_id from the header, not the body
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
+    testCaseKey: TC-9
+    testCaseTitle: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-9-known-api-bugs.testcase.yml
+    scenarioTitle: BUG-003 (D2) GET /promotions/:id is not implemented
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the spec declares GET /promotions/:id
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: GET /promotions/promo-001 is called
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the response is 404 Not Found
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "EXPECTED FAILURE: endpoint declared in spec but not implemented."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
+    testCaseKey: TC-9
+    testCaseTitle: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-9-known-api-bugs.testcase.yml
+    scenarioTitle: BUG-004 (NS-5) addRule returns 200 instead of 201
+    scenarioIndex: 3
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a valid new rule payload
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: POST /promotions/:id/rules is called
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the response is 200 OK
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "KNOWN DEVIATION: spec says 201 Created; implementation returns 200."
+    notes: ""
+    attachments: []
+    defects: []
+  - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
+    testCaseKey: TC-9
+    testCaseTitle: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
+    testCaseFilePath: test-cases/SH-844/SH-844-TC-9-known-api-bugs.testcase.yml
+    scenarioTitle: BUG-005 (D6) Response omits rules and restrictions
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: a promotion with rules and restrictions
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the promotion is fetched
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: the body should include rules and restrictions
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: "EXPECTED FAILURE: currently omitted from the response."
+    notes: ""
+    attachments: []
+    defects: []
+summary:
+  total: 57
+  passed: 0
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 57
+  passRate: 0
+metadata:
+  createdBy: testmanager
+  createdAt: "2026-07-07T17:56:04.573Z"
+  updatedBy: testmanager
+  updatedAt: "2026-07-07T17:56:04.573Z"
