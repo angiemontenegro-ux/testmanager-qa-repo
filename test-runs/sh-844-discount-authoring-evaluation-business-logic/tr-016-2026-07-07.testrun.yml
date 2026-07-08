@@ -1580,7 +1580,11 @@ results:
     path: attachments/TR-016/scenario-0-unit-tests/vitest-summary.json
     mimeType: application/json
     size: 2370
-  defects: []
+  defects:
+  - jiraKey: SH-1043
+    url: https://veevart.atlassian.net/browse/SH-1043
+    severity: High
+    summary: Evaluate hardcodes channel=ticketing-online; per-line application_mode never enforced (SH-844 AC)
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -1726,7 +1730,11 @@ results:
     path: attachments/TR-016/scenario-0-unit-tests/vitest-summary.json
     mimeType: application/json
     size: 2370
-  defects: []
+  defects:
+  - jiraKey: SH-1044
+    url: https://veevart.atlassian.net/browse/SH-1044
+    severity: High
+    summary: Evaluate does not enforce pos_require_discount_reason (no POS_REASON_REQUIRED) (SH-844 AC)
 - testCaseId: 32e90479-11e7-4a0b-8513-1fafe5e17f46
   testCaseKey: TC-4
   testCaseTitle: Discount evaluation — selection, stacking & candidate filtering
@@ -2080,7 +2088,11 @@ results:
     path: attachments/TR-016/scenario-0-unit-tests/vitest-summary.json
     mimeType: application/json
     size: 2370
-  defects: []
+  defects:
+  - jiraKey: SH-500
+    url: https://veevart.atlassian.net/browse/SH-500
+    severity: Medium
+    summary: Error mapping and status codes — internal failures lack {error_code, request_id} envelope (existing task)
 - testCaseId: 1a27b483-5a53-4c37-82e4-bb447e93eed4
   testCaseKey: TC-5
   testCaseTitle: Discount usage counting & redemption
@@ -2387,7 +2399,11 @@ results:
     path: attachments/TR-016/scenario-0-unit-tests/vitest-summary.json
     mimeType: application/json
     size: 2370
-  defects: []
+  defects:
+  - jiraKey: SH-1045
+    url: https://veevart.atlassian.net/browse/SH-1045
+    severity: Medium
+    summary: Field-level audit write-only; no History read endpoint/view (SH-844 AC)
 - testCaseId: d3754bb7-e8b0-48ba-b04b-705c4e1f7526
   testCaseKey: TC-8
   testCaseTitle: '[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation'
@@ -2902,7 +2918,11 @@ results:
     path: attachments/TR-016/scenario-0-unit-tests/vitest-summary.json
     mimeType: application/json
     size: 2370
-  defects: []
+  defects:
+  - jiraKey: SH-1046
+    url: https://veevart.atlassian.net/browse/SH-1046
+    severity: Low
+    summary: POST /promotions/:id/rules returns 200 instead of 201 Created (BUG-004)
 - testCaseId: dd51650f-ba79-447d-acb8-4517b5a8b6b5
   testCaseKey: TC-9
   testCaseTitle: '[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations'
