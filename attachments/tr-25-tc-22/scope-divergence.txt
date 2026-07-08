@@ -1,0 +1,49 @@
+SCOPE / ACCEPTANCE-CRITERIA DIVERGENCE — SH-847 story vs delivered code
+Prepared 2026-07-08 for TC-22 / TR-25.
+
+CONTEXT
+TC-22 was generated from SH-847's story text, which describes: Edit Membership Program → Step 3
+Benefits → "Add discount" modal (Use existing / Create from scratch) → "Create from scratch" launches
+the SH-845 Discount Authoring Wizard as a FULL-SCREEN TAKEOVER, pre-seeded with a Membership Rule on
+the Membership-TYPE axis, auto-linking back to the program on save.
+
+WHAT SHIPPED (two PRs)
+- PR #137 (branch feat/discount-code-wizard-modal-sh-847, "SH-847"): built the reusable engine
+  — AssociatedDiscountsWidget + DiscountCodeWizardModal + context-draft lock — and wired it into the
+  TICKETING program wizard. Its own OpenSpec design lists as a Non-goal: "No new Membership Program
+  detail page if no real parent surface exists." Membership was explicitly deferred.
+- PR #239 ("SH-950", formerly MM-28): delivered the MEMBERSHIP surface (MembershipBenefitsStep,
+  MembershipDiscountsPanel, MembershipTicketingDiscountsSection) using the same widget/modal, and
+  deliberately seeds the PROGRAM axis (membershipProgram), moving OFF the Membership-Type axis.
+
+DIVERGENCES (story ↔ implementation)
+D1  Full-screen takeover (SH-847 decision #1, explicit "not a drawer or grown modal")
+    → shipped as <Modal size="5xl">. CONTRADICTION.
+D2  "Add discount" modal with two radio cards (Use existing / Create from scratch)
+    → not built; a single "+ New" button opens the wizard directly. NOT IMPLEMENTED.
+D3  "Use existing" path
+    → not present in the associated widget. NOT IMPLEMENTED (list shows already-linked discounts;
+      read hook lists program-specific ∪ all-programs).
+D4  Step 2 pre-seeded Membership Rule with Membership Type = "Family Plus" (MT-123) + SH-846 dropdown
+    → #239 uses the PROGRAM axis (All / another program), not Membership Type. Scenario 6 mechanism
+      (SH-846 membership-type dropdown) not the one shipped. DIVERGENT.
+D5  "Admin can check an additional module" (scenario 5)
+    → scope checkboxes are LOCKED/DISABLED under association. Admin cannot add modules. CONTRADICTION.
+D6  "Returns to Step 3 Benefits + toast 'Discount created and linked to Family Plus'" (scenario 7)
+    → modal close + advisory modal (program relationships) + generic created/updated toast. DIVERGENT UX.
+D7  "Back to Family Plus benefits" breadcrumb + discard-confirmation modal + browser-nav guard (9–11)
+    → modal `isDismissable={!isDirty}` gating instead. No breadcrumb, no route guard. DIVERGENT UX.
+
+ASSESSMENT
+This is a TEST-CASE-vs-STORY mismatch, not a code bug. SH-847's story was written to an older
+(Notion/membership-type) contract; the team re-scoped during implementation (program axis per SH-950,
+reusable modal per #137). The delivered behavior is internally consistent and unit-tested, but it does
+NOT satisfy SH-847 as written. QA cannot PASS the 12 scenarios against the story as authored.
+
+RECOMMENDATION (for the story owner / QA to adjudicate)
+Option A — Re-baseline TC-22 to the as-built behavior (modal, program axis, "+ New", advisory-on-save)
+           and re-run the functional pass against the Membership Program record surface (#239).
+Option B — Raise a Jira defect/observation on SH-847 that the delivered PR (#137) did not implement the
+           Membership story (delivered under SH-950) and that decision #1 (full-screen takeover) was not
+           honored — then have Product confirm the re-scope and update the acceptance criteria.
+Recommended: B first (confirm intent with Product), then A (re-baseline TC-22) once AC is corrected.

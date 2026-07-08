@@ -1,0 +1,30 @@
+UNIT / COMPONENT TESTS — SH-847 (PR #137) + SH-950 (PR #239)
+Repo: Veevarts/VeevartFrontend   Stack: Next.js / React / TypeScript / Vitest + Testing Library
+
+Local execution: NOT RUN — VeevartFrontend is not cloned on this machine and both PRs are
+already MERGED. Evidence below is (a) static inspection of the test bodies from the PR diffs
+and (b) the authors' recorded results + CI. Flagged in regression-results.txt as a coverage caveat.
+
+== PR #137 (SH-847 — reusable modal engine + Ticketing wiring) ==
+File                                                                 | Kind         | Assertions (it/test blocks)
+--------------------------------------------------------------------- | ------------ | ----------------------------
+features/discounts/components/associated/context-draft.test.ts        | unit         | 4  (seed ticketing rule, reject membership w/o type, strip stale scopes, upsert-by-id)
+features/discounts/components/associated/AssociatedDiscountsWidget.test.tsx | component | 3  (render title/count/status/value; open modal from +New & row Edit; disabled create)
+features/discounts/components/associated/DiscountCodeWizardModal.test.tsx   | component | 4  (onSaved once on save; no onSaved on cancel; no onSaved on invalid; dirty blocks dismiss)
+features/discounts/components/codes/wizard/BasicInfoStep.test.tsx (updated) | component | +2 (locked scopes disabled; standalone scopes stay interactive)
+features/ticketing/programs/.../steps/discounts/DiscountsStep.test.tsx      | component | 2  (disabled until programId; locked ticketing association + upsert into RHF)
+features/ticketing/programs/.../ProgramWizardPage.test.tsx                  | component | 2  (status chip from online toggle; redirect after non-ticketing discounts save)
+Author-recorded (apply-progress.md): "4 files / 21 tests PASS", typecheck PASS.
+
+== PR #239 (SH-950 — Membership surface, program axis) ==
+File                                                                 | Kind         | Assertions
+--------------------------------------------------------------------- | ------------ | ----------
+discounts/hooks/use-membership-program-discounts.test.tsx             | hook         | read/list + upsert/remove cache behavior
+membership-programs/.../program-detail/MembershipDiscountsPanel.test.tsx | component | 3 (program-specific ∪ all-programs each once; other-program excluded; feeds program id)
+membership-programs/.../steps/MembershipBenefitsStep.test.tsx         | component    | read-source vs write-payload decoupling
+packages/shop/.../api/membership-program-discounts.test.ts            | unit         | list filter + net relationship computation (largest suite, ~469 diff lines)
+packages/shop/.../associated/DiscountCodeWizardModal.test.tsx         | component    | dirty-dismiss + program-axis seeding
+packages/shop/.../associated/context-draft.test.ts                    | unit         | program-axis draft seeding
+
+CI (PR #137): `lint` PASS (9m7s). No standalone unit-test job surfaced via `gh pr checks`
+(tests run inside lint/typecheck workspace gates per apply-progress commands).

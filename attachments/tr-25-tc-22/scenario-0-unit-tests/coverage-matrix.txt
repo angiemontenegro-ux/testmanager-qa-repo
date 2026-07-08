@@ -1,0 +1,25 @@
+AC ↔ TEST COVERAGE MATRIX — TC-22 (SH-847) vs delivered code (#137 + #239)
+
+Legend: [as-built] test exists for the SHIPPED behavior · [gap] no test for SH-847's described behavior
+        [n/a] behavior not implemented as the story describes
+
+TC-22 Scenario (SH-847 AC)                                  | Covered by dev tests?            | Notes
+----------------------------------------------------------- | ------------------------------- | -----
+1  Add discount modal (Use existing / Create from scratch)  | [gap][n/a]                      | No two-card "Add discount" modal shipped; widget has a single "+ New" button. No test because behavior not built.
+2  Create from scratch → full-screen takeover               | [gap][n/a]                      | Shipped as Modal size=5xl (DiscountCodeWizardModal.test.tsx asserts modal, not takeover). Contradicts SH-847 decision #1.
+3  Use existing keeps current behavior                      | [gap][n/a]                      | No "Use existing" picker in the associated widget. Not built, not tested.
+4  Wizard pre-config: kind locked + Memberships pre-checked + Step2 rule Membership Type=Family Plus | [partial][n/a] | context-draft.test.ts covers kind=membership_benefit + scope lock, BUT #239 seeds the PROGRAM axis (membershipProgram), NOT Membership Type. "Family Plus" type-seeding not built.
+5  Admin can add other modules, pre-seeded rule preserved   | [n/a]                           | BasicInfoStep.test.tsx asserts locked scopes are DISABLED → admin CANNOT add modules. Directly contradicts scenario 5.
+6  Change Membership Type in pre-seeded rule (per SH-846)   | [gap][n/a]                      | #239 uses program axis (All / another program), not Membership Type dropdown. SH-846 dependency not the mechanism shipped.
+7  Save creates + auto-links + returns to Step3 + toast     | [partial]                       | Modal onSaved-once covered (DiscountCodeWizardModal.test.tsx); membership-program-discounts.test.ts covers net-relationship advise-on-save. UX differs: advisory modal + generic toast, not "returns to Step 3 + 'linked to Family Plus'".
+8  Engine validation error keeps wizard open               | [partial]                       | Modal keeps open on invalid/save error (covered by modal tests). Needs manual confirm of banner + deep-link per SH-845.
+9  Cancel with no changes returns without prompt           | [partial]                       | Modal cancel path covered; but no "Back to Family Plus benefits" breadcrumb (it's a modal close).
+10 Cancel with unsaved changes → discard confirmation       | [partial][n/a]                  | Modal blocks dismiss while dirty (isDismissable={!isDirty}); no discard-confirmation modal with SH-847 copy.
+11 Browser navigation guard while wizard open              | [gap][n/a]                      | No route-level navigation guard — modal, not a page/route. Not built, not tested.
+12 Parity with SH-845 except overrides                     | [partial]                       | Wizard steps reused inside the modal; percent-only + restrictions preserved. Kind-picker skip via context. Overrides differ (modal, program axis).
+
+SUMMARY: Dev tests robustly cover the AS-BUILT product (reusable modal engine, program-axis
+membership discounts, Ticketing wiring). They do NOT cover SH-847's story as written because the
+implementation intentionally diverged (modal vs takeover; program axis vs membership-type axis;
+single "+ New" vs two-card "Add discount" modal). This is a TEST-CASE-vs-STORY mismatch, not a
+missing-coverage bug in the code.

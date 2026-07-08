@@ -1,0 +1,242 @@
+schemaVersion: "1.0"
+id: "20e3c8a1-aa6f-4bd2-8b81-a65468594cbb"
+key: "TC-22"
+title: "Embedded Discount Authoring Wizard from a Membership Program (entry, pre-fills, save/auto-link, cancel, parity)"
+description: |
+  Validates SH-847: the "Create from scratch" path on the Add discount modal
+  (Edit membership program -> Step 3 Benefits) now launches the full SH-845
+  Discount Authoring Wizard as a full-screen takeover, pre-configured for the
+  current Membership Program, instead of the legacy mini-form. Covers modal
+  entry, Create-from-scratch launch, Use-existing left unchanged, the pre-fills
+  and locks (kind = Membership Benefit locked, Memberships module pre-checked,
+  one pre-seeded Membership Rule with the current type, percent-only), adding
+  other modules, changing the pre-seeded membership type, save + auto-link +
+  return to Step 3, engine validation error handling, cancel/back with and
+  without unsaved changes, browser-navigation guarding, and parity with SH-845.
+  QA sub-task: SH-1061. Parent story: SH-847. Epic: SH-469.
+  Open risks: the 5 "Decisions taken with this story (validate)" are still
+  pending confirmation (full-screen takeover vs drawer, auto-link on save,
+  kind locked, Memberships pre-checked, pre-seeded rule with current type);
+  the Membership Type dropdown population is owned by SH-846 (out of scope,
+  consumed here) and must be verified cross-story; the engine create endpoint
+  and the discount->membership link persistence are owned by SH-844 /
+  VeevartBackend and must be verified cross-repo; Step 4 GL & Accounting stays
+  a placeholder per SH-845.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage memberships and discounts in the Shop admin panel."
+  - "SH-847 (embedded Discount Authoring Wizard) is deployed to the target environment (VeevartFrontend)."
+  - "The SH-845 Discount Authoring Wizard build and the SH-844 Discounts Engine (create/validation) are available in the same environment."
+  - "The SH-846 Membership Type dropdown population is available so the pre-seeded rule's Membership Type dropdown can be exercised."
+  - "At least one Membership Program (e.g. 'Family Plus', membership_type_id = MT-123) exists and is editable to Step 3 (Benefits)."
+  - "At least one additional active membership type exists so the Membership Type dropdown offers alternatives to the pre-seeded value."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Open the Add discount modal from Step 3 Benefits"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "modal"
+    given:
+      - "the admin is on Edit membership program -> Step 3 Benefits for 'Family Plus'"
+    when:
+      - "the admin clicks '+ Add discount' in the Discounts section"
+    then:
+      - "a modal opens titled 'Add discount' with the subtitle 'Link an existing discount code or create a brand new one for this membership.'"
+      - "the modal shows two radio-style cards side by side: 'Use existing' (Pick from your discount codes) and 'Create from scratch' (Define name, type and value)"
+      - "the modal shows a Cancel and an Add button at the bottom, with Add disabled until a path is chosen and its required fields are met"
+  - title: "Select Create from scratch launches the full wizard as a full-screen takeover"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "create-from-scratch"
+      - "decision-validate"
+    given:
+      - "the Add discount modal is open on the Family Plus benefits page"
+    when:
+      - "the admin selects 'Create from scratch'"
+    then:
+      - "the legacy mini-form (Discount name, Type, Value, Max tickets, Audience) is NOT rendered"
+      - "the modal closes and the Discount Authoring Wizard opens as a full-screen takeover (not a drawer or grown modal)"
+      - "the wizard breadcrumb / back link reads 'Back to Family Plus benefits'"
+      - "navigating Back returns the admin to Step 3 Benefits with no discount persisted"
+  - title: "Select Use existing keeps its current behavior unchanged"
+    tags:
+      - "ac-3"
+      - "regression"
+      - "use-existing"
+    given:
+      - "the Add discount modal is open"
+    when:
+      - "the admin selects 'Use existing'"
+    then:
+      - "the existing behavior for picking from existing discount codes is unchanged"
+      - "no embedded wizard launches"
+  - title: "Wizard launches pre-configured and locked for the Membership context"
+    tags:
+      - "ac-4"
+      - "happy-path"
+      - "pre-fill"
+      - "decision-validate"
+    given:
+      - "the admin chose Create from scratch from the Family Plus benefits page"
+    when:
+      - "the wizard opens"
+    then:
+      - "the kind picker is skipped and kind = Membership Benefit is set and locked (no UI to change kind)"
+      - "the page heading reads 'Create Discount Code · Membership Benefit · Family Plus'"
+      - "Step 1 loads with Discount Type locked to Percentage off, Status default Active, and the Memberships module pre-checked (others unchecked)"
+      - "the Customer Facing Code field stays hidden unless a Step 2 rule has Code Required / Both"
+      - "Step 2 is pre-seeded with one Membership Rule where Membership Type = 'Family Plus' (membership_type_id = MT-123), not 'All Memberships'"
+  - title: "Admin can add other modules and the pre-seeded Membership Rule is preserved"
+    tags:
+      - "ac-5"
+      - "edge-case"
+      - "modules"
+    given:
+      - "the embedded wizard is open with Memberships pre-checked"
+    when:
+      - "the admin checks an additional module on Step 1 (e.g. Ticketing)"
+    then:
+      - "Step 2 renders a rule sub-section for the newly checked module as well as Memberships"
+      - "the pre-seeded Membership Rule is preserved"
+  - title: "Admin can change the Membership Type in the pre-seeded rule"
+    tags:
+      - "ac-6"
+      - "edge-case"
+      - "sh-846-dependency"
+    given:
+      - "the pre-seeded Membership Rule has Membership Type = 'Family Plus'"
+    when:
+      - "the admin opens the Membership Type dropdown and changes the selection"
+    then:
+      - "the dropdown lists 'All Memberships' plus the other active membership types (per SH-846)"
+      - "the admin can change the selection"
+      - "changing the selection does not affect the auto-link back to the originating Membership Program on save"
+  - title: "Save creates the discount, auto-links it, and returns to Step 3 Benefits"
+    tags:
+      - "ac-7"
+      - "integration"
+      - "save"
+      - "auto-link"
+      - "decision-validate"
+    given:
+      - "the admin has completed the embedded wizard with valid configuration"
+    when:
+      - "the admin clicks Save on Step 5 (Review)"
+    then:
+      - "the system calls the engine create endpoint (SH-844) with the wizard payload"
+      - "on success the newly created discount is auto-linked to membership program 'Family Plus'"
+      - "the admin is returned to Step 3 Benefits of 'Family Plus' and the Discounts section lists the new discount as a row"
+      - "a success toast appears: 'Discount created and linked to Family Plus'"
+  - title: "Engine validation error keeps the wizard open and persists nothing"
+    tags:
+      - "ac-8"
+      - "negative"
+      - "error-handling"
+    given:
+      - "the admin clicks Save on Step 5"
+    when:
+      - "the engine returns a validation error"
+    then:
+      - "the error is surfaced inside the wizard per SH-845 (banner at top of Review with a deep-link to the offending step)"
+      - "no discount is persisted and no link to the Membership Program is created"
+      - "the admin remains in the embedded wizard"
+  - title: "Cancel from inside the wizard with no changes returns without a prompt"
+    tags:
+      - "ac-9"
+      - "happy-path"
+      - "cancel"
+    given:
+      - "the embedded wizard is open and no field has been modified beyond the pre-fills"
+    when:
+      - "the admin clicks 'Back to Family Plus benefits'"
+    then:
+      - "the system returns to Step 3 Benefits with no confirmation prompt"
+      - "no discount is persisted"
+  - title: "Cancel from inside the wizard with unsaved changes prompts a discard confirmation"
+    tags:
+      - "ac-10"
+      - "confirmation"
+      - "cancel"
+    given:
+      - "the embedded wizard is open and the admin has modified at least one field beyond the pre-fills"
+    when:
+      - "the admin clicks 'Back to Family Plus benefits'"
+    then:
+      - "a confirmation modal is shown: 'Discard this new discount? Your changes will be lost.'"
+      - "the system returns to Step 3 Benefits only after the admin confirms"
+      - "no discount is persisted"
+  - title: "Browser navigation while the wizard is open shows the same discard guard"
+    tags:
+      - "ac-11"
+      - "negative"
+      - "navigation"
+    given:
+      - "the embedded wizard is open with unsaved changes"
+    when:
+      - "the admin attempts to navigate away (Back button, route change)"
+    then:
+      - "the system shows the same discard-changes confirmation"
+      - "cancelling the navigation keeps the wizard open"
+  - title: "Wizard parity with SH-845 except the documented overrides"
+    tags:
+      - "ac-12"
+      - "regression"
+      - "parity"
+    given:
+      - "the embedded wizard is open"
+    when:
+      - "the admin exercises the wizard end to end"
+    then:
+      - "every UI behavior defined in SH-845 applies except the SH-847 overrides: kind picker skipped and kind locked to Membership Benefit; page heading includes the originating Membership Program name; 'Back to <Membership Program name>' replaces 'Back to Discount Codes list'; Save auto-links and returns to Step 3 Benefits instead of the discounts list; Step 1 Memberships pre-checked; Step 2 includes one pre-seeded Membership Rule with the current Membership Type"
+      - "percent-only enforcement, Application Mode -> channels coupling, restrictions gating, and the Step 4 placeholder behavior are unchanged"
+tags:
+  - "sh-847"
+  - "sh-469"
+  - "sh-1061"
+  - "sh-844"
+  - "sh-845"
+  - "sh-846"
+  - "discounts"
+  - "discount-wizard"
+  - "membership-program"
+  - "benefits"
+  - "shop"
+  - "ui"
+  - "embedded-wizard"
+parameters: []
+links:
+  jira:
+    - key: "SH-847"
+      url: "https://veevart.atlassian.net/browse/SH-847"
+      type: "story"
+    - key: "SH-1061"
+      url: "https://veevart.atlassian.net/browse/SH-1061"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-848"
+      url: "https://veevart.atlassian.net/browse/SH-848"
+      type: "blocks"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "relates"
+    - key: "SH-846"
+      url: "https://veevart.atlassian.net/browse/SH-846"
+      type: "relates"
+  external: []
+estimatedDuration: 40
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T20:37:34Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T20:37:34Z"
+  version: 1

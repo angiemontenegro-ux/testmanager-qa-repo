@@ -1,0 +1,25 @@
+TECHNICAL + SECURITY REGRESSION PLAN — TC-22 (PR #137 + #239)
+Classification: UI / Frontend-only (React/TS, apps/shared/portal + packages/shop). No SQL/pipeline/Salesforce.
+
+== TECHNICAL REGRESSION ==
+| # | Item                                                                 | Type      | Risk   | Check method                                                                 | Verdict |
+|---|----------------------------------------------------------------------|-----------|--------|------------------------------------------------------------------------------|---------|
+| T1| BasicInfoStep.tsx gains optional `lock` prop (shared by standalone /discounts/codes wizard) | Technical | Medium | Inspect: `lock` is optional; when omitted, `isScopeDisabled` == old `!AUTHORING_SUPPORTED_SCOPES.has`. Dev added test "standalone scopes stay interactive". | PASS |
+| T2| ProgramWizardPage.tsx save no longer always redirects (stays on ticketing discounts step) | Technical | Medium | Inspect: `shouldStayForDiscountAssociation = kind==='ticketing' && step==='discounts'`. Non-ticketing still redirects (test added). | PASS |
+| T3| STEPS_BY_KIND.ticketing adds 'discounts'                             | Technical | Low    | Behind `ticketing.wizard.discounts` flag via useVisibleWizardSteps; hidden unless enabled. | PASS |
+| T4| DiscountsStepValues schema: `_placeholder` → `associatedDiscounts: DiscountCode[]` | Technical | Low    | Default `[]`; additive. emptyProgramFormValues updated. | PASS |
+| T5| MembershipDiscountsPanel switches local useState → useMembershipProgramDiscounts hook (#239) | Technical | Medium | Read source now hydrates from fetch hook; write path decoupled (MembershipBenefitsStep writeAssociatedDiscounts pairs RHF + cache). Tests cover read/write decoupling. | PASS |
+| T6| context-draft moved from features/discounts → packages/shop/src/discounts (#239 refactor) | Technical | Low    | Re-exported via barrel; index.ts updated. Import sites resolve. | PASS |
+| T7| Standalone /discounts/codes wizard unaffected                        | Technical | Medium | No association passed → enforceAssociationLock is a no-op (`if (!context?.locked) return draft`). | PASS |
+
+== SECURITY REGRESSION ==
+| # | Item                                                                 | Type     | Risk | Check method                                              | Verdict |
+|---|----------------------------------------------------------------------|----------|------|----------------------------------------------------------|---------|
+| S1| XSS / unsafe HTML injection in new components                        | Security | Med  | grep diffs for dangerouslySetInnerHTML / v-html / eval / new Function / document.write | PASS (none) |
+| S2| Secrets / tokens in diff                                             | Security | Low  | grep password/api_key/secret/token/bearer/.env/BEGIN     | PASS (none) |
+| S3| New/updated dependencies                                             | Security | Low  | package.json / lockfile in diff?                          | PASS (no dep changes) |
+| S4| Sandbox route exposure (app/sandbox/associated-discounts)            | Security | Med  | page.tsx: `if (process.env.NODE_ENV !== 'development') notFound()` | PASS (dev-gated) |
+| S5| Access control / RBAC / route guard changes                          | Security | Low  | No profile/permission/auth files touched                 | PASS (N/A) |
+| S6| PII in logs (console.log/logger of email/phone)                      | Security | Low  | grep changed files                                       | PASS (none) |
+
+All items resolved at plan time by static inspection; results mirrored in regression-results.txt.

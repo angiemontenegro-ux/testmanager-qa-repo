@@ -1,0 +1,18 @@
+OWASP TOP 10 (2021) APPLICABILITY SCAN — TC-22 (PR #137 + #239)   Executed: 2026-07-08
+PR surface: UI / Frontend-only (React/TS). No backend/API/auth/infra/dependency changes.
+
+| ID  | Risk                          | Applicable | Check method                                     | Verdict | Evidence / Justification |
+|-----|-------------------------------|------------|--------------------------------------------------|---------|--------------------------|
+| A01 | Broken Access Control         | No         | -                                                | N/A     | No auth/permission/sharing/route-guard files touched. Sandbox route is dev-gated (NODE_ENV!=='development' → notFound). |
+| A02 | Cryptographic Failures        | No         | -                                                | N/A     | No credential/token/PII-at-rest/crypto handling in scope. |
+| A03 | Injection (incl. XSS)         | Yes        | grep dangerouslySetInnerHTML/v-html/eval/new Function/document.write across both diffs | PASS | 0 hits. All rendering uses React text nodes / design-system components; no raw HTML sink. |
+| A04 | Insecure Design               | No         | -                                                | N/A     | UI wiring of an existing backend-backed wizard; no new business/threat surface. Context lock is defense-in-depth (enforced at factory+update+save, not UI-only). |
+| A05 | Security Misconfiguration     | No         | -                                                | N/A     | No infra/env/CORS/headers/debug toggles. Sandbox page correctly disabled outside development. |
+| A06 | Vulnerable & Outdated Comps   | No         | -                                                | N/A     | No package.json / lockfile changes in either PR. |
+| A07 | Identification & Auth Failures| No         | -                                                | N/A     | No login/session/MFA/token flows touched. |
+| A08 | Software & Data Integrity     | No         | -                                                | N/A     | No CI/CD, deserialization, or plugin/update systems. crypto.randomUUID used only in dev sandbox stub. |
+| A09 | Security Logging & Monitoring | No         | -                                                | N/A     | No logging removed/changed; no PII logged (grep clean). |
+| A10 | SSRF                          | No         | -                                                | N/A     | No server-side/user-influenced outbound HTTP introduced; saves go through existing typed authoring hooks. |
+
+RESULT: 1 Applicable (A03) · 1 PASS · 0 FAIL · 9 N/A. No security blocker. No OWASP defect required.
+Reference: OWASP Top 10:2021.

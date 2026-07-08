@@ -1,0 +1,25 @@
+REGRESSION RESULTS — TC-22 (PR #137 + #239)   Executed: 2026-07-08
+
+== TECHNICAL (7 items) ==
+T1 BasicInfoStep optional lock ................. PASS  (lock optional; standalone path unchanged; dev test added)
+T2 ProgramWizardPage conditional redirect ...... PASS  (only ticketing+discounts stays; non-ticketing redirects; test added)
+T3 STEPS_BY_KIND.ticketing += discounts ........ PASS  (gated by ticketing.wizard.discounts flag)
+T4 DiscountsStepValues associatedDiscounts[] ... PASS  (additive, default [])
+T5 MembershipDiscountsPanel → fetch hook ....... PASS  (read/write decoupled; tests cover desync guard SH-950 #5)
+T6 context-draft move to packages/shop ......... PASS  (barrel re-exports; imports resolve)
+T7 Standalone /discounts/codes wizard .......... PASS  (enforceAssociationLock no-op without context)
+Technical: 7/7 PASS · 0 FAIL
+
+== SECURITY (6 items) — grep evidence run 2026-07-08 ==
+S1 XSS / unsafe HTML sinks ..................... PASS  (grep dangerouslySetInnerHTML|v-html|eval|new Function|document.write → 0 hits)
+S2 Secrets / tokens in diff .................... PASS  (only hit is `process.env.NODE_ENV` gate — not a secret)
+S3 Dependency / lockfile changes .............. PASS  (no package.json/lockfile touched)
+S4 Sandbox route exposure ..................... PASS  (app/sandbox/associated-discounts/page.tsx: notFound() unless NODE_ENV==='development')
+S5 Access control / RBAC ...................... N/A   (no auth/permission/sharing files)
+S6 PII in logs ................................ PASS  (no console/logger calls added)
+Security: 5/6 PASS · 1 N/A · 0 FAIL · 0 High/Critical blockers
+
+COVERAGE CAVEATS (Rule 12):
+- Unit/component suites were NOT re-executed locally (repo not cloned; both PRs merged). Relying on
+  author-recorded PASS (21 tests, #137) + CI lint green. Independent re-run pending repo availability.
+- All 12 functional (UI) scenarios require manual screenshot validation → left not-run (see TR handoff).

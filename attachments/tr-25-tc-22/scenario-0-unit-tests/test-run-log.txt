@@ -1,0 +1,25 @@
+TEST EXECUTION LOG — TC-22
+
+Attempted local run: NO.
+Reason: Veevarts/VeevartFrontend is not cloned on this QA machine. Both PRs (#137, #239) are
+already MERGED to main. Cloning the full Next.js monorepo + `npm install` + workspace vitest run
+was not performed in this session.
+
+Evidence relied upon instead:
+1. Static read of every *.test.tsx / *.test.ts body from `gh pr diff 137` and `gh pr diff 239`.
+2. Author-recorded results in openspec/changes/discount-code-wizard-modal-integration/apply-progress.md:
+   - `npm --workspace @veevart/portal run typecheck` — PASS
+   - `npm --workspace @veevart/portal run test -- <4 files>` — PASS, 4 files / 21 tests
+3. CI on PR #137: `lint` job PASS (run 26890149774).
+
+To reproduce locally when the repo is available:
+    git clone git@github.com:Veevarts/VeevartFrontend.git
+    cd VeevartFrontend && npm install
+    npm --workspace @veevart/portal run test -- features/discounts features/ticketing/programs/components/program-wizard
+    npm --workspace @veevart/portal run test -- features/fundraising/membership-programs packages/shop/src/discounts
+    npm --workspace @veevart/portal run typecheck
+    npm --workspace @veevart/portal run lint
+    npm --workspace @veevart/portal run check:i18n
+
+Verdict: dev unit/component suites reported GREEN by author + CI lint green. Not independently
+re-executed here — flagged as a coverage caveat (Rule 12), not a failure.
