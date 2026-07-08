@@ -215,82 +215,92 @@ results:
   testCaseFilePath: test-cases/SH-845/SH-845-TC-15-step2-rules-limits.testcase.yml
   scenarioTitle: Audience vs Ticket Types mutual exclusion
   scenarioIndex: 4
-  status: not-run
+  status: failed
   stepResults:
   - order: 1
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: given
     text: the admin is editing a Ticketing rule
   - order: 2
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: when
     text: the admin selects an Audience Type
   - order: 3
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: the Ticket Types field is disabled with placeholder Disabled (Audience selected)
   - order: 4
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: the helper text reads Clear Audience Type to select ticket types.
   - order: 5
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: clearing the Audience Type makes the Ticket Types field selectable again
-  notes: 'No probado: seleccionar Audience Type debe deshabilitar Ticket Types con placeholder ''Disabled (Audience selected)''. Pendiente.'
+  notes: 'No se aplica la exclusion mutua: con Audience Type = ''Adults'', Ticket Types sigue HABILITADO (el dropdown abre; muestra ''No items.'' solo porque Program=All Programs) y no aparece el placeholder ''Disabled (Audience selected)'' ni el helper de la AC. Defecto SH-1053 (posible cambio de diseno a scoping por Program).'
   attachments: *id001
-  defects: []
+  defects:
+  - jiraKey: SH-1053
+    url: https://veevart.atlassian.net/browse/SH-1053
+    severity: Medium
+    summary: No se aplica la exclusion mutua Audience Type vs Ticket Types
+  executedAt: '2026-07-08T20:30:00.000Z'
 - testCaseId: 63360003-1b71-41c8-b892-f38ff4ecd415
   testCaseKey: TC-15
   testCaseTitle: Discount Wizard — Step 2 Rules & Limits
   testCaseFilePath: test-cases/SH-845/SH-845-TC-15-step2-rules-limits.testcase.yml
   scenarioTitle: Save and delete a rule
   scenarioIndex: 5
-  status: not-run
+  status: failed
   stepResults:
   - order: 1
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: given
     text: the admin has edited a Rule card with valid values
   - order: 2
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: when
     text: the admin clicks Save Rule, then later clicks the trash icon on the saved rule
   - order: 3
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: on save the card collapses to a one-line summary (e.g. Manually Entered - Event Test - Adult - 2 tickets) and a success toast is shown
   - order: 4
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: clicking the trash icon shows the confirmation Delete this rule?
   - order: 5
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: failed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: the rule is removed only after the admin confirms
-  notes: 'DESVIACION observada: al ''Save Rule'' la card NO colapsa a resumen de una linea (la AC lo pide); la regla si se acepta (se habilita ''Next'' y desaparece el gating). Toast de exito y borrado con confirmacion: no verificados.'
+  notes: 'DESVIACION: ''Save Rule'' no colapsa la card a resumen de una linea (la regla si se acepta). BUG: la papelera borra la regla DIRECTO, sin el dialogo ''Delete this rule?'' de la AC. Defecto SH-1052 (accion destructiva sin confirmacion).'
   attachments: *id001
-  defects: []
+  defects:
+  - jiraKey: SH-1052
+    url: https://veevart.atlassian.net/browse/SH-1052
+    severity: Medium
+    summary: Faltan confirmaciones al borrar (desmarcar modulo borra reglas; papelera borra regla sin dialogo)
+  executedAt: '2026-07-08T20:30:00.000Z'
 summary:
   total: 6
   passed: 4
-  failed: 0
+  failed: 2
   blocked: 0
   skipped: 0
-  notRun: 2
+  notRun: 0
   passRate: 67
 metadata:
   createdBy: codex
   createdAt: '2026-07-08T00:00:00.000Z'
   updatedBy: codex
-  updatedAt: '2026-07-08T19:30:00.000Z'
+  updatedAt: '2026-07-08T20:30:00.000Z'

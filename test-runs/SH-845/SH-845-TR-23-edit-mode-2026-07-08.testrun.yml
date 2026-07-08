@@ -187,30 +187,30 @@ results:
   stepResults:
   - order: 1
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: given
     text: the admin opens an existing legacy fixed-amount promotion
   - order: 2
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: when
     text: the wizard loads at Step 1
   - order: 3
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: a non-dismissible banner reads Legacy fixed-amount discount. Editing is handled by the migration workstream.
   - order: 4
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: all fields are read-only in this wizard
   - order: 5
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: the persistent edit-mode header still renders but the top-right Save is disabled with tooltip Editing handled by migration workstream
-  notes: 'No probado: requiere una promocion legacy fixed-amount existente para ver el banner read-only. Las 12 promos del ambiente son de tipo porcentaje. Pendiente.'
+  notes: 'No testeable en esta corrida: no existe ninguna promocion legacy fixed-amount en el ambiente (las 12 promos son de tipo porcentaje) y el wizard no puede crear una (Discount type es %-only). Requiere sembrar un registro fixed-amount para ver el banner read-only. Pendiente.'
   attachments: *id001
   defects: []
 summary:
@@ -225,4 +225,4 @@ metadata:
   createdBy: codex
   createdAt: '2026-07-08T00:00:00.000Z'
   updatedBy: codex
-  updatedAt: '2026-07-08T19:30:00.000Z'
+  updatedAt: '2026-07-08T20:30:00.000Z'

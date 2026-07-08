@@ -35,40 +35,40 @@ results:
   stepResults:
   - order: 1
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: given
     text: the admin uses the wizard on desktop or tablet, including keyboard-only navigation
   - order: 2
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: when
     text: the wizard renders and the admin tabs through controls
   - order: 3
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: the stepper, cards, dropdowns, toggles, and tables remain readable and usable and all primary actions (Next, Save Rule, Generate, header Save, footer Save) remain accessible
   - order: 4
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: locked-toggle tooltips are reachable via long-press on tablet
   - order: 5
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: every interactive control receives a visible focus state and step navigation is operable with Tab + Enter
   - order: 6
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: step state is conveyed by both the checkmark icon and the numeric label (color is not the only indicator)
   - order: 7
     status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    actual: Pendiente (ver notes del escenario).
     phase: then
     text: locked toggles announce their disabled state and tooltip text to screen readers
-  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-24/ui/scenario-0.png'
+  notes: 'No se ejecuto un pase formal de accesibilidad/responsive (lector de pantalla, navegacion completa por teclado, breakpoints). Observaciones incidentales durante la corrida: los inputs muestran focus ring visible; el layout se mantuvo usable a ~1084px y ~1341px de ancho. Pendiente: Tab+Enter en el stepper, tooltips por long-press en tablet, y anuncios de estado de toggles bloqueados a screen readers.'
   attachments:
   - name: manual-execution-guide.txt
     path: attachments/SH-845-TR-24/ui/manual-execution-guide.txt
@@ -92,4 +92,4 @@ metadata:
   createdBy: codex
   createdAt: '2026-07-08T00:00:00.000Z'
   updatedBy: codex
-  updatedAt: '2026-07-08T00:00:00.000Z'
+  updatedAt: '2026-07-08T20:30:00.000Z'
