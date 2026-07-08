@@ -1,0 +1,43 @@
+Guia de ejecucion manual — TC-19 / TR-23
+Discount Wizard — edit mode (header, save, overflow, legacy)
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Edit mode persistent header, top-right Save on every step, and sticky behavior
+    [GIVEN] the admin opens an existing percent Discount Code from the list
+    [WHEN] the wizard loads in EDIT mode and the admin scrolls a long step
+    [THEN] the wizard opens at Step 1 with all fields populated from the persisted record and Steps 1-3 badges show green checkmarks when their data is valid
+    [THEN] the persistent header shows, top to bottom: breadcrumb (Back > Discounts > Discount Codes), title row (name + status pill + top-right Save + ... overflow), metadata strip (kind badge + key date + status quick-toggle), and the stepper
+    [THEN] the top-right Save is visible on Steps 1-4, enabled when completed fields are valid for the target status, disabled with an explanatory tooltip otherwise
+    [THEN] on scroll the breadcrumb collapses out of view while the title row, metadata strip, and stepper stay sticky and Save stays reachable
+    [THEN] NONE of the status pill, top Save, metadata strip, or overflow menu render in CREATE mode
+    >> Captura: attachments/SH-845-TR-23/ui/scenario-0.png
+
+--- Scenario 1: Edit mode Save persists in place with Draft vs Active validation
+    [GIVEN] the admin is editing an existing discount on any step
+    [WHEN] the admin clicks the top-right Save button under different target statuses
+    [THEN] the system calls the engine update endpoint with the current state, keeps the admin on the current step, shows the toast Discount saved, and updates the header status pill
+    [THEN] with Status = Draft required-field validation is relaxed (only fields filled so far are validated)
+    [THEN] setting Status = Active via the header quick-toggle and saving validates the full payload against the SH-844 Active rules
+    [THEN] on validation error an error banner with the message and a Go to <step> link is shown and the record is NOT persisted as Active until all required fields are valid
+    >> Captura: attachments/SH-845-TR-23/ui/scenario-1.png
+
+--- Scenario 2: Edit mode overflow menu and status quick-toggle
+    [GIVEN] the admin is on the wizard for an existing discount in EDIT mode
+    [WHEN] the admin uses the ... overflow menu and the metadata-strip status quick-toggle
+    [THEN] the overflow menu shows Archive and Duplicate
+    [THEN] Archive opens the confirmation Archive this discount? It will no longer be available for new redemptions.
+    [THEN] Duplicate creates a draft copy with the same field values and navigates to its Step 1 in CREATE mode
+    [THEN] the status quick-toggle reflects the current status and changes the intended state, but only persists when the admin clicks the header Save
+    >> Captura: attachments/SH-845-TR-23/ui/scenario-2.png
+
+--- Scenario 3: Editing a legacy fixed-amount promotion is read-only
+    [GIVEN] the admin opens an existing legacy fixed-amount promotion
+    [WHEN] the wizard loads at Step 1
+    [THEN] a non-dismissible banner reads Legacy fixed-amount discount. Editing is handled by the migration workstream.
+    [THEN] all fields are read-only in this wizard
+    [THEN] the persistent edit-mode header still renders but the top-right Save is disabled with tooltip Editing handled by migration workstream
+    >> Captura: attachments/SH-845-TR-23/ui/scenario-3.png
+

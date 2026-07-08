@@ -1,0 +1,57 @@
+Guia de ejecucion manual — TC-14 / TR-18
+Discount Wizard — Step 1 Basic Info
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Step 1 Basic Info layout and fields
+    [GIVEN] the admin is on Step 1
+    [WHEN] the step loads
+    [THEN] the heading is Create Discount Code (or Edit Discount Code in edit mode)
+    [THEN] the left column shows Code Name (required), Status toggle (default Active), Description (optional), Discount Type, Percentage (required)
+    [THEN] the right column shows Customer Facing Code with a Generate affordance and helper text This is the code the customer puts to get the discount during the purchase
+    [THEN] the section Where can this discount be used? shows a 2x3 grid of module checkboxes: Memberships, Ticketing, Courses/Camps, Shop, Groups, Rentals
+    >> Captura: attachments/SH-845-TR-18/ui/scenario-0.png
+
+--- Scenario 1: Discount Type is locked to Percentage off with no fixed-amount path
+    [GIVEN] the admin is on Step 1
+    [WHEN] the Discount Type control renders
+    [THEN] the control displays Percentage off
+    [THEN] the control is not interactive (no dropdown expand, no other selectable values)
+    [THEN] there is no path anywhere in the UI to enter a fixed-amount value
+    >> Captura: attachments/SH-845-TR-18/ui/scenario-1.png
+
+--- Scenario 2: Percentage validation gates the step
+    [GIVEN] the admin is on Step 1
+    [WHEN] the admin enters a Percentage of 0 or less, greater than 100, or leaves it blank
+    [THEN] the field shows the inline error Percentage must be greater than 0 and at most 100
+    [THEN] the Next button is disabled
+    [THEN] the Step 1 badge does not show a completed checkmark
+    >> Captura: attachments/SH-845-TR-18/ui/scenario-2.png
+
+--- Scenario 3: Generate a Customer Facing Code
+    [GIVEN] the admin is on Step 1
+    [WHEN] the admin clicks Generate
+    [THEN] the Customer Facing Code field is populated with a unique alphanumeric code returned by the engine
+    [THEN] the field remains editable after generation
+    [THEN] clicking Generate again replaces the value with a newly generated one
+    >> Captura: attachments/SH-845-TR-18/ui/scenario-3.png
+
+--- Scenario 4: Customer Facing Code requirement reflects kind and Ticketing rules
+    [GIVEN] the admin is on Step 1
+    [WHEN] the kind and the Step 2 Ticketing rules vary
+    [THEN] when kind = Discount Code the field shows a required asterisk and Next is disabled until it is non-empty
+    [THEN] when kind = Automatic and no Ticketing rule with application_mode in (Code Required, Both) exists, the field is hidden or read-only as Not required for Automatic
+    [THEN] when kind = Membership Benefit and a Step 2 Ticketing rule with application_mode = Code Required is later added, returning to Step 1 makes the field required and shows the asterisk
+    >> Captura: attachments/SH-845-TR-18/ui/scenario-4.png
+
+--- Scenario 5: Applicable modules multi-select gates Step 2 and guards rule deletion
+    [GIVEN] the admin is on Step 1
+    [WHEN] the admin checks Memberships and Ticketing, then later unchecks a module that already has Step 2 rules
+    [THEN] the Step 1 badge shows complete only after all required fields are valid
+    [THEN] Step 2 renders one rule sub-section per checked module
+    [THEN] unchecking a module with existing rules shows the confirmation Removing this module will delete its rules. Continue?
+    [THEN] the module's rules are deleted only after the admin confirms
+    >> Captura: attachments/SH-845-TR-18/ui/scenario-5.png
+

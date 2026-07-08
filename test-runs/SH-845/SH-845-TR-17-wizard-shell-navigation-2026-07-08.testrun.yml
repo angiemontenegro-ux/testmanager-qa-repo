@@ -1,0 +1,177 @@
+schemaVersion: '1.0'
+id: tr-4e1a16f0-6de0-4868-842d-f1f44cbd984a
+key: TR-17
+title: 'Run SH-845: Discount Wizard — shell, stepper & navigation'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: UI/Frontend-only (SH-845 Discount Authoring Wizard). Ejecucion manual; sin PR de codigo accesible para regresion/OWASP sobre diff.
+notes: '## Solution understood
+
+  SH-845 implementa la UI del Discount Authoring Wizard (picker de kind, stepper de 4 pasos, header persistente en modo edicion). Contraparte UI de SH-844 (motor de descuentos). Clasificacion: UI/Frontend-only.
+
+
+  ## Ejecucion
+
+  Por politica del executor, una historia UI-only NO se auto-ejecuta: cada escenario queda ''not-run'' con instrucciones manuales (ruta, accion, observable, captura). El tester ejecuta contra el ambiente con el build de SH-845 y adjunta las capturas bajo attachments/SH-845-TR-17/ui/.
+
+
+  ## LIMITACION
+
+  No hay PR de codigo accesible desde esta sesion (el PR #1 de testmanager-qa-repo son los artefactos QA, no la implementacion del wizard). Por lo tanto NO se corrio inspeccion de unit tests, regresion tecnica sobre el diff, ni scan OWASP sobre codigo: ver attachments/SH-845-TR-17/regression-notes.txt y owasp-top10-scan.txt (marcados N/A por falta de diff). La validacion funcional es 100% manual.
+
+
+  ## Dependencia
+
+  Escenarios que tocan Save/Active (TC-18, TC-19) requieren el motor SH-844 desplegado en el ambiente.'
+results:
+- testCaseId: 25258217-83be-42b3-93d4-7f53ffb3e078
+  testCaseKey: TC-13
+  testCaseTitle: Discount Wizard — shell, stepper & navigation
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-13-wizard-shell-navigation.testcase.yml
+  scenarioTitle: Open the Create New Discount picker and pick a kind
+  scenarioIndex: 0
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin is on the Discount Codes list
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the admin clicks Create New Discount
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: the picker page titled Create New Discount opens with subtitle Choose what kind of discount you want to create.
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: 'three cards are shown in a row: Discount Code, Automatic, Membership Benefit'
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: each card shows its icon, title, and a one-line description, plus a Back link to the discount list
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: clicking the Discount Code card navigates to Step 1 (Basic Info) with kind = Discount Code
+  - order: 7
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: clicking Automatic navigates to Step 1 with kind = Automatic, and Membership Benefit navigates to Step 1 with kind = Membership Benefit
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-17/ui/scenario-0.png'
+  attachments: &id001
+  - name: manual-execution-guide.txt
+    path: attachments/SH-845-TR-17/ui/manual-execution-guide.txt
+    mimeType: text/plain
+  - name: regression-notes.txt
+    path: attachments/SH-845-TR-17/regression-notes.txt
+    mimeType: text/plain
+  - name: owasp-top10-scan.txt
+    path: attachments/SH-845-TR-17/owasp-top10-scan.txt
+    mimeType: text/plain
+  defects: []
+- testCaseId: 25258217-83be-42b3-93d4-7f53ffb3e078
+  testCaseKey: TC-13
+  testCaseTitle: Discount Wizard — shell, stepper & navigation
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-13-wizard-shell-navigation.testcase.yml
+  scenarioTitle: Display the fixed 4-step stepper with correct states
+  scenarioIndex: 1
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin is in the wizard
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: any step loads
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: 'the stepper is fixed at the top with four circles labeled in order: 1 Basic Info, 2 Rules & Limits, 3 Restrictions, 4 Review'
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: the current step is a filled brand-orange circle with a white number
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: completed steps are green circles with a checkmark
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: future steps are outlined circles with a grey number
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-17/ui/scenario-1.png'
+  attachments: *id001
+  defects: []
+- testCaseId: 25258217-83be-42b3-93d4-7f53ffb3e078
+  testCaseKey: TC-13
+  testCaseTitle: Discount Wizard — shell, stepper & navigation
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-13-wizard-shell-navigation.testcase.yml
+  scenarioTitle: Step gating, inline validation, and focus behavior
+  scenarioIndex: 2
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin is in the wizard
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: a required field on the current step is invalid
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: the Next button is disabled and the step badge does not show the green completed checkmark
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: an inline message appears immediately below the invalid field and the section gets a subtle red highlight
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: focus moves to the first invalid field when the admin clicks Next
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: backward navigation to any previously completed step is always allowed
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-17/ui/scenario-2.png'
+  attachments: *id001
+  defects: []
+summary:
+  total: 3
+  passed: 0
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 3
+  passRate: 0
+metadata:
+  createdBy: codex
+  createdAt: '2026-07-08T00:00:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-07-08T00:00:00.000Z'

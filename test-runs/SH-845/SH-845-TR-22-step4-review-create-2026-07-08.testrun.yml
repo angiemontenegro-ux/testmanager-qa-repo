@@ -1,0 +1,121 @@
+schemaVersion: '1.0'
+id: tr-7bcdcc42-38bf-4a1a-b8c3-66f2744712bb
+key: TR-22
+title: 'Run SH-845: Discount Wizard — Step 4 Review & create save'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: UI/Frontend-only (SH-845 Discount Authoring Wizard). Ejecucion manual; sin PR de codigo accesible para regresion/OWASP sobre diff.
+notes: '## Solution understood
+
+  SH-845 implementa la UI del Discount Authoring Wizard (picker de kind, stepper de 4 pasos, header persistente en modo edicion). Contraparte UI de SH-844 (motor de descuentos). Clasificacion: UI/Frontend-only.
+
+
+  ## Ejecucion
+
+  Por politica del executor, una historia UI-only NO se auto-ejecuta: cada escenario queda ''not-run'' con instrucciones manuales (ruta, accion, observable, captura). El tester ejecuta contra el ambiente con el build de SH-845 y adjunta las capturas bajo attachments/SH-845-TR-22/ui/.
+
+
+  ## LIMITACION
+
+  No hay PR de codigo accesible desde esta sesion (el PR #1 de testmanager-qa-repo son los artefactos QA, no la implementacion del wizard). Por lo tanto NO se corrio inspeccion de unit tests, regresion tecnica sobre el diff, ni scan OWASP sobre codigo: ver attachments/SH-845-TR-22/regression-notes.txt y owasp-top10-scan.txt (marcados N/A por falta de diff). La validacion funcional es 100% manual.
+
+
+  ## Dependencia
+
+  Escenarios que tocan Save/Active (TC-18, TC-19) requieren el motor SH-844 desplegado en el ambiente.'
+results:
+- testCaseId: fd7531fb-03fa-463b-bd49-723009ce6158
+  testCaseKey: TC-18
+  testCaseTitle: Discount Wizard — Step 4 Review & create save
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-18-step4-review-create.testcase.yml
+  scenarioTitle: Step 4 Review summary mirrors the persisted payload
+  scenarioIndex: 0
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin reaches Step 4
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the step loads
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: 'a Review Configuration card shows two labeled columns: Code/Type/Value/Status/Online/Auto-Apply and Applies To/Stacking/Max Uses/Date Range/POS/Per Person Limit'
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: values reflect the live wizard state, with Online and POS reflecting the resolved channels (derived from Step 2 or admin-set on Step 3)
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: no fields on this step are editable
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-22/ui/scenario-0.png'
+  attachments: &id001
+  - name: manual-execution-guide.txt
+    path: attachments/SH-845-TR-22/ui/manual-execution-guide.txt
+    mimeType: text/plain
+  - name: regression-notes.txt
+    path: attachments/SH-845-TR-22/regression-notes.txt
+    mimeType: text/plain
+  - name: owasp-top10-scan.txt
+    path: attachments/SH-845-TR-22/owasp-top10-scan.txt
+    mimeType: text/plain
+  defects: []
+- testCaseId: fd7531fb-03fa-463b-bd49-723009ce6158
+  testCaseKey: TC-18
+  testCaseTitle: Discount Wizard — Step 4 Review & create save
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-18-step4-review-create.testcase.yml
+  scenarioTitle: Footer Save on Step 4 creates the promotion and surfaces engine validation errors
+  scenarioIndex: 1
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin is on Step 4 in CREATE mode with a valid configuration
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the admin clicks the footer Save button
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: the system calls the engine create endpoint
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: on success it navigates to the new discount EDIT route /discounts/codes/<id>/edit, renders the persistent edit-mode header, and shows a success toast
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: on an engine validation error (e.g. CUSTOMER_FACING_CODE_TAKEN) it shows an error banner at the top of the Review card with the engine message and a Go to Step 1 link to the offending field
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-22/ui/scenario-1.png'
+  attachments: *id001
+  defects: []
+summary:
+  total: 2
+  passed: 0
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 2
+  passRate: 0
+metadata:
+  createdBy: codex
+  createdAt: '2026-07-08T00:00:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-07-08T00:00:00.000Z'

@@ -6,7 +6,7 @@ project:
     testCase: 20
     testSuite: 0
     testPlan: 10
-    testRun: 14
+    testRun: 24
 settings:
   defaultPriority: "medium"
   defaultType: "functional"

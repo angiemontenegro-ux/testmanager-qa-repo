@@ -1,0 +1,23 @@
+Guia de ejecucion manual — TC-18 / TR-22
+Discount Wizard — Step 4 Review & create save
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Step 4 Review summary mirrors the persisted payload
+    [GIVEN] the admin reaches Step 4
+    [WHEN] the step loads
+    [THEN] a Review Configuration card shows two labeled columns: Code/Type/Value/Status/Online/Auto-Apply and Applies To/Stacking/Max Uses/Date Range/POS/Per Person Limit
+    [THEN] values reflect the live wizard state, with Online and POS reflecting the resolved channels (derived from Step 2 or admin-set on Step 3)
+    [THEN] no fields on this step are editable
+    >> Captura: attachments/SH-845-TR-22/ui/scenario-0.png
+
+--- Scenario 1: Footer Save on Step 4 creates the promotion and surfaces engine validation errors
+    [GIVEN] the admin is on Step 4 in CREATE mode with a valid configuration
+    [WHEN] the admin clicks the footer Save button
+    [THEN] the system calls the engine create endpoint
+    [THEN] on success it navigates to the new discount EDIT route /discounts/codes/<id>/edit, renders the persistent edit-mode header, and shows a success toast
+    [THEN] on an engine validation error (e.g. CUSTOMER_FACING_CODE_TAKEN) it shows an error banner at the top of the Review card with the engine message and a Go to Step 1 link to the offending field
+    >> Captura: attachments/SH-845-TR-22/ui/scenario-1.png
+

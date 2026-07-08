@@ -1,0 +1,182 @@
+schemaVersion: '1.0'
+id: tr-9eb5d783-659e-4dd0-8cfb-2b5c4ce4b12d
+key: TR-20
+title: 'Run SH-845: Discount Wizard — Step 3 Channel source of truth'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: UI/Frontend-only (SH-845 Discount Authoring Wizard). Ejecucion manual; sin PR de codigo accesible para regresion/OWASP sobre diff.
+notes: '## Solution understood
+
+  SH-845 implementa la UI del Discount Authoring Wizard (picker de kind, stepper de 4 pasos, header persistente en modo edicion). Contraparte UI de SH-844 (motor de descuentos). Clasificacion: UI/Frontend-only.
+
+
+  ## Ejecucion
+
+  Por politica del executor, una historia UI-only NO se auto-ejecuta: cada escenario queda ''not-run'' con instrucciones manuales (ruta, accion, observable, captura). El tester ejecuta contra el ambiente con el build de SH-845 y adjunta las capturas bajo attachments/SH-845-TR-20/ui/.
+
+
+  ## LIMITACION
+
+  No hay PR de codigo accesible desde esta sesion (el PR #1 de testmanager-qa-repo son los artefactos QA, no la implementacion del wizard). Por lo tanto NO se corrio inspeccion de unit tests, regresion tecnica sobre el diff, ni scan OWASP sobre codigo: ver attachments/SH-845-TR-20/regression-notes.txt y owasp-top10-scan.txt (marcados N/A por falta de diff). La validacion funcional es 100% manual.
+
+
+  ## Dependencia
+
+  Escenarios que tocan Save/Active (TC-18, TC-19) requieren el motor SH-844 desplegado en el ambiente.'
+results:
+- testCaseId: 58a373a5-cc6e-4af5-99d3-f914722ec686
+  testCaseKey: TC-16
+  testCaseTitle: Discount Wizard — Step 3 Channel source of truth
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-16-step3-channel-source-of-truth.testcase.yml
+  scenarioTitle: Channel toggles editable when the promotion has non-Ticketing rules (non-Ticketing-only or mixed)
+  scenarioIndex: 0
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin is on Step 3
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: Step 2 has at least one non-Ticketing rule (non-Ticketing-only, or mixed with Ticketing rules)
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the Channel Restrictions section renders
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: both Available Online and Available at POS toggles are enabled and editable
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: when both toggles are OFF the inline error At least one channel must be enabled appears and Next is disabled
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: enabling at least one toggle clears the error and re-enables Next (assuming other required fields are valid)
+  - order: 7
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: in the mixed case an informational helper line notes Application Mode still applies as a per-line constraint at redemption
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-20/ui/scenario-0.png'
+  attachments: &id001
+  - name: manual-execution-guide.txt
+    path: attachments/SH-845-TR-20/ui/manual-execution-guide.txt
+    mimeType: text/plain
+  - name: regression-notes.txt
+    path: attachments/SH-845-TR-20/regression-notes.txt
+    mimeType: text/plain
+  - name: owasp-top10-scan.txt
+    path: attachments/SH-845-TR-20/owasp-top10-scan.txt
+    mimeType: text/plain
+  defects: []
+- testCaseId: 58a373a5-cc6e-4af5-99d3-f914722ec686
+  testCaseKey: TC-16
+  testCaseTitle: Discount Wizard — Step 3 Channel source of truth
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-16-step3-channel-source-of-truth.testcase.yml
+  scenarioTitle: Channel toggles LOCKED and derived when every rule is a Ticketing rule
+  scenarioIndex: 1
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin is on Step 3 and every rule on Step 2 is a Ticketing rule
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the admin opens Step 3 with different Application Mode combinations
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: 'all Manually Entered: Available at POS is locked ON (brand-orange, disabled) and Available Online is locked OFF (grey, disabled)'
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: 'all Code Required: Available Online is locked ON and Available at POS is locked OFF'
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: 'any rule Both, or a mix of Manually Entered and Code Required: both toggles are locked ON'
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: every locked toggle shows the tooltip Determined by the Application Mode of the Ticketing rule on Step 2.
+  - order: 7
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: the at-least-one-channel inline error never appears while toggles are locked
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-20/ui/scenario-1.png'
+  attachments: *id001
+  defects: []
+- testCaseId: 58a373a5-cc6e-4af5-99d3-f914722ec686
+  testCaseKey: TC-16
+  testCaseTitle: Discount Wizard — Step 3 Channel source of truth
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-16-step3-channel-source-of-truth.testcase.yml
+  scenarioTitle: Adding a non-Ticketing rule unlocks toggles; removing the last one re-locks them
+  scenarioIndex: 2
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin navigates between Step 2 and Step 3 changing rule composition
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the admin adds a non-Ticketing rule to a Ticketing-only promotion and returns to Step 3
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: and later removes the last non-Ticketing rule leaving only Ticketing rules and returns to Step 3
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: after adding the non-Ticketing rule the toggles become editable and default to the previously-derived state but can be changed
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: after removing the last non-Ticketing rule the toggles become locked and derived from the Ticketing rules' Application Mode
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: any admin-set toggle values from the editable state are discarded when the toggles re-lock
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-20/ui/scenario-2.png'
+  attachments: *id001
+  defects: []
+summary:
+  total: 3
+  passed: 0
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 3
+  passRate: 0
+metadata:
+  createdBy: codex
+  createdAt: '2026-07-08T00:00:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-07-08T00:00:00.000Z'

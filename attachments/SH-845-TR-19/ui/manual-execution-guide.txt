@@ -1,0 +1,56 @@
+Guia de ejecucion manual — TC-15 / TR-19
+Discount Wizard — Step 2 Rules & Limits
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Step 2 Rules & Limits layout with Overall / Current Usage
+    [GIVEN] the admin is on Step 2
+    [WHEN] the step loads
+    [THEN] the heading is Rules & Limits with subtitle Define when and how this discount applies, and how often it can be used overall
+    [THEN] a card shows Overall Usage (editable, numeric, placeholder Unlimited) and Current Usage (read-only, defaults to 0)
+    [THEN] one collapsible card per module selected on Step 1 is shown, each with a + Add <Module> Rule button on the right
+    >> Captura: attachments/SH-845-TR-19/ui/scenario-0.png
+
+--- Scenario 1: Add a Ticketing rule exposes the Application Mode dropdown
+    [GIVEN] the admin is on Step 2 and Ticketing is among the selected modules
+    [WHEN] the admin clicks + Add Ticketing Rule
+    [THEN] a Rule card titled Rule #N is inserted with fields: Application Mode (with info icon), Event, Ticket Types, Audience Type, # of Available Discounted Tickets, Per Person Usage Limit
+    [THEN] the card shows a red trash icon on the top-right and a Save Rule button on the bottom-right
+    >> Captura: attachments/SH-845-TR-19/ui/scenario-1.png
+
+--- Scenario 2: Add a non-Ticketing rule hides Application Mode
+    [GIVEN] the admin is on Step 2 and a non-Ticketing module (Memberships, Shop, Courses/Camps, Groups, Rentals) is selected
+    [WHEN] the admin clicks + Add <Module> Rule
+    [THEN] a Rule card for that module is inserted
+    [THEN] the card does NOT show an Application Mode dropdown
+    [THEN] only module-specific selectors are shown (e.g. Membership Type and Max Uses per Household for Memberships)
+    >> Captura: attachments/SH-845-TR-19/ui/scenario-2.png
+
+--- Scenario 3: Application Mode dropdown options, tooltip, and constraints by kind
+    [GIVEN] the admin has a Ticketing rule open on Step 2
+    [WHEN] the admin opens the Application Mode dropdown for different kinds
+    [THEN] the dropdown shows three options in order: Manually Entered, Code Required, Both
+    [THEN] the info icon tooltip describes: Manually Entered = For the POS, Code Required = For the customer at online checkout, Both = For both scenarios
+    [THEN] when kind = Automatic the options Code Required and Both are disabled and cannot be selected
+    [THEN] when kind = Discount Code all three options are selectable
+    [THEN] when kind = Membership Benefit all three options are selectable with default = Manually Entered
+    >> Captura: attachments/SH-845-TR-19/ui/scenario-3.png
+
+--- Scenario 4: Audience vs Ticket Types mutual exclusion
+    [GIVEN] the admin is editing a Ticketing rule
+    [WHEN] the admin selects an Audience Type
+    [THEN] the Ticket Types field is disabled with placeholder Disabled (Audience selected)
+    [THEN] the helper text reads Clear Audience Type to select ticket types.
+    [THEN] clearing the Audience Type makes the Ticket Types field selectable again
+    >> Captura: attachments/SH-845-TR-19/ui/scenario-4.png
+
+--- Scenario 5: Save and delete a rule
+    [GIVEN] the admin has edited a Rule card with valid values
+    [WHEN] the admin clicks Save Rule, then later clicks the trash icon on the saved rule
+    [THEN] on save the card collapses to a one-line summary (e.g. Manually Entered - Event Test - Adult - 2 tickets) and a success toast is shown
+    [THEN] clicking the trash icon shows the confirmation Delete this rule?
+    [THEN] the rule is removed only after the admin confirms
+    >> Captura: attachments/SH-845-TR-19/ui/scenario-5.png
+

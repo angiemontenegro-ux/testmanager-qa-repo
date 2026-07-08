@@ -1,0 +1,15 @@
+OWASP Top 10 (2021) — SH-845 Discount Authoring Wizard UI
+============================================================
+Sin diff de codigo accesible en esta sesion; scan sobre codigo NO ejecutado.
+Todas las categorias quedan N/A hasta tener el PR de implementacion.
+
+A01 Broken Access Control            N/A  Sin diff de codigo; validar en el PR de implementacion.
+A02 Cryptographic Failures           N/A  Sin diff de codigo; validar en el PR de implementacion.
+A03 Injection                        N/A  Sin diff de codigo; validar en el PR de implementacion.
+A04 Insecure Design                  N/A  Sin diff de codigo; validar en el PR de implementacion.
+A05 Security Misconfiguration        N/A  Sin diff de codigo; validar en el PR de implementacion.
+A06 Vulnerable Components            N/A  Sin diff de codigo; validar en el PR de implementacion.
+A07 Authentication Failures          N/A  Sin diff de codigo; validar en el PR de implementacion.
+A08 Integrity Failures               N/A  Sin diff de codigo; validar en el PR de implementacion.
+A09 Logging Failures                 N/A  Sin diff de codigo; validar en el PR de implementacion.
+A10 SSRF                             N/A  Sin diff de codigo; validar en el PR de implementacion.

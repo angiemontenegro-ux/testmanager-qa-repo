@@ -1,0 +1,95 @@
+schemaVersion: '1.0'
+id: tr-019e7dd4-d138-494e-9dac-9373354e31cc
+key: TR-24
+title: 'Run SH-845: Discount Wizard — responsiveness & accessibility'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: UI/Frontend-only (SH-845 Discount Authoring Wizard). Ejecucion manual; sin PR de codigo accesible para regresion/OWASP sobre diff.
+notes: '## Solution understood
+
+  SH-845 implementa la UI del Discount Authoring Wizard (picker de kind, stepper de 4 pasos, header persistente en modo edicion). Contraparte UI de SH-844 (motor de descuentos). Clasificacion: UI/Frontend-only.
+
+
+  ## Ejecucion
+
+  Por politica del executor, una historia UI-only NO se auto-ejecuta: cada escenario queda ''not-run'' con instrucciones manuales (ruta, accion, observable, captura). El tester ejecuta contra el ambiente con el build de SH-845 y adjunta las capturas bajo attachments/SH-845-TR-24/ui/.
+
+
+  ## LIMITACION
+
+  No hay PR de codigo accesible desde esta sesion (el PR #1 de testmanager-qa-repo son los artefactos QA, no la implementacion del wizard). Por lo tanto NO se corrio inspeccion de unit tests, regresion tecnica sobre el diff, ni scan OWASP sobre codigo: ver attachments/SH-845-TR-24/regression-notes.txt y owasp-top10-scan.txt (marcados N/A por falta de diff). La validacion funcional es 100% manual.
+
+
+  ## Dependencia
+
+  Escenarios que tocan Save/Active (TC-18, TC-19) requieren el motor SH-844 desplegado en el ambiente.'
+results:
+- testCaseId: 1a592965-0da1-4896-83a3-a3a8a0092c36
+  testCaseKey: TC-20
+  testCaseTitle: Discount Wizard — responsiveness & accessibility
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-20-responsive-accessibility.testcase.yml
+  scenarioTitle: Responsive and accessible wizard experience
+  scenarioIndex: 0
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: given
+    text: the admin uses the wizard on desktop or tablet, including keyboard-only navigation
+  - order: 2
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: when
+    text: the wizard renders and the admin tabs through controls
+  - order: 3
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: the stepper, cards, dropdowns, toggles, and tables remain readable and usable and all primary actions (Next, Save Rule, Generate, header Save, footer Save) remain accessible
+  - order: 4
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: locked-toggle tooltips are reachable via long-press on tablet
+  - order: 5
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: every interactive control receives a visible focus state and step navigation is operable with Tab + Enter
+  - order: 6
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: step state is conveyed by both the checkmark icon and the numeric label (color is not the only indicator)
+  - order: 7
+    status: not-run
+    actual: Pendiente de ejecucion manual (captura requerida).
+    phase: then
+    text: locked toggles announce their disabled state and tooltip text to screen readers
+  notes: 'Pendiente de tu parte: ejecutar manualmente y adjuntar captura en attachments/SH-845-TR-24/ui/scenario-0.png'
+  attachments:
+  - name: manual-execution-guide.txt
+    path: attachments/SH-845-TR-24/ui/manual-execution-guide.txt
+    mimeType: text/plain
+  - name: regression-notes.txt
+    path: attachments/SH-845-TR-24/regression-notes.txt
+    mimeType: text/plain
+  - name: owasp-top10-scan.txt
+    path: attachments/SH-845-TR-24/owasp-top10-scan.txt
+    mimeType: text/plain
+  defects: []
+summary:
+  total: 1
+  passed: 0
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 1
+  passRate: 0
+metadata:
+  createdBy: codex
+  createdAt: '2026-07-08T00:00:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-07-08T00:00:00.000Z'

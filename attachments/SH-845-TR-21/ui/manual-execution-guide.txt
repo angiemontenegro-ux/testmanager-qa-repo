@@ -1,0 +1,38 @@
+Guia de ejecucion manual — TC-17 / TR-21
+Discount Wizard — Step 3 Restrictions (eligibility, dates, POS, domains)
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Step 3 Restrictions section layout and Members Only toggle
+    [GIVEN] the admin is on Step 3
+    [WHEN] the step loads and the admin toggles Members Only ON
+    [THEN] the sections appear in order: Eligibility Restrictions, Channel Restrictions, Date & Time Ranges, POS Restrictions, Allowed Email Domains
+    [THEN] the Members Only toggle shows the brand-orange state when ON and no other fields on the step change
+    >> Captura: attachments/SH-845-TR-21/ui/scenario-0.png
+
+--- Scenario 1: Date mode selection, mode switch confirmation, and Nth-weekday generation
+    [GIVEN] the admin is on Step 3
+    [WHEN] the admin selects Date & Time Ranges, then switches to Specific Allowed Dates, then generates dates
+    [THEN] Date & Time Ranges shows Start Date, End Date, Specific Days of Week (Mon-Sun chips), Time Start, Time End and hides the Specific Allowed Dates controls
+    [THEN] Specific Allowed Dates shows the Quick add Nth weekday panel (Occurrence, Weekday, Months ahead, + Generate) and an Add a single date picker, and hides the Date & Time Ranges controls
+    [THEN] switching mode with filled data shows the confirmation Switching modes will clear the current Date & Time Ranges configuration. Continue? and clears only after confirm
+    [THEN] with Occurrence = Third, Weekday = Friday, Months ahead = 12, clicking + Generate adds 12 dates sorted ascending with no duplicates on repeat
+    >> Captura: attachments/SH-845-TR-21/ui/scenario-1.png
+
+--- Scenario 2: POS Require Discount Reason toggle follows the resolved POS channel
+    [GIVEN] the admin is on Step 3
+    [WHEN] the resolved POS channel changes (admin-set or derived from a Ticketing rule)
+    [THEN] when the resolved POS channel is ON the Require Discount Reason toggle is enabled
+    [THEN] when the resolved POS channel is OFF the toggle is disabled with tooltip Available only when Available at POS is enabled.
+    >> Captura: attachments/SH-845-TR-21/ui/scenario-2.png
+
+--- Scenario 3: Allowed Email Domains visibility and add behavior
+    [GIVEN] the admin is on Step 3
+    [WHEN] the resolved channels vary and the admin adds a domain
+    [THEN] when resolved Online = ON and resolved POS = OFF the section is enabled with input placeholder example.com and an + Add button
+    [THEN] clicking + Add with a valid domain adds it as a chip below the input
+    [THEN] when resolved Online = OFF or resolved POS = ON the section is visually disabled with tooltip Available only when this discount is Online-only.
+    >> Captura: attachments/SH-845-TR-21/ui/scenario-3.png
+
