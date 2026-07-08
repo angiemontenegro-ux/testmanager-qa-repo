@@ -131,36 +131,37 @@ results:
   testCaseFilePath: test-cases/SH-845/SH-845-TC-15-step2-rules-limits.testcase.yml
   scenarioTitle: Add a non-Ticketing rule hides Application Mode
   scenarioIndex: 2
-  status: not-run
+  status: passed
   stepResults:
   - order: 1
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: passed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: given
     text: the admin is on Step 2 and a non-Ticketing module (Memberships, Shop, Courses/Camps, Groups, Rentals) is selected
   - order: 2
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: passed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: when
     text: the admin clicks + Add <Module> Rule
   - order: 3
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: passed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: a Rule card for that module is inserted
   - order: 4
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: passed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: the card does NOT show an Application Mode dropdown
   - order: 5
-    status: not-run
-    actual: Pendiente de ejecucion manual (captura requerida).
+    status: passed
+    actual: Verificado en vivo (ver notes del escenario).
     phase: then
     text: only module-specific selectors are shown (e.g. Membership Type and Max Uses per Household for Memberships)
-  notes: 'No probado: requiere el modulo Memberships seleccionado en Step 1 (esta corrida uso solo Ticketing). En V1 el unico modulo no-Ticketing disponible es Memberships.'
+  notes: 'CONFIRMADO en vivo: se agrego una regla de Memberships y su card muestra solo ''Membership program'' + ''Max uses'' + trash, SIN Application Mode. Solo selectores del modulo (AC: Membership Type/Max Uses per Household; labels equivalentes).'
   attachments: *id001
   defects: []
+  executedAt: '2026-07-08T19:30:00.000Z'
 - testCaseId: 63360003-1b71-41c8-b892-f38ff4ecd415
   testCaseKey: TC-15
   testCaseTitle: Discount Wizard — Step 2 Rules & Limits
@@ -282,14 +283,14 @@ results:
   defects: []
 summary:
   total: 6
-  passed: 3
+  passed: 4
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 3
-  passRate: 50
+  notRun: 2
+  passRate: 67
 metadata:
   createdBy: codex
   createdAt: '2026-07-08T00:00:00.000Z'
   updatedBy: codex
-  updatedAt: '2026-07-08T18:00:00.000Z'
+  updatedAt: '2026-07-08T19:30:00.000Z'

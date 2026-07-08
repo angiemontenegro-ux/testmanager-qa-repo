@@ -2,7 +2,7 @@ schemaVersion: '1.0'
 id: tr-4e1a16f0-6de0-4868-842d-f1f44cbd984a
 key: TR-17
 title: 'Run SH-845: Discount Wizard — shell, stepper & navigation'
-status: in-progress
+status: completed
 environment:
   name: qa
   buildVersion: UI/Frontend-only (SH-845 Discount Authoring Wizard). Ejecucion manual; sin PR de codigo accesible para regresion/OWASP sobre diff.
