@@ -1,0 +1,135 @@
+schemaVersion: "1.0"
+id: "63360003-1b71-41c8-b892-f38ff4ecd415"
+key: "TC-15"
+title: "Discount Wizard — Step 2 Rules & Limits"
+description: |
+  Step 2 (Rules & Limits): Overall/Current Usage, adding Ticketing vs non-Ticketing rules, the
+  Ticketing-only Application Mode dropdown (options/tooltip/constraints by kind), Audience vs
+  Ticket Types mutual exclusion, and save/delete of rules.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Step 2 Rules & Limits layout with Overall / Current Usage"
+    tags:
+      - "happy-path"
+      - "step-2"
+    given:
+      - "the admin is on Step 2"
+    when:
+      - "the step loads"
+    then:
+      - "the heading is Rules & Limits with subtitle Define when and how this discount applies, and how often it can be used overall"
+      - "a card shows Overall Usage (editable, numeric, placeholder Unlimited) and Current Usage (read-only, defaults to 0)"
+      - "one collapsible card per module selected on Step 1 is shown, each with a + Add <Module> Rule button on the right"
+  - title: "Add a Ticketing rule exposes the Application Mode dropdown"
+    tags:
+      - "happy-path"
+      - "step-2"
+      - "ticketing"
+    given:
+      - "the admin is on Step 2 and Ticketing is among the selected modules"
+    when:
+      - "the admin clicks + Add Ticketing Rule"
+    then:
+      - "a Rule card titled Rule #N is inserted with fields: Application Mode (with info icon), Event, Ticket Types, Audience Type, # of Available Discounted Tickets, Per Person Usage Limit"
+      - "the card shows a red trash icon on the top-right and a Save Rule button on the bottom-right"
+  - title: "Add a non-Ticketing rule hides Application Mode"
+    tags:
+      - "step-2"
+      - "non-ticketing"
+    given:
+      - "the admin is on Step 2 and a non-Ticketing module (Memberships, Shop, Courses/Camps, Groups, Rentals) is selected"
+    when:
+      - "the admin clicks + Add <Module> Rule"
+    then:
+      - "a Rule card for that module is inserted"
+      - "the card does NOT show an Application Mode dropdown"
+      - "only module-specific selectors are shown (e.g. Membership Type and Max Uses per Household for Memberships)"
+  - title: "Application Mode dropdown options, tooltip, and constraints by kind"
+    tags:
+      - "edge-case"
+      - "step-2"
+      - "ticketing"
+      - "application-mode"
+    given:
+      - "the admin has a Ticketing rule open on Step 2"
+    when:
+      - "the admin opens the Application Mode dropdown for different kinds"
+    then:
+      - "the dropdown shows three options in order: Manually Entered, Code Required, Both"
+      - "the info icon tooltip describes: Manually Entered = For the POS, Code Required = For the customer at online checkout, Both = For both scenarios"
+      - "when kind = Automatic the options Code Required and Both are disabled and cannot be selected"
+      - "when kind = Discount Code all three options are selectable"
+      - "when kind = Membership Benefit all three options are selectable with default = Manually Entered"
+  - title: "Audience vs Ticket Types mutual exclusion"
+    tags:
+      - "edge-case"
+      - "step-2"
+      - "ticketing"
+    given:
+      - "the admin is editing a Ticketing rule"
+    when:
+      - "the admin selects an Audience Type"
+    then:
+      - "the Ticket Types field is disabled with placeholder Disabled (Audience selected)"
+      - "the helper text reads Clear Audience Type to select ticket types."
+      - "clearing the Audience Type makes the Ticket Types field selectable again"
+  - title: "Save and delete a rule"
+    tags:
+      - "happy-path"
+      - "step-2"
+      - "confirmation"
+    given:
+      - "the admin has edited a Rule card with valid values"
+    when:
+      - "the admin clicks Save Rule, then later clicks the trash icon on the saved rule"
+    then:
+      - "on save the card collapses to a one-line summary (e.g. Manually Entered - Event Test - Adult - 2 tickets) and a success toast is shown"
+      - "clicking the trash icon shows the confirmation Delete this rule?"
+      - "the rule is removed only after the admin confirms"
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "step-2"
+  - "rules"
+  - "ticketing"
+  - "application-mode"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 25
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1

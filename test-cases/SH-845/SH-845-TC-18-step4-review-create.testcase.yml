@@ -1,0 +1,86 @@
+schemaVersion: "1.0"
+id: "fd7531fb-03fa-463b-bd49-723009ce6158"
+key: "TC-18"
+title: "Discount Wizard — Step 4 Review & create save"
+description: |
+  Step 4 (Review): read-only summary mirroring the persisted payload, footer Save in CREATE mode
+  calling the SH-844 engine create endpoint, and surfacing engine validation errors with a Go-to-
+  step link.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Step 4 Review summary mirrors the persisted payload"
+    tags:
+      - "happy-path"
+      - "step-4"
+      - "review"
+    given:
+      - "the admin reaches Step 4"
+    when:
+      - "the step loads"
+    then:
+      - "a Review Configuration card shows two labeled columns: Code/Type/Value/Status/Online/Auto-Apply and Applies To/Stacking/Max Uses/Date Range/POS/Per Person Limit"
+      - "values reflect the live wizard state, with Online and POS reflecting the resolved channels (derived from Step 2 or admin-set on Step 3)"
+      - "no fields on this step are editable"
+  - title: "Footer Save on Step 4 creates the promotion and surfaces engine validation errors"
+    tags:
+      - "happy-path"
+      - "step-4"
+      - "create-mode"
+      - "integration"
+      - "sh-844-dependency"
+    given:
+      - "the admin is on Step 4 in CREATE mode with a valid configuration"
+    when:
+      - "the admin clicks the footer Save button"
+    then:
+      - "the system calls the engine create endpoint"
+      - "on success it navigates to the new discount EDIT route /discounts/codes/<id>/edit, renders the persistent edit-mode header, and shows a success toast"
+      - "on an engine validation error (e.g. CUSTOMER_FACING_CODE_TAKEN) it shows an error banner at the top of the Review card with the engine message and a Go to Step 1 link to the offending field"
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "step-4"
+  - "review"
+  - "create-mode"
+  - "integration"
+  - "sh-844-dependency"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1
