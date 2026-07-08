@@ -1,0 +1,103 @@
+schemaVersion: "1.0"
+id: "58a373a5-cc6e-4af5-99d3-f914722ec686"
+key: "TC-16"
+title: "Discount Wizard — Step 3 Channel source of truth"
+description: |
+  CRITICAL AREA. Step 3 Channel Restrictions source-of-truth: toggles editable when the promotion
+  has any non-Ticketing rule (non-Ticketing-only or mixed), LOCKED and derived from the Ticketing
+  rules' Application Mode when every rule is Ticketing, and the lock/unlock transitions when rule
+  composition changes. UI counterpart of SH-844-TC-1.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Channel toggles editable when the promotion has non-Ticketing rules (non-Ticketing-only or mixed)"
+    tags:
+      - "step-3"
+      - "channels"
+      - "high-risk"
+    given:
+      - "the admin is on Step 3"
+      - "Step 2 has at least one non-Ticketing rule (non-Ticketing-only, or mixed with Ticketing rules)"
+    when:
+      - "the Channel Restrictions section renders"
+    then:
+      - "both Available Online and Available at POS toggles are enabled and editable"
+      - "when both toggles are OFF the inline error At least one channel must be enabled appears and Next is disabled"
+      - "enabling at least one toggle clears the error and re-enables Next (assuming other required fields are valid)"
+      - "in the mixed case an informational helper line notes Application Mode still applies as a per-line constraint at redemption"
+  - title: "Channel toggles LOCKED and derived when every rule is a Ticketing rule"
+    tags:
+      - "step-3"
+      - "channels"
+      - "high-risk"
+      - "edge-case"
+    given:
+      - "the admin is on Step 3 and every rule on Step 2 is a Ticketing rule"
+    when:
+      - "the admin opens Step 3 with different Application Mode combinations"
+    then:
+      - "all Manually Entered: Available at POS is locked ON (brand-orange, disabled) and Available Online is locked OFF (grey, disabled)"
+      - "all Code Required: Available Online is locked ON and Available at POS is locked OFF"
+      - "any rule Both, or a mix of Manually Entered and Code Required: both toggles are locked ON"
+      - "every locked toggle shows the tooltip Determined by the Application Mode of the Ticketing rule on Step 2."
+      - "the at-least-one-channel inline error never appears while toggles are locked"
+  - title: "Adding a non-Ticketing rule unlocks toggles; removing the last one re-locks them"
+    tags:
+      - "step-3"
+      - "channels"
+      - "high-risk"
+      - "edge-case"
+    given:
+      - "the admin navigates between Step 2 and Step 3 changing rule composition"
+    when:
+      - "the admin adds a non-Ticketing rule to a Ticketing-only promotion and returns to Step 3"
+      - "and later removes the last non-Ticketing rule leaving only Ticketing rules and returns to Step 3"
+    then:
+      - "after adding the non-Ticketing rule the toggles become editable and default to the previously-derived state but can be changed"
+      - "after removing the last non-Ticketing rule the toggles become locked and derived from the Ticketing rules' Application Mode"
+      - "any admin-set toggle values from the editable state are discarded when the toggles re-lock"
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "step-3"
+  - "channels"
+  - "high-risk"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1

@@ -1,0 +1,96 @@
+schemaVersion: "1.0"
+id: "25258217-83be-42b3-93d4-7f53ffb3e078"
+key: "TC-13"
+title: "Discount Wizard — shell, stepper & navigation"
+description: |
+  Create New Discount picker, the fixed 4-step stepper states, and cross-step gating / inline
+  validation / focus behavior for the SH-845 Discount Authoring Wizard.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Open the Create New Discount picker and pick a kind"
+    tags:
+      - "happy-path"
+      - "picker"
+    given:
+      - "the admin is on the Discount Codes list"
+    when:
+      - "the admin clicks Create New Discount"
+    then:
+      - "the picker page titled Create New Discount opens with subtitle Choose what kind of discount you want to create."
+      - "three cards are shown in a row: Discount Code, Automatic, Membership Benefit"
+      - "each card shows its icon, title, and a one-line description, plus a Back link to the discount list"
+      - "clicking the Discount Code card navigates to Step 1 (Basic Info) with kind = Discount Code"
+      - "clicking Automatic navigates to Step 1 with kind = Automatic, and Membership Benefit navigates to Step 1 with kind = Membership Benefit"
+  - title: "Display the fixed 4-step stepper with correct states"
+    tags:
+      - "happy-path"
+      - "stepper"
+    given:
+      - "the admin is in the wizard"
+    when:
+      - "any step loads"
+    then:
+      - "the stepper is fixed at the top with four circles labeled in order: 1 Basic Info, 2 Rules & Limits, 3 Restrictions, 4 Review"
+      - "the current step is a filled brand-orange circle with a white number"
+      - "completed steps are green circles with a checkmark"
+      - "future steps are outlined circles with a grey number"
+  - title: "Step gating, inline validation, and focus behavior"
+    tags:
+      - "negative"
+      - "validation"
+      - "navigation"
+    given:
+      - "the admin is in the wizard"
+    when:
+      - "a required field on the current step is invalid"
+    then:
+      - "the Next button is disabled and the step badge does not show the green completed checkmark"
+      - "an inline message appears immediately below the invalid field and the section gets a subtle red highlight"
+      - "focus moves to the first invalid field when the admin clicks Next"
+      - "backward navigation to any previously completed step is always allowed"
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "stepper"
+  - "navigation"
+  - "gating"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1

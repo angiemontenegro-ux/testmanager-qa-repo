@@ -1,0 +1,70 @@
+schemaVersion: "1.0"
+id: "1a592965-0da1-4896-83a3-a3a8a0092c36"
+key: "TC-20"
+title: "Discount Wizard — responsiveness & accessibility"
+description: |
+  Cross-cutting responsiveness (desktop/tablet) and accessibility: visible focus, keyboard
+  operability (Tab + Enter), non-color-only step state, tablet long-press tooltips, and screen-
+  reader announcements for locked toggles.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Responsive and accessible wizard experience"
+    tags:
+      - "accessibility"
+      - "responsive"
+      - "edge-case"
+    given:
+      - "the admin uses the wizard on desktop or tablet, including keyboard-only navigation"
+    when:
+      - "the wizard renders and the admin tabs through controls"
+    then:
+      - "the stepper, cards, dropdowns, toggles, and tables remain readable and usable and all primary actions (Next, Save Rule, Generate, header Save, footer Save) remain accessible"
+      - "locked-toggle tooltips are reachable via long-press on tablet"
+      - "every interactive control receives a visible focus state and step navigation is operable with Tab + Enter"
+      - "step state is conveyed by both the checkmark icon and the numeric label (color is not the only indicator)"
+      - "locked toggles announce their disabled state and tooltip text to screen readers"
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "accessibility"
+  - "responsive"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 10
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1

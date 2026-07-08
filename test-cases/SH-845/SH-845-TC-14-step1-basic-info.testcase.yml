@@ -1,0 +1,133 @@
+schemaVersion: "1.0"
+id: "f4832b89-5cd8-4726-9893-59414fc774a3"
+key: "TC-14"
+title: "Discount Wizard — Step 1 Basic Info"
+description: |
+  Step 1 (Basic Info): layout and fields, Discount Type locked to Percentage with no fixed-amount
+  path, percentage validation, Customer Facing Code generation and per-kind requirement, and the
+  applicable-modules multi-select that gates Step 2.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Step 1 Basic Info layout and fields"
+    tags:
+      - "happy-path"
+      - "step-1"
+    given:
+      - "the admin is on Step 1"
+    when:
+      - "the step loads"
+    then:
+      - "the heading is Create Discount Code (or Edit Discount Code in edit mode)"
+      - "the left column shows Code Name (required), Status toggle (default Active), Description (optional), Discount Type, Percentage (required)"
+      - "the right column shows Customer Facing Code with a Generate affordance and helper text This is the code the customer puts to get the discount during the purchase"
+      - "the section Where can this discount be used? shows a 2x3 grid of module checkboxes: Memberships, Ticketing, Courses/Camps, Shop, Groups, Rentals"
+  - title: "Discount Type is locked to Percentage off with no fixed-amount path"
+    tags:
+      - "negative"
+      - "regression"
+      - "locked-type"
+    given:
+      - "the admin is on Step 1"
+    when:
+      - "the Discount Type control renders"
+    then:
+      - "the control displays Percentage off"
+      - "the control is not interactive (no dropdown expand, no other selectable values)"
+      - "there is no path anywhere in the UI to enter a fixed-amount value"
+  - title: "Percentage validation gates the step"
+    tags:
+      - "negative"
+      - "validation"
+      - "step-1"
+    given:
+      - "the admin is on Step 1"
+    when:
+      - "the admin enters a Percentage of 0 or less, greater than 100, or leaves it blank"
+    then:
+      - "the field shows the inline error Percentage must be greater than 0 and at most 100"
+      - "the Next button is disabled"
+      - "the Step 1 badge does not show a completed checkmark"
+  - title: "Generate a Customer Facing Code"
+    tags:
+      - "happy-path"
+      - "step-1"
+    given:
+      - "the admin is on Step 1"
+    when:
+      - "the admin clicks Generate"
+    then:
+      - "the Customer Facing Code field is populated with a unique alphanumeric code returned by the engine"
+      - "the field remains editable after generation"
+      - "clicking Generate again replaces the value with a newly generated one"
+  - title: "Customer Facing Code requirement reflects kind and Ticketing rules"
+    tags:
+      - "edge-case"
+      - "step-1"
+    given:
+      - "the admin is on Step 1"
+    when:
+      - "the kind and the Step 2 Ticketing rules vary"
+    then:
+      - "when kind = Discount Code the field shows a required asterisk and Next is disabled until it is non-empty"
+      - "when kind = Automatic and no Ticketing rule with application_mode in (Code Required, Both) exists, the field is hidden or read-only as Not required for Automatic"
+      - "when kind = Membership Benefit and a Step 2 Ticketing rule with application_mode = Code Required is later added, returning to Step 1 makes the field required and shows the asterisk"
+  - title: "Applicable modules multi-select gates Step 2 and guards rule deletion"
+    tags:
+      - "edge-case"
+      - "step-1"
+      - "confirmation"
+    given:
+      - "the admin is on Step 1"
+    when:
+      - "the admin checks Memberships and Ticketing, then later unchecks a module that already has Step 2 rules"
+    then:
+      - "the Step 1 badge shows complete only after all required fields are valid"
+      - "Step 2 renders one rule sub-section per checked module"
+      - "unchecking a module with existing rules shows the confirmation Removing this module will delete its rules. Continue?"
+      - "the module's rules are deleted only after the admin confirms"
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "step-1"
+  - "basic-info"
+  - "locked-type"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1

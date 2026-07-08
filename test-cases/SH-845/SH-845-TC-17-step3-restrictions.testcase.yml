@@ -1,0 +1,107 @@
+schemaVersion: "1.0"
+id: "1aa8a3fc-93e7-4b33-93a6-d8b726a3fe98"
+key: "TC-17"
+title: "Discount Wizard — Step 3 Restrictions (eligibility, dates, POS, domains)"
+description: |
+  Step 3 non-channel restrictions: section layout and Members Only, dual date mode with the Nth-
+  weekday generator and switch confirmation, the POS Require Discount Reason toggle, and Allowed
+  Email Domains visibility/add behavior — all keyed off the resolved channels.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel (Discounts -> Discount Codes)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The paired SH-844 Discounts Engine (create/update/validation) is available in the same environment."
+  - "At least one Event with ticket types exists so Ticketing rules can be configured."
+  - "At least one existing percent Discount Code exists for edit-mode scenarios."
+  - "At least one legacy fixed-amount promotion exists for the legacy read-only scenario."
+  - "Testing is performed on desktop and tablet using the brand-orange admin design system."
+scenarios:
+  - title: "Step 3 Restrictions section layout and Members Only toggle"
+    tags:
+      - "happy-path"
+      - "step-3"
+    given:
+      - "the admin is on Step 3"
+    when:
+      - "the step loads and the admin toggles Members Only ON"
+    then:
+      - "the sections appear in order: Eligibility Restrictions, Channel Restrictions, Date & Time Ranges, POS Restrictions, Allowed Email Domains"
+      - "the Members Only toggle shows the brand-orange state when ON and no other fields on the step change"
+  - title: "Date mode selection, mode switch confirmation, and Nth-weekday generation"
+    tags:
+      - "edge-case"
+      - "step-3"
+      - "dates"
+      - "confirmation"
+    given:
+      - "the admin is on Step 3"
+    when:
+      - "the admin selects Date & Time Ranges, then switches to Specific Allowed Dates, then generates dates"
+    then:
+      - "Date & Time Ranges shows Start Date, End Date, Specific Days of Week (Mon-Sun chips), Time Start, Time End and hides the Specific Allowed Dates controls"
+      - "Specific Allowed Dates shows the Quick add Nth weekday panel (Occurrence, Weekday, Months ahead, + Generate) and an Add a single date picker, and hides the Date & Time Ranges controls"
+      - "switching mode with filled data shows the confirmation Switching modes will clear the current Date & Time Ranges configuration. Continue? and clears only after confirm"
+      - "with Occurrence = Third, Weekday = Friday, Months ahead = 12, clicking + Generate adds 12 dates sorted ascending with no duplicates on repeat"
+  - title: "POS Require Discount Reason toggle follows the resolved POS channel"
+    tags:
+      - "edge-case"
+      - "step-3"
+      - "pos"
+    given:
+      - "the admin is on Step 3"
+    when:
+      - "the resolved POS channel changes (admin-set or derived from a Ticketing rule)"
+    then:
+      - "when the resolved POS channel is ON the Require Discount Reason toggle is enabled"
+      - "when the resolved POS channel is OFF the toggle is disabled with tooltip Available only when Available at POS is enabled."
+  - title: "Allowed Email Domains visibility and add behavior"
+    tags:
+      - "edge-case"
+      - "step-3"
+    given:
+      - "the admin is on Step 3"
+    when:
+      - "the resolved channels vary and the admin adds a domain"
+    then:
+      - "when resolved Online = ON and resolved POS = OFF the section is enabled with input placeholder example.com and an + Add button"
+      - "clicking + Add with a valid domain adds it as a chip below the input"
+      - "when resolved Online = OFF or resolved POS = ON the section is visually disabled with tooltip Available only when this discount is Online-only."
+tags:
+  - "sh-845"
+  - "sh-469"
+  - "sh-1048"
+  - "sh-844"
+  - "discounts"
+  - "discount-wizard"
+  - "shop"
+  - "ui"
+  - "step-3"
+  - "dates"
+  - "pos"
+  - "email-domains"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1048"
+      url: "https://veevart.atlassian.net/browse/SH-1048"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-08T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-08T00:00:00Z"
+  version: 1
