@@ -1,0 +1,115 @@
+schemaVersion: '1.0'
+id: tr-019e7dd4-d138-494e-9dac-9373354e31cc
+key: TR-24
+title: 'Run SH-845: Discount Wizard — responsiveness & accessibility'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: UI/Frontend-only (SH-845 Discount Authoring Wizard). Ejecucion manual; sin PR de codigo accesible para regresion/OWASP sobre diff.
+notes: '## Solution understood
+
+  SH-845 implements the Discount Authoring Wizard UI (kind picker, 4-step stepper, persistent edit-mode header). UI counterpart of SH-844 (discount engine). Classification: UI/Frontend-only.
+
+
+  ## Execution
+
+  Executed manually against https://app.stg.veevart.ai/ (authenticated session). Scenarios not covered are left not-run with a note. Evidence = live observation (browser screenshots are not persisted as files; the verdict and observations are captured in actual/notes).
+
+
+  ## Findings / deviations vs AC
+
+  - CREATE mode renders the top Save, status pill and metadata strip; the AC says that is edit mode only (defect SH-1049).
+
+  - Step 1 ''Applies to modules'' offers only Ticketing + Memberships (+ Shop ''Coming in V2'', disabled); the AC expected a 2x3 grid of 6 modules (Courses/Camps, Groups, Rentals absent = V1 scope).
+
+  - Labels: ''Internal name'' (AC: Code Name); ''Program'' on the rule (AC: Event); default Status ''Inactive'' (AC: Active).
+
+  - Discount type is a single-option ''% Off'' dropdown (AC wanted a non-interactive control); the no-fixed-amount guarantee still holds.
+
+  - ''Save Rule'' does not collapse the card to a summary (AC requires it); the rule is still accepted.
+
+  - No ''Generate'' action for the Customer-facing code (defect SH-1054).
+
+  - No confirmation dialogs on destructive actions: unchecking a module deletes its rules and the trash deletes a rule with no dialog (defect SH-1052).
+
+  - Audience Type vs Ticket Types mutual exclusion not enforced (defect SH-1053).
+
+  - Save (create/edit) returns to the list instead of the edit route / staying on the step (defect SH-1050).
+
+  - Edit-mode header missing the overflow menu (Archive/Duplicate) and status quick-toggle (defect SH-1051).
+
+  - Note: the header metadata strip sometimes lags in reflecting the derived channel change.
+
+
+  ## Dependency
+
+  Scenarios touching Save/Active (TC-18, TC-19) require the SH-844 engine deployed in the environment.'
+results:
+- testCaseId: 1a592965-0da1-4896-83a3-a3a8a0092c36
+  testCaseKey: TC-20
+  testCaseTitle: Discount Wizard — responsiveness & accessibility
+  testCaseFilePath: test-cases/SH-845/SH-845-TC-20-responsive-accessibility.testcase.yml
+  scenarioTitle: Responsive and accessible wizard experience
+  scenarioIndex: 0
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: given
+    text: the admin uses the wizard on desktop or tablet, including keyboard-only navigation
+  - order: 2
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: when
+    text: the wizard renders and the admin tabs through controls
+  - order: 3
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: then
+    text: the stepper, cards, dropdowns, toggles, and tables remain readable and usable and all primary actions (Next, Save Rule, Generate, header Save, footer Save) remain accessible
+  - order: 4
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: then
+    text: locked-toggle tooltips are reachable via long-press on tablet
+  - order: 5
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: then
+    text: every interactive control receives a visible focus state and step navigation is operable with Tab + Enter
+  - order: 6
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: then
+    text: step state is conveyed by both the checkmark icon and the numeric label (color is not the only indicator)
+  - order: 7
+    status: not-run
+    actual: Pending (see scenario notes).
+    phase: then
+    text: locked toggles announce their disabled state and tooltip text to screen readers
+  notes: 'No formal accessibility/responsive pass was run (screen reader, full keyboard navigation, breakpoints). Incidental observations during the run: inputs show a visible focus ring; the layout stayed usable at ~1084px and ~1341px widths. Pending: Tab+Enter on the stepper, long-press tooltips on tablet, and screen-reader announcements for locked toggles.'
+  attachments:
+  - name: manual-execution-guide.txt
+    path: attachments/SH-845-TR-24/ui/manual-execution-guide.txt
+    mimeType: text/plain
+  - name: regression-notes.txt
+    path: attachments/SH-845-TR-24/regression-notes.txt
+    mimeType: text/plain
+  - name: owasp-top10-scan.txt
+    path: attachments/SH-845-TR-24/owasp-top10-scan.txt
+    mimeType: text/plain
+  defects: []
+summary:
+  total: 1
+  passed: 0
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 1
+  passRate: 0
+metadata:
+  createdBy: codex
+  createdAt: '2026-07-08T00:00:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-07-08T21:00:00.000Z'

@@ -1,0 +1,36 @@
+Guia de ejecucion manual — TC-16 / TR-20
+Discount Wizard — Step 3 Channel source of truth
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Channel toggles editable when the promotion has non-Ticketing rules (non-Ticketing-only or mixed)
+    [GIVEN] the admin is on Step 3
+    [GIVEN] Step 2 has at least one non-Ticketing rule (non-Ticketing-only, or mixed with Ticketing rules)
+    [WHEN] the Channel Restrictions section renders
+    [THEN] both Available Online and Available at POS toggles are enabled and editable
+    [THEN] when both toggles are OFF the inline error At least one channel must be enabled appears and Next is disabled
+    [THEN] enabling at least one toggle clears the error and re-enables Next (assuming other required fields are valid)
+    [THEN] in the mixed case an informational helper line notes Application Mode still applies as a per-line constraint at redemption
+    >> Captura: attachments/SH-845-TR-20/ui/scenario-0.png
+
+--- Scenario 1: Channel toggles LOCKED and derived when every rule is a Ticketing rule
+    [GIVEN] the admin is on Step 3 and every rule on Step 2 is a Ticketing rule
+    [WHEN] the admin opens Step 3 with different Application Mode combinations
+    [THEN] all Manually Entered: Available at POS is locked ON (brand-orange, disabled) and Available Online is locked OFF (grey, disabled)
+    [THEN] all Code Required: Available Online is locked ON and Available at POS is locked OFF
+    [THEN] any rule Both, or a mix of Manually Entered and Code Required: both toggles are locked ON
+    [THEN] every locked toggle shows the tooltip Determined by the Application Mode of the Ticketing rule on Step 2.
+    [THEN] the at-least-one-channel inline error never appears while toggles are locked
+    >> Captura: attachments/SH-845-TR-20/ui/scenario-1.png
+
+--- Scenario 2: Adding a non-Ticketing rule unlocks toggles; removing the last one re-locks them
+    [GIVEN] the admin navigates between Step 2 and Step 3 changing rule composition
+    [WHEN] the admin adds a non-Ticketing rule to a Ticketing-only promotion and returns to Step 3
+    [WHEN] and later removes the last non-Ticketing rule leaving only Ticketing rules and returns to Step 3
+    [THEN] after adding the non-Ticketing rule the toggles become editable and default to the previously-derived state but can be changed
+    [THEN] after removing the last non-Ticketing rule the toggles become locked and derived from the Ticketing rules' Application Mode
+    [THEN] any admin-set toggle values from the editable state are discarded when the toggles re-lock
+    >> Captura: attachments/SH-845-TR-20/ui/scenario-2.png
+

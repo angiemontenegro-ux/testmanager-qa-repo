@@ -1,0 +1,12 @@
+Regresion tecnica + seguridad — no ejecutada (N/A)
+============================================================
+Motivo: historia UI-only sin PR de codigo accesible desde esta sesion.
+El PR #1 de testmanager-qa-repo contiene los artefactos QA (.testcase/.testrun),
+NO la implementacion del wizard. Sin diff de codigo no hay superficie para:
+ - inspeccion de unit tests del dev (AC <-> test)
+ - regresion tecnica sobre importadores del componente
+ - grep de inyeccion/secrets/PII sobre el diff
+ - npm audit sobre dependencias nuevas
+
+ACCION: cuando exista el PR de implementacion de SH-845, correr /qa-test-executor
+apuntando a ese PR para completar regresion + OWASP sobre el diff real.

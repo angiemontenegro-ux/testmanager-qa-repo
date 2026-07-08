@@ -1,0 +1,35 @@
+Guia de ejecucion manual — TC-13 / TR-17
+Discount Wizard — shell, stepper & navigation
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Open the Create New Discount picker and pick a kind
+    [GIVEN] the admin is on the Discount Codes list
+    [WHEN] the admin clicks Create New Discount
+    [THEN] the picker page titled Create New Discount opens with subtitle Choose what kind of discount you want to create.
+    [THEN] three cards are shown in a row: Discount Code, Automatic, Membership Benefit
+    [THEN] each card shows its icon, title, and a one-line description, plus a Back link to the discount list
+    [THEN] clicking the Discount Code card navigates to Step 1 (Basic Info) with kind = Discount Code
+    [THEN] clicking Automatic navigates to Step 1 with kind = Automatic, and Membership Benefit navigates to Step 1 with kind = Membership Benefit
+    >> Captura: attachments/SH-845-TR-17/ui/scenario-0.png
+
+--- Scenario 1: Display the fixed 4-step stepper with correct states
+    [GIVEN] the admin is in the wizard
+    [WHEN] any step loads
+    [THEN] the stepper is fixed at the top with four circles labeled in order: 1 Basic Info, 2 Rules & Limits, 3 Restrictions, 4 Review
+    [THEN] the current step is a filled brand-orange circle with a white number
+    [THEN] completed steps are green circles with a checkmark
+    [THEN] future steps are outlined circles with a grey number
+    >> Captura: attachments/SH-845-TR-17/ui/scenario-1.png
+
+--- Scenario 2: Step gating, inline validation, and focus behavior
+    [GIVEN] the admin is in the wizard
+    [WHEN] a required field on the current step is invalid
+    [THEN] the Next button is disabled and the step badge does not show the green completed checkmark
+    [THEN] an inline message appears immediately below the invalid field and the section gets a subtle red highlight
+    [THEN] focus moves to the first invalid field when the admin clicks Next
+    [THEN] backward navigation to any previously completed step is always allowed
+    >> Captura: attachments/SH-845-TR-17/ui/scenario-2.png
+

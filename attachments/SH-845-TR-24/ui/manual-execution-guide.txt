@@ -1,0 +1,17 @@
+Guia de ejecucion manual — TC-20 / TR-24
+Discount Wizard — responsiveness & accessibility
+========================================================================
+
+Ambiente: build de SH-845 desplegado (Discounts -> Discount Codes). Desktop + tablet.
+Para cada escenario: seguir Given/When, verificar Then, y guardar la captura indicada.
+
+--- Scenario 0: Responsive and accessible wizard experience
+    [GIVEN] the admin uses the wizard on desktop or tablet, including keyboard-only navigation
+    [WHEN] the wizard renders and the admin tabs through controls
+    [THEN] the stepper, cards, dropdowns, toggles, and tables remain readable and usable and all primary actions (Next, Save Rule, Generate, header Save, footer Save) remain accessible
+    [THEN] locked-toggle tooltips are reachable via long-press on tablet
+    [THEN] every interactive control receives a visible focus state and step navigation is operable with Tab + Enter
+    [THEN] step state is conveyed by both the checkmark icon and the numeric label (color is not the only indicator)
+    [THEN] locked toggles announce their disabled state and tooltip text to screen readers
+    >> Captura: attachments/SH-845-TR-24/ui/scenario-0.png
+
