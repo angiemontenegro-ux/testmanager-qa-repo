@@ -28,7 +28,7 @@ notes: '## Solution understood
 
   - ''Save Rule'' does not collapse the card to a summary (AC requires it); the rule is still accepted.
 
-  - No ''Generate'' action for the Customer-facing code (defect SH-1054).
+  - (Withdrawn) ''Generate'' action for the Customer-facing code DOES exist (regenerate icon / ''Generate'' button); SH-1054 was a false positive.
 
   - No confirmation dialogs on destructive actions: unchecking a module deletes its rules and the trash deletes a rule with no dialog (defect SH-1052).
 
@@ -209,4 +209,4 @@ metadata:
   createdBy: codex
   createdAt: '2026-07-08T00:00:00.000Z'
   updatedBy: codex
-  updatedAt: '2026-07-08T21:00:00.000Z'
+  updatedAt: '2026-07-09T22:10:00.000Z'
