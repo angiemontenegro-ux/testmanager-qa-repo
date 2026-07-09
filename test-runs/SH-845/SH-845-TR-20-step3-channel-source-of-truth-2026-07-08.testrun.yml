@@ -115,6 +115,10 @@ results:
             path: attachments/TR-20/1783639034505-step-2.png
             mimeType: image/png
             size: 340101
+          - name: 1783639041092-step-2.png
+            path: attachments/TR-20/1783639041092-step-2.png
+            mimeType: image/png
+            size: 351621
       - order: 3
         status: passed
         actual: Verified live (see scenario notes).
@@ -245,6 +249,6 @@ metadata:
   createdBy: codex
   createdAt: "2026-07-08T00:00:00.000Z"
   updatedBy: codex
-  updatedAt: "2026-07-09T23:17:15.829Z"
+  updatedAt: "2026-07-09T23:17:25.747Z"
 startedAt: "2026-07-09T23:11:11.475Z"
 completedAt: null
