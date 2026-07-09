@@ -136,7 +136,11 @@ results:
         actual: Verified live (see scenario notes).
         phase: then
         text: "all Code Required: Available Online is locked ON and Available at POS is locked OFF"
-        attachments: []
+        attachments:
+          - name: 1783639076616-step-4.png
+            path: attachments/TR-20/1783639076616-step-4.png
+            mimeType: image/png
+            size: 346416
       - order: 5
         status: passed
         actual: Verified live (see scenario notes).
@@ -253,6 +257,6 @@ metadata:
   createdBy: codex
   createdAt: "2026-07-08T00:00:00.000Z"
   updatedBy: codex
-  updatedAt: "2026-07-09T23:17:52.130Z"
+  updatedAt: "2026-07-09T23:17:57.884Z"
 startedAt: "2026-07-09T23:11:11.475Z"
 completedAt: null
