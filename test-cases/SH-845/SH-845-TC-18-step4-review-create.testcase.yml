@@ -69,13 +69,13 @@ links:
       type: "story"
     - key: "SH-1048"
       url: "https://veevart.atlassian.net/browse/SH-1048"
-      type: "qa-subtask"
+      type: "task"
     - key: "SH-469"
       url: "https://veevart.atlassian.net/browse/SH-469"
       type: "epic"
     - key: "SH-844"
       url: "https://veevart.atlassian.net/browse/SH-844"
-      type: "relates"
+      type: "story"
   external: []
 estimatedDuration: 15
 metadata:
