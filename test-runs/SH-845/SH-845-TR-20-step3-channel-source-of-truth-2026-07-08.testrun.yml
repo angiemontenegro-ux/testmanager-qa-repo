@@ -156,7 +156,11 @@ results:
         actual: Verified live (see scenario notes).
         phase: then
         text: every locked toggle shows the tooltip Determined by the Application Mode of the Ticketing rule on Step 2.
-        attachments: []
+        attachments:
+          - name: 1783639414337-step-6.png
+            path: attachments/TR-20/1783639414337-step-6.png
+            mimeType: image/png
+            size: 375948
       - order: 7
         status: passed
         actual: Verified live (see scenario notes).
@@ -261,6 +265,6 @@ metadata:
   createdBy: codex
   createdAt: "2026-07-08T00:00:00.000Z"
   updatedBy: codex
-  updatedAt: "2026-07-09T23:22:15.327Z"
+  updatedAt: "2026-07-09T23:23:38.652Z"
 startedAt: "2026-07-09T23:11:11.475Z"
 completedAt: null
