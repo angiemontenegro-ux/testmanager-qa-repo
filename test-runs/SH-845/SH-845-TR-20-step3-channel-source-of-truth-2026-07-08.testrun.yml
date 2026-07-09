@@ -28,6 +28,10 @@ results:
             path: attachments/TR-20/1783638667859-step-1.png
             mimeType: image/png
             size: 355938
+          - name: 1783638794048-step-1.png
+            path: attachments/TR-20/1783638794048-step-1.png
+            mimeType: image/png
+            size: 357024
       - order: 2
         status: passed
         actual: Verified live (see scenario notes).
@@ -233,6 +237,6 @@ metadata:
   createdBy: codex
   createdAt: "2026-07-08T00:00:00.000Z"
   updatedBy: codex
-  updatedAt: "2026-07-09T23:11:11.475Z"
+  updatedAt: "2026-07-09T23:13:16.462Z"
 startedAt: "2026-07-09T23:11:11.475Z"
 completedAt: null
