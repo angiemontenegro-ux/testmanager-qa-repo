@@ -16,7 +16,7 @@ results:
     scenarioTitle: Channel toggles editable when the promotion has non-Ticketing rules (non-Ticketing-only or mixed)
     scenarioIndex: 0
     status: passed
-    executedAt: "2026-07-08T19:30:00.000Z"
+    executedAt: "2026-07-09T23:17:03.241Z"
     stepResults:
       - order: 1
         status: passed
@@ -100,7 +100,11 @@ results:
         actual: Verified live (see scenario notes).
         phase: given
         text: the admin is on Step 3 and every rule on Step 2 is a Ticketing rule
-        attachments: []
+        attachments:
+          - name: 1783639027057-step-1.png
+            path: attachments/TR-20/1783639027057-step-1.png
+            mimeType: image/png
+            size: 339372
       - order: 2
         status: passed
         actual: Verified live (see scenario notes).
@@ -237,6 +241,6 @@ metadata:
   createdBy: codex
   createdAt: "2026-07-08T00:00:00.000Z"
   updatedBy: codex
-  updatedAt: "2026-07-09T23:13:16.462Z"
+  updatedAt: "2026-07-09T23:17:09.400Z"
 startedAt: "2026-07-09T23:11:11.475Z"
 completedAt: null
