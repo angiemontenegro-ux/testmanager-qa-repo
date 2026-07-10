@@ -1,0 +1,83 @@
+LIVE UI OBSERVATIONS — TC-22 / TR-26   Executed: 2026-07-10
+Environment: https://app.stg.veevart.ai/ (authenticated session, browser-driven)
+Surface: Memberships -> Membership Programs -> "Family Membership"
+         (/memberships/programs/f847026e-ec83-4316-be40-2c8f6692ee82) -> Discounts section
+Note: browser screenshots captured live during the session (not persisted as files, per repo
+convention — see SH-845 TR-17). Verdicts + observations recorded here and in the TR actual/notes.
+This run supersedes TR-25's not-run entries with directly-observed results.
+
+CONTEXT: this re-run was requested because the environment may not have been configured before.
+The staging environment IS working; the failures below are NOT environment artifacts — they are
+the same story-vs-implementation divergences documented in SH-1066 / SH-1067 (intentional re-scope).
+The engine/staging being healthy does not change the shipped feature's behavior.
+
+Scenario 1 (Add discount modal, two cards) — FAIL
+  Observed: the section is "Discounts -> Ticketing Discounts (0)" with a single "New" button and
+  "No ticketing discounts associated yet." There is NO "Add discount" modal with "Use existing" /
+  "Create from scratch" cards. (D2)
+
+Scenario 2 (Create from scratch -> full-screen takeover) — FAIL
+  Observed: clicking "New" opens role=dialog "Discount code wizard" as a CENTERED MODAL (X close,
+  dimmed backdrop, program record visible behind). Not a full-screen takeover. Header reads
+  "Create Membership Benefit"; back affordance is "Back" (not "Back to Family Plus benefits").
+  There is no "Create from scratch" selection step. (D1)
+
+Scenario 3 (Use existing keeps behavior) — FAIL / NA
+  Observed: no "Use existing" picker exists on this surface. (D3)
+
+Scenario 4 (Wizard pre-configured & locked) — FAIL (mixed)
+  Observed OK: Discount type = "% Off" (percent-only); Discount kind preset to "Membership Benefit".
+  Observed divergent:
+   - Discount kind is a SELECTABLE combobox (Discount Code / Automatic / Membership Benefit) — NOT
+     locked; story requires "no UI to change kind".
+   - Status defaults to "Inactive" — story requires default "Active".
+   - "Applies to modules": TICKETING is pre-checked (locked), Memberships is NOT — story requires
+     "Memberships module pre-checked".
+   - Heading "Create Membership Benefit" — story requires
+     "Create Discount Code · Membership Benefit · Family Plus".
+   - Stepper is 4 steps (Basic Info / Rules & Limits / Restrictions / Review) — story references
+     "Step 4 GL & Accounting" placeholder + "Step 5 Review".
+
+Scenario 5 (Admin can add other modules) — FAIL
+  Observed: clicking the "Memberships" module checkbox did nothing — it stayed unchecked; Ticketing
+  stays locked-on. Modules are locked; the admin cannot add another module. (D5)
+
+Scenario 6 (Change Membership Type dropdown, per SH-846) — FAIL
+  Observed on Step 2 (Rules & Limits) the pre-seeded "Rule #1" under a "Ticketing" section has:
+   - "Membership Program" = "Family Membership" (auto-linked to the current program),
+   - "Program" = "All Programs", "Ticket Types" = "All Ticket Types", "Audience Type" = "All Audiences".
+  This is the PROGRAM axis. There is NO "Membership Type" dropdown listing "All Memberships" + types
+  per SH-846. (D4/D6)
+
+Scenario 7 (Save creates + auto-links + returns to Step 3 + toast) — NOT-RUN
+  Not exercised: QA did not persist a discount on staging to avoid side effects. Observed that the
+  rule auto-seeds "Membership Program = Family Membership" (auto-link present). Return is a modal
+  close (not navigation to "Step 3 Benefits"); toast copy expected to differ from
+  "Discount created and linked to Family Plus". Requires a controlled save to confirm.
+
+Scenario 8 (Engine validation error keeps wizard open) — NOT-RUN
+  Not exercised: cannot safely inject an engine validation error on staging. Observed CLIENT-side
+  validation ("Discount value is required.") keeps the user on the step.
+
+Scenario 9 (Cancel with no changes returns without prompt) — FAIL (deviation)
+  The wizard closes without a prompt when clean, but the affordance is "Back" (a modal close),
+  not "Back to Family Plus benefits", and there is no "Step 3 Benefits" navigation.
+
+Scenario 10 (Cancel with unsaved changes -> discard confirmation) — FAIL (functionally present, copy differs)
+  Observed: clicking "Back" while dirty DOES show a discard dialog: "Discard discount draft? Your
+  unsaved changes will be lost. Continue only if you want to leave this wizard." (Cancel / Discard
+  draft). The guard EXISTS, but the copy differs from the AC ("Discard this new discount? Your
+  changes will be lost.") and the trigger is a generic "Back". Note: the top-right X (Close) while
+  dirty is a no-op (no dialog). (D7 — refined: discard guard exists, copy/affordance diverge)
+
+Scenario 11 (Browser navigation guard while wizard open) — FAIL
+  The wizard is a modal, not a routed page, so there is no route-level navigation guard. (D7)
+
+Scenario 12 (Parity with SH-845 except overrides) — FAIL (partial)
+  Wizard steps reused (Basic Info / Rules & Limits / Restrictions / Review) and percent-only enforced.
+  But only 4 steps (no GL/Accounting step), and the SH-847 overrides differ (modal vs takeover;
+  program axis; "Back" vs "Back to <program> benefits"; kind not locked; Ticketing pre-checked).
+
+TALLY: 0 passed · 10 failed · 2 not-run (7, 8). All failures trace to the documented re-scope
+(SH-1066 full-screen takeover; SH-1067 AC divergences), NOT to environment configuration or new
+regressions. No discount was persisted on staging (draft discarded; Ticketing Discounts remained 0).
