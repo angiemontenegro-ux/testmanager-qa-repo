@@ -240,3 +240,37 @@ metadata:
   updatedBy: "codex"
   updatedAt: "2026-07-08T20:37:34Z"
   version: 1
+
+automation:
+  status: "in-progress"          # not-automated | in-progress | automated
+  framework: "playwright-cucumber-ts"
+  repo: "Veevarts/automation-test"
+  featureFile: "src/test/features/memberships/embeddedDiscountWizard.feature"
+  liveEnv: "https://app.stg.veevart.ai"
+  entryPoint: "Memberships -> open a membership program (e.g. 'Family Plus') -> Step 3 Benefits -> '+ Add discount' -> 'Create from scratch'"
+  bucketA:                        # to automate now (UI, deterministic)
+    - "AC-1 open Add discount modal"
+    - "AC-2 Create from scratch launches full-screen wizard"
+    - "AC-3 Use existing unchanged"
+    - "AC-4 wizard pre-configured and locked"
+    - "AC-5 add other modules preserves pre-seeded rule"
+    - "AC-6 change Membership Type in pre-seeded rule (consumes SH-846)"
+    - "AC-9 cancel with no changes, no prompt"
+    - "AC-10 cancel with unsaved changes prompts discard"
+    - "AC-11 browser navigation shows discard guard"
+  bucketB:                        # deferred to viability report (needs human decision)
+    - key: "AC-7"
+      reason: "Save -> engine create + discount<->program link persistence owned by SH-844 / VeevartBackend; needs cross-repo state."
+    - key: "AC-8"
+      reason: "Requires forcing an engine validation error (backend state control)."
+    - key: "AC-12"
+      reason: "Parity assertion depends on the SH-845 base wizard being automated first."
+  nextSteps:
+    - "Open Claude Code in ~/automation-test and run qa-test-automator against the feature file (live mode, stg)."
+    - "Ensure .env has stg credentials: the Playwright MCP launches its own isolated browser and does NOT inherit the logged-in Chrome session."
+    - "Generate steps + Page Object + ui/locators; self-review via code-review-automation (Step 7)."
+    - "Produce viability report for Bucket B (AC-7 / AC-8 / AC-12)."
+  blockers:
+    - "Parent story SH-847 shows status 'Rejected' in Jira (2026-07-14) — confirm the story is live before investing in automation."
+  updatedAt: "2026-07-14"
+  updatedBy: "angie.montenegro"
