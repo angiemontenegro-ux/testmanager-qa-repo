@@ -4,7 +4,7 @@ project:
   prefix: "TC"
   counters:
     testCase: 24
-    testSuite: 0
+    testSuite: 5
     testPlan: 16
     testRun: 27
 settings:

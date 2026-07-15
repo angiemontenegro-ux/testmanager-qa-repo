@@ -1,0 +1,22 @@
+schemaVersion: "1.0"
+id: "f2329648-efb3-4bb4-9aa6-d17b2333a5d3"
+key: "TS-4"
+title: "Kiosk & Access"
+description: "Kiosk admin access and security coverage: secure access to the Kiosk Admin via a Salesforce-signed link (SH-810)."
+entries:
+  - type: "testcase"
+    id: "f3a2b1c0-d4e5-4f60-a7b8-9c0d1e2f3a4b"
+    key: "TC-12"
+    title: "Kiosk Admin secure access via Salesforce signed link"
+    filePath: "test-cases/SH-810/SH-810-TC-12-kiosk-admin-signed-link-access.testcase.yml"
+links:
+  jira:
+    - key: "SH-810"
+      url: "https://veevart.atlassian.net/browse/SH-810"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-07-15T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-15T00:00:00Z"
