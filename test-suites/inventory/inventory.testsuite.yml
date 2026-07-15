@@ -2,19 +2,13 @@ schemaVersion: "1.0"
 id: "0faa6850-0efb-40f1-9ada-96e89a6adcbf"
 key: "TS-5"
 title: "Inventory"
-description: "Inventory and stock-management coverage: item cost left blank when adding a Stock Replenishment Order (SH-942)."
+description: "Inventory and stock-management coverage: item cost left blank when adding a Stock Replenishment Order."
 entries:
   - type: "testcase"
     id: "833e8631-2bda-45d8-8a86-414855a5f1d5"
     key: "TC-1"
     title: "Item Cost stays blank when adding a Stock Replenishment Order"
     filePath: "test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml"
-links:
-  jira:
-    - key: "SH-942"
-      url: "https://veevart.atlassian.net/browse/SH-942"
-      type: "story"
-  external: []
 metadata:
   createdBy: "angiemontenegro-ux"
   createdAt: "2026-07-15T00:00:00Z"
