@@ -25,7 +25,7 @@ results:
         text: the QA user is logged into Salesforce with Veevart Settings permission
         attachments:
           - name: 1780323453582-step-1.png
-            path: attachments/TR-14/1780323453582-step-1.png
+            path: attachments/SH-810/TR-14/1780323453582-step-1.png
             mimeType: image/png
             size: 281208
       - order: 2
@@ -35,7 +35,7 @@ results:
         text: the Kiosk Mode > Settings page is open showing the configured Kiosk Admin URL
         attachments:
           - name: 1780323446399-step-2.png
-            path: attachments/TR-14/1780323446399-step-2.png
+            path: attachments/SH-810/TR-14/1780323446399-step-2.png
             mimeType: image/png
             size: 281208
       - order: 3
@@ -45,7 +45,7 @@ results:
         text: the user clicks the Open Kiosk Admin button
         attachments:
           - name: 1780323590809-step-3.png
-            path: attachments/TR-14/1780323590809-step-3.png
+            path: attachments/SH-810/TR-14/1780323590809-step-3.png
             mimeType: image/png
             size: 142983
       - order: 4
@@ -55,7 +55,7 @@ results:
         text: the browser is redirected to the configured KioskAdminURL with a token query parameter
         attachments:
           - name: 1780323577341-step-4.png
-            path: attachments/TR-14/1780323577341-step-4.png
+            path: attachments/SH-810/TR-14/1780323577341-step-4.png
             mimeType: image/png
             size: 175119
       - order: 5
@@ -65,7 +65,7 @@ results:
         text: the JWT payload contains an orgId claim equal to UserInfo.getOrganizationId()
         attachments:
           - name: 1780324303401-step-5.png
-            path: attachments/TR-14/1780324303401-step-5.png
+            path: attachments/SH-810/TR-14/1780324303401-step-5.png
             mimeType: image/png
             size: 133368
       - order: 6
@@ -141,7 +141,7 @@ results:
         text: the response is HTTP 401
         attachments:
           - name: 1780324993993-step-17.png
-            path: attachments/TR-14/1780324993993-step-17.png
+            path: attachments/SH-810/TR-14/1780324993993-step-17.png
             mimeType: image/png
             size: 274794
       - order: 18
@@ -153,7 +153,7 @@ results:
           again
         attachments:
           - name: 1780325002187-step-18.png
-            path: attachments/TR-14/1780325002187-step-18.png
+            path: attachments/SH-810/TR-14/1780325002187-step-18.png
             mimeType: image/png
             size: 275973
       - order: 19
@@ -237,7 +237,7 @@ results:
         text: a request is made to /admin?orgId=<valid_org_id> with no token
         attachments:
           - name: 1780325071541-step-31.png
-            path: attachments/TR-14/1780325071541-step-31.png
+            path: attachments/SH-810/TR-14/1780325071541-step-31.png
             mimeType: image/png
             size: 304653
       - order: 32
@@ -247,7 +247,7 @@ results:
         text: a request is made to /admin?token= with an empty value
         attachments:
           - name: 1780325082932-step-32.png
-            path: attachments/TR-14/1780325082932-step-32.png
+            path: attachments/SH-810/TR-14/1780325082932-step-32.png
             mimeType: image/png
             size: 304653
       - order: 33
@@ -257,7 +257,7 @@ results:
         text: a request is made to /admin?token=abc123notajwt with a non-JWT string
         attachments:
           - name: 1780325096463-step-33.png
-            path: attachments/TR-14/1780325096463-step-33.png
+            path: attachments/SH-810/TR-14/1780325096463-step-33.png
             mimeType: image/png
             size: 304653
       - order: 34
@@ -321,11 +321,11 @@ results:
         text: the response is HTTP 401
         attachments:
           - name: 1780327526785-step-43.png
-            path: attachments/TR-14/1780327526785-step-43.png
+            path: attachments/SH-810/TR-14/1780327526785-step-43.png
             mimeType: image/png
             size: 72786
           - name: 1780327542949-step-43.png
-            path: attachments/TR-14/1780327542949-step-43.png
+            path: attachments/SH-810/TR-14/1780327542949-step-43.png
             mimeType: image/png
             size: 72786
       - order: 44
@@ -359,7 +359,7 @@ results:
         text: no JWT is generated
         attachments:
           - name: 1780327476195-step-48.png
-            path: attachments/TR-14/1780327476195-step-48.png
+            path: attachments/SH-810/TR-14/1780327476195-step-48.png
             mimeType: image/png
             size: 97632
       - order: 49

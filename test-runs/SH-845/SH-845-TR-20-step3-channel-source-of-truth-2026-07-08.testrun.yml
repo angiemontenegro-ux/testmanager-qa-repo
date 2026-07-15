@@ -25,11 +25,11 @@ results:
         text: the admin is on Step 3
         attachments:
           - name: 1783638667859-step-1.png
-            path: attachments/TR-20/1783638667859-step-1.png
+            path: attachments/SH-845/TR-20/1783638667859-step-1.png
             mimeType: image/png
             size: 355938
           - name: 1783638794048-step-1.png
-            path: attachments/TR-20/1783638794048-step-1.png
+            path: attachments/SH-845/TR-20/1783638794048-step-1.png
             mimeType: image/png
             size: 357024
       - order: 2
@@ -77,13 +77,13 @@ results:
       submit (Next), not on-change, and Next is not pre-disabled.
     attachments:
       - name: manual-execution-guide.txt
-        path: attachments/SH-845-TR-20/ui/manual-execution-guide.txt
+        path: attachments/SH-845/TR-20/ui/manual-execution-guide.txt
         mimeType: text/plain
       - name: regression-notes.txt
-        path: attachments/SH-845-TR-20/regression-notes.txt
+        path: attachments/SH-845/TR-20/regression-notes.txt
         mimeType: text/plain
       - name: owasp-top10-scan.txt
-        path: attachments/SH-845-TR-20/owasp-top10-scan.txt
+        path: attachments/SH-845/TR-20/owasp-top10-scan.txt
         mimeType: text/plain
     defects: []
   - testCaseId: 58a373a5-cc6e-4af5-99d3-f914722ec686
@@ -102,7 +102,7 @@ results:
         text: the admin is on Step 3 and every rule on Step 2 is a Ticketing rule
         attachments:
           - name: 1783639027057-step-1.png
-            path: attachments/TR-20/1783639027057-step-1.png
+            path: attachments/SH-845/TR-20/1783639027057-step-1.png
             mimeType: image/png
             size: 339372
       - order: 2
@@ -112,11 +112,11 @@ results:
         text: the admin opens Step 3 with different Application Mode combinations
         attachments:
           - name: 1783639034505-step-2.png
-            path: attachments/TR-20/1783639034505-step-2.png
+            path: attachments/SH-845/TR-20/1783639034505-step-2.png
             mimeType: image/png
             size: 340101
           - name: 1783639041092-step-2.png
-            path: attachments/TR-20/1783639041092-step-2.png
+            path: attachments/SH-845/TR-20/1783639041092-step-2.png
             mimeType: image/png
             size: 351621
       - order: 3
@@ -128,7 +128,7 @@ results:
           OFF (grey, disabled)
         attachments:
           - name: 1783639070585-step-3.png
-            path: attachments/TR-20/1783639070585-step-3.png
+            path: attachments/SH-845/TR-20/1783639070585-step-3.png
             mimeType: image/png
             size: 362217
       - order: 4
@@ -138,7 +138,7 @@ results:
         text: "all Code Required: Available Online is locked ON and Available at POS is locked OFF"
         attachments:
           - name: 1783639076616-step-4.png
-            path: attachments/TR-20/1783639076616-step-4.png
+            path: attachments/SH-845/TR-20/1783639076616-step-4.png
             mimeType: image/png
             size: 346416
       - order: 5
@@ -148,7 +148,7 @@ results:
         text: "any rule Both, or a mix of Manually Entered and Code Required: both toggles are locked ON"
         attachments:
           - name: 1783639333970-step-5.png
-            path: attachments/TR-20/1783639333970-step-5.png
+            path: attachments/SH-845/TR-20/1783639333970-step-5.png
             mimeType: image/png
             size: 370614
       - order: 6
@@ -158,7 +158,7 @@ results:
         text: every locked toggle shows the tooltip Determined by the Application Mode of the Ticketing rule on Step 2.
         attachments:
           - name: 1783639414337-step-6.png
-            path: attachments/TR-20/1783639414337-step-6.png
+            path: attachments/SH-845/TR-20/1783639414337-step-6.png
             mimeType: image/png
             size: 375948
       - order: 7
@@ -175,13 +175,13 @@ results:
       the mode changes (derived, not admin-set). Note: the header metadata strip sometimes lags in refreshing.
     attachments:
       - name: manual-execution-guide.txt
-        path: attachments/SH-845-TR-20/ui/manual-execution-guide.txt
+        path: attachments/SH-845/TR-20/ui/manual-execution-guide.txt
         mimeType: text/plain
       - name: regression-notes.txt
-        path: attachments/SH-845-TR-20/regression-notes.txt
+        path: attachments/SH-845/TR-20/regression-notes.txt
         mimeType: text/plain
       - name: owasp-top10-scan.txt
-        path: attachments/SH-845-TR-20/owasp-top10-scan.txt
+        path: attachments/SH-845/TR-20/owasp-top10-scan.txt
         mimeType: text/plain
     defects: []
   - testCaseId: 58a373a5-cc6e-4af5-99d3-f914722ec686
@@ -238,13 +238,13 @@ results:
       Re-derivation/re-lock on removing the last non-Ticketing rule was not explicitly re-tested this run.
     attachments:
       - name: manual-execution-guide.txt
-        path: attachments/SH-845-TR-20/ui/manual-execution-guide.txt
+        path: attachments/SH-845/TR-20/ui/manual-execution-guide.txt
         mimeType: text/plain
       - name: regression-notes.txt
-        path: attachments/SH-845-TR-20/regression-notes.txt
+        path: attachments/SH-845/TR-20/regression-notes.txt
         mimeType: text/plain
       - name: owasp-top10-scan.txt
-        path: attachments/SH-845-TR-20/owasp-top10-scan.txt
+        path: attachments/SH-845/TR-20/owasp-top10-scan.txt
         mimeType: text/plain
     defects: []
 summary:

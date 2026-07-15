@@ -76,13 +76,13 @@ results:
   notes: Step 3 with sections 'Eligibility & channels' (Members only OFF by default), 'Channel Restrictions', 'Date & time ranges' and 'Allowed email domains'. Members only toggles without affecting other fields. Verified live.
   attachments: &id001
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-21/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-21/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-21/regression-notes.txt
+    path: attachments/SH-845/TR-21/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-21/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-21/owasp-top10-scan.txt
     mimeType: text/plain
   defects: []
   executedAt: '2026-07-08T19:30:00.000Z'

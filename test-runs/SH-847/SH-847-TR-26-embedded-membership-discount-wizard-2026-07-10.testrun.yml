@@ -7,7 +7,7 @@ environment:
   name: qa
   buildVersion: 'UI/Frontend-only. Live browser-driven re-run against https://app.stg.veevart.ai/ (Membership Programs -> Family Membership -> Discounts). Supersedes TR-25 not-run entries with directly-observed results. Static unit/regression/OWASP evidence carried from TR-25 (PR #137 + #239).'
   notes: 'Re-run requested due to a suspected environment-configuration problem. Staging was healthy; the FAILs below are the documented re-scope divergences (SH-1066/SH-1067), not environment artifacts. No discount persisted (draft discarded; Ticketing Discounts remained 0).'
-notes: "## Solution understood\n\nSame as TR-25: SH-847 landed across PR #137 (reusable modal engine + Ticketing) and PR #239 / SH-950 (Membership program-record surface, program axis). This run validates the 12 functional scenarios LIVE on staging instead of leaving them not-run.\n\n## Execution\n\nBrowser-driven on https://app.stg.veevart.ai/ against Membership Program 'Family Membership'. Opened the Discounts section, launched the wizard via '+ New', walked Basic Info + Rules & Limits, tested module lock and the discard guard, then discarded the draft (no data saved). Client validation observed; engine save/error NOT exercised (would write data / cannot inject error safely) -> scenarios 7 and 8 remain not-run. Technical regression 7/7 PASS, security 5/6 PASS + 1 N/A, OWASP 1 applicable (A03) PASS / 9 N/A carried from TR-25 (static, unchanged).\n\n## Observed result: 0 passed / 10 failed / 2 not-run\n\nAll 10 failures are story-vs-implementation divergences (intentional re-scope), tracked in SH-1066 (modal vs full-screen takeover) and SH-1067 (AC divergences). Highlights observed live: '+ New' opens a role=dialog modal (not a takeover); no two-card 'Add discount' modal; kind is a selectable combobox (not locked); Status defaults Inactive (AC: Active); Ticketing module pre-checked (AC: Memberships); module checkboxes locked (cannot add a module); Step 2 pre-seeded rule on the PROGRAM axis ('Membership Program = Family Membership' + 'Program = All Programs'), not a Membership Type dropdown per SH-846; discard guard exists via 'Back' but with different copy ('Discard discount draft?'). See attachments/tr-26-tc-22/ui-observations.txt.\n\n## Note\n\nThese are not new regressions and not environment issues. If Product confirms the re-scope, resolve by updating SH-847's acceptance criteria and re-baselining TC-22; otherwise route SH-1066/SH-1067 to dev. Do not transition SH-847 to Done until adjudicated."
+notes: "## Solution understood\n\nSame as TR-25: SH-847 landed across PR #137 (reusable modal engine + Ticketing) and PR #239 / SH-950 (Membership program-record surface, program axis). This run validates the 12 functional scenarios LIVE on staging instead of leaving them not-run.\n\n## Execution\n\nBrowser-driven on https://app.stg.veevart.ai/ against Membership Program 'Family Membership'. Opened the Discounts section, launched the wizard via '+ New', walked Basic Info + Rules & Limits, tested module lock and the discard guard, then discarded the draft (no data saved). Client validation observed; engine save/error NOT exercised (would write data / cannot inject error safely) -> scenarios 7 and 8 remain not-run. Technical regression 7/7 PASS, security 5/6 PASS + 1 N/A, OWASP 1 applicable (A03) PASS / 9 N/A carried from TR-25 (static, unchanged).\n\n## Observed result: 0 passed / 10 failed / 2 not-run\n\nAll 10 failures are story-vs-implementation divergences (intentional re-scope), tracked in SH-1066 (modal vs full-screen takeover) and SH-1067 (AC divergences). Highlights observed live: '+ New' opens a role=dialog modal (not a takeover); no two-card 'Add discount' modal; kind is a selectable combobox (not locked); Status defaults Inactive (AC: Active); Ticketing module pre-checked (AC: Memberships); module checkboxes locked (cannot add a module); Step 2 pre-seeded rule on the PROGRAM axis ('Membership Program = Family Membership' + 'Program = All Programs'), not a Membership Type dropdown per SH-846; discard guard exists via 'Back' but with different copy ('Discard discount draft?'). See attachments/SH-847/TR-26/ui-observations.txt.\n\n## Note\n\nThese are not new regressions and not environment issues. If Product confirms the re-scope, resolve by updating SH-847's acceptance criteria and re-baselining TC-22; otherwise route SH-1066/SH-1067 to dev. Do not transition SH-847 to Done until adjudicated."
 results:
 - testCaseId: 20e3c8a1-aa6f-4bd2-8b81-a65468594cbb
   testCaseKey: TC-22
@@ -45,19 +45,19 @@ results:
   notes: 'FAIL (D2): la seccion es "Ticketing Discounts" con un boton "New" que abre el wizard directo; no existe el modal de dos cards de la historia.'
   attachments: &evidence
   - name: ui-observations.txt
-    path: attachments/tr-26-tc-22/ui-observations.txt
+    path: attachments/SH-847/TR-26/ui-observations.txt
     mimeType: text/plain
   - name: scope-divergence.txt
-    path: attachments/tr-25-tc-22/scope-divergence.txt
+    path: attachments/SH-847/TR-25/scope-divergence.txt
     mimeType: text/plain
   - name: coverage-matrix.txt
-    path: attachments/tr-25-tc-22/scenario-0-unit-tests/coverage-matrix.txt
+    path: attachments/SH-847/TR-25/scenario-0-unit-tests/coverage-matrix.txt
     mimeType: text/plain
   - name: regression-results.txt
-    path: attachments/tr-25-tc-22/regression-results.txt
+    path: attachments/SH-847/TR-25/regression-results.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/tr-25-tc-22/owasp-top10-scan.txt
+    path: attachments/SH-847/TR-25/owasp-top10-scan.txt
     mimeType: text/plain
   defects:
   - jiraKey: SH-1067

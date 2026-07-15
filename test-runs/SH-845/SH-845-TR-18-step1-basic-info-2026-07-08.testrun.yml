@@ -86,13 +86,13 @@ results:
   notes: 'Heading ''Create Discount Code''. Fields present: Internal name (AC: Code Name), Status (default Inactive; AC: Active), Description, Discount type, Value, Customer-facing code, Discount kind. The ''Applies to modules'' section (AC: ''Where can this discount be used?'') shows ONLY Ticketing + Memberships + Shop (V2, disabled), not the 2x3 grid of 6 modules. DEVIATION: in CREATE mode the top Save, status pill and metadata strip are rendered (AC: edit mode only). Verified live.'
   attachments: &id001
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-18/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-18/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-18/regression-notes.txt
+    path: attachments/SH-845/TR-18/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-18/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-18/owasp-top10-scan.txt
     mimeType: text/plain
   defects: []
   executedAt: '2026-07-08T18:00:00.000Z'
