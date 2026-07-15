@@ -1,0 +1,18 @@
+Regression results — PR #173 SH-846 slice
+
+TECHNICAL
+- Shared decoder (portal + shop embed) = single source of truth, documented; no drift. PASS
+- Endpoint path hardcoded '/fundraising/membership-programs/membership-types'. PASS
+- Payload mapper '__all__'->null / else id, unit-tested. PASS
+- No non-advertised deltas on dependent surfaces found.
+
+SECURITY  (0 High/Critical)
+- A03 Injection: no dangerouslySetInnerHTML/eval/new Function/string-concat URL; Zod-validated
+  response; per-item isolation. PASS
+- Secrets/tokens: none in diff. PASS
+- PII in logs: none. PASS
+- SSRF: fixed BFF path, no user-controlled URL. N/A
+- Deps (A06): package.json untouched. N/A
+- Access control (A01): no auth/RBAC/sharing changes. N/A
+
+BLOCKERS: none.

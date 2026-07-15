@@ -3,10 +3,10 @@ project:
   name: "QA Forms Workspace"
   prefix: "TC"
   counters:
-    testCase: 22
+    testCase: 24
     testSuite: 0
     testPlan: 10
-    testRun: 26
+    testRun: 27
 settings:
   defaultPriority: "medium"
   defaultType: "functional"

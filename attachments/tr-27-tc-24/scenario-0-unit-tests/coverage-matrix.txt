@@ -1,0 +1,19 @@
+TC-24 scenario <-> dev test coverage (SH-846 slice of PR #173)
+
+Scenario (idx)                         | Covered by dev test?            | Layer     | Verdict basis
+---------------------------------------|---------------------------------|-----------|------------------------------
+0 populate + sort + "All Memberships"  | sort=YES; default/first render=NO| data+UI   | sort PASS (test+code); UI default = manual
+1 specific -> membershipTypeId=id      | YES (mappers.test)              | logic     | PASS (mapper code+test)
+2 "All Memberships" -> null            | YES (mappers.test '__all__'->null)| logic    | PASS (mapper code+test)
+3 loading state (disabled + spinner)   | NO                              | UI        | no impl evidence in diff -> manual/GAP
+4 empty -> only "All Memberships"      | parser []=YES; UI render=NO     | data+UI   | data ok; UI = manual
+5 error inline "Couldn't load..." +Retry| client throws=YES; inline UI+Retry=NO | data+UI | throw PASS; inline error+Retry = manual/GAP
+6 cache within wizard session          | NO                              | UI/data   | no caching evidence -> manual/GAP
+7 deduped + active-only                | active-only=YES; dedup=NO       | data      | active-only PASS; DEDUP NOT IMPLEMENTED -> FAIL
+
+GAPS:
+- dedup: parseMembershipTypes (packages/ticketing-limits/src/membership-types-parser.ts) does
+  filter(active) -> map -> sort(label). NO dedup step (no Set/unique). SH-846 Scope explicitly
+  lists "sorted by display name, deduped, active-only". => spec-vs-impl gap.
+- loading / error-inline+Retry / cache: no evidence in the #173 diff. May be handled by a generic
+  Select/react-query elsewhere OR not implemented. Must be confirmed in the running app.

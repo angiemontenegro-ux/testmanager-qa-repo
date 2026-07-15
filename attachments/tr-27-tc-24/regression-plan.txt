@@ -1,0 +1,13 @@
+Technical + security regression plan — PR VeevartFrontend#173 (SH-846 slice)
+Classification: UI/Frontend-only (portal discounts wizard, apps/shared/portal/features/discounts).
+
+| Item | Type | Risk | Check method | Verdict |
+|------|------|------|--------------|---------|
+| parseMembershipTypes shared by 2 hosts (portal client + shop embed) | Technical | Medium | confirm both hosts pass raw JSON to same decoder; no shape drift | PASS (single source of truth, doc'd) |
+| membership-types-client endpoint path | Technical | Low | hardcoded const, no user input | PASS |
+| payload mapper __all__ -> null | Technical | Medium | mapper unit test + code review | PASS |
+| A03 Injection (URL/HTML) | Security | Low | grep dangerouslySetInnerHTML/eval/concat | PASS (none) |
+| A06 Vulnerable deps | Security | Low | package.json changed? | N/A (no dep change) |
+| A01 Broken access control | Security | Low | auth/RBAC/permission touched? | N/A (none) |
+| Secrets / PII in logs | Security | Low | grep secrets + console.log(PII) | PASS (none) |
+| SSRF | Security | Low | outbound fetch w/ user URL? | N/A (fixed BFF path) |

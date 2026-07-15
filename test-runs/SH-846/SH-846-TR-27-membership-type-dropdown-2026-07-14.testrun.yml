@@ -1,0 +1,294 @@
+schemaVersion: '1.0'
+id: tr-2512c96c-3531-4a4c-b75b-3d2c384a6c6b
+key: TR-27
+title: 'Run SH-846: Membership Type dropdown populated from the Memberships service (static PR review)'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: 'UI/Frontend-only. Static review of Veevarts/VeevartFrontend#173 (feat/discount-wizard-field-enablement-SH-916, MERGED). #173 is the FE half of SH-916 but carries the SH-846 slice ("membership types from the real API"). No browser-driven run (VeevartFrontend not checked out locally); data/logic verdicts derive from source + dev unit-test inspection.'
+  notes: 'PR #173 bundles SH-846 under SH-916. The SH-846 slice = wiring the Membership Type dropdown to GET /api/fundraising/membership-programs/membership-types via listMembershipTypes + shared parseMembershipTypes decoder. Data/logic layer strongly covered by dev tests. UI behavioral states (loading/empty/error+retry/cache, "All Memberships" default render) not browser-verified -> left not-run for manual QA. One confirmed spec-vs-impl gap: dedup (scenario 8).'
+notes: "## Solution understood\n\nSH-846 asks the Discount wizard's Step 2 Membership Rule card to populate its Membership Type dropdown from the real Memberships service instead of a static placeholder. In PR #173 this is implemented as: (1) a thin transport client `listMembershipTypes()` that GETs the BFF path `/fundraising/membership-programs/membership-types` and hands the raw JSON to (2) the shared Zod decoder `parseMembershipTypes` (packages/ticketing-limits) which is the single source of truth for both the portal client and the shop embed. The decoder: filters non-archived (`status !== 'archived'`, case-insensitive, handles PascalCase + missing status), maps each item via the id ladder `id ?? membershipTypeId ?? value`, exposes `externalId`, drops malformed items per-item (missing label or no id/membershipTypeId/value), and sorts alphabetically by label. Payload mapping (promotion-authoring-mappers) sends `membershipTypeId: rule.membershipTypeId === '__all__' ? null : rule.membershipTypeId` — i.e. the 'All Memberships' sentinel `__all__` becomes `null`, a specific selection sends its id.\n\n## Classification\n\nUI/Frontend-only. Per QA routing, behavioral UI states are handed off for manual verification; data + logic layers are validated by static source + unit-test inspection.\n\n## Unit tests\n\nmembership-types-client.test.ts (~18 assertions) + the shared parser test cover: canonical + legacy shapes, id ladder, active-only filter, alphabetical sort, per-item isolation, unknown-field tolerance, ApiError on non-OK. mappers test covers `__all__`->null / else id. PR body: 200 discounts-feature vitest tests green (not re-run locally). See attachments/tr-27-tc-24/scenario-0-unit-tests/.\n\n## Technical + Security regression\n\nTechnical: shared decoder = single source of truth (no host drift), hardcoded endpoint path, payload mapper unit-tested — all PASS, no non-advertised deltas. Security: A03 Injection PASS (Zod-validated, no innerHTML/eval/concat, fixed path); no secrets, no PII logging, no SSRF, no dep changes, no auth/RBAC touch. 0 High/Critical. OWASP Top 10: 1 Applicable (A03) PASS / 9 N/A. See regression-results.txt + owasp-top10-scan.txt.\n\n## Findings\n\n1. DEDUP GAP (scenario 8, FAIL): parseMembershipTypes has NO dedup step (filter->map->sort only), but SH-846 Scope explicitly lists 'sorted by display name, deduped, active-only'. If the endpoint ever returns duplicate types they render twice. Low real-world impact (active types usually distinct) but a documented scope deviation. Defect pending user adjudication.\n2. NO EVIDENCE for loading / inline-error+Retry / session-cache (scenarios 4,6,7): not found in the #173 diff. May be handled by a generic Select/react-query elsewhere OR not implemented. Must be confirmed in the running app.\n3. Field naming: story prose says `membership_type_id`; implementation uses `membershipTypeId` (camelCase). Not a defect.\n\n## QA verdict\n\nPartial: 2 passed (logic) / 1 failed (dedup) / 5 not-run (manual UI). Do NOT transition SH-846 to Done until the dedup gap is adjudicated and the 3 UI states are manually confirmed."
+results:
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Dropdown lists "All Memberships" plus active membership types sorted by display name
+  scenarioIndex: 0
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: 'Requiere app corriendo: verificar en Step 2 con N tipos activos en el tenant.'
+    phase: given
+    text: the Memberships service returns N active membership types for the tenant
+  - order: 2
+    status: not-run
+    actual: 'Manual: navegar a Step 2 (Rules & Limits) del Discount wizard en /discounts/codes.'
+    phase: given
+    text: the admin is on Step 2 (Rules & Limits) of the Discount wizard
+  - order: 3
+    status: not-run
+    actual: 'Manual: click en "+ Add Membership Rule".'
+    phase: when
+    text: the admin clicks "+ Add Membership Rule"
+  - order: 4
+    status: not-run
+    actual: 'Manual UI.'
+    phase: then
+    text: a new Membership Rule card is inserted with Membership Type and Max Uses per Household columns
+  - order: 5
+    status: not-run
+    actual: 'Sin evidencia en el diff del render de "All Memberships" como primera opcion; verificar en UI.'
+    phase: then
+    text: the Membership Type dropdown shows "All Memberships" as the first option
+  - order: 6
+    status: passed
+    actual: 'Verificado por codigo + unit test: el decoder mapea cada item activo devuelto por el servicio (id ladder id ?? membershipTypeId ?? value).'
+    phase: then
+    text: each active membership type returned by the service is listed below "All Memberships"
+  - order: 7
+    status: passed
+    actual: 'PASS (data layer): parseMembershipTypes .sort((a,b)=>a.label.localeCompare(b.label)); unit test "sorts results alphabetically by label" (Annual/Monthly/Zebra).'
+    phase: then
+    text: the membership type options are sorted alphabetically by display name
+  - order: 8
+    status: not-run
+    actual: 'Sentinel "__all__" existe; render de la seleccion por defecto en UI no verificado. Manual.'
+    phase: then
+    text: the default selection is "All Memberships"
+  - order: 9
+    status: not-run
+    actual: 'Fuera del slice SH-846 (Max Uses default Unlimited). Manual.'
+    phase: then
+    text: the Max Uses per Household field defaults to "Unlimited"
+  notes: 'Orden alfabetico y mapeo de tipos activos PASS por unit test; el render del dropdown (primera opcion + default "All Memberships") queda not-run para verificacion manual en la app.'
+  attachments: &evidence
+  - name: tests-found.txt
+    path: attachments/tr-27-tc-24/scenario-0-unit-tests/tests-found.txt
+    mimeType: text/plain
+  - name: coverage-matrix.txt
+    path: attachments/tr-27-tc-24/scenario-0-unit-tests/coverage-matrix.txt
+    mimeType: text/plain
+  - name: regression-plan.txt
+    path: attachments/tr-27-tc-24/regression-plan.txt
+    mimeType: text/plain
+  - name: regression-results.txt
+    path: attachments/tr-27-tc-24/regression-results.txt
+    mimeType: text/plain
+  - name: owasp-top10-scan.txt
+    path: attachments/tr-27-tc-24/owasp-top10-scan.txt
+    mimeType: text/plain
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Selecting a specific membership type sets membership_type_id on the rule payload
+  scenarioIndex: 1
+  status: passed
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Dropdown poblado via listMembershipTypes -> parseMembershipTypes (verificado por codigo + unit test).'
+    phase: given
+    text: the Membership Type dropdown is populated
+  - order: 2
+    status: passed
+    actual: 'Mapper: membershipTypeId = rule.membershipTypeId (cuando != "__all__"). Cubierto por mappers unit test.'
+    phase: when
+    text: the admin selects a specific membership type and clicks Save Rule
+  - order: 3
+    status: passed
+    actual: 'PASS (logic): promotion-authoring-mappers envia membershipTypeId = el id seleccionado. Nota: el campo se llama membershipTypeId (camelCase), no membership_type_id.'
+    phase: then
+    text: the rule payload sent to the Discounts engine contains membership_type_id = the selected id
+  notes: 'PASS a nivel logica/payload por unit test del mapper. El envio end-to-end en UI (click Save Rule real) no se ejecuto en navegador.'
+  attachments: *evidence
+  executedAt: '2026-07-14T15:30:00.000Z'
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Selecting "All Memberships" sets membership_type_id to null
+  scenarioIndex: 2
+  status: passed
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Dropdown poblado (idem escenario anterior).'
+    phase: given
+    text: the Membership Type dropdown is populated
+  - order: 2
+    status: passed
+    actual: 'Sentinel ALL_MEMBERSHIP_TYPES = "__all__".'
+    phase: when
+    text: the admin leaves or reselects "All Memberships" and clicks Save Rule
+  - order: 3
+    status: passed
+    actual: 'PASS (logic): mapper -> rule.membershipTypeId === "__all__" ? null : id. Unit test confirma "__all__" -> null.'
+    phase: then
+    text: the rule payload sent to the Discounts engine contains membership_type_id = null
+  notes: 'PASS a nivel logica/payload por unit test del mapper.'
+  attachments: *evidence
+  executedAt: '2026-07-14T15:30:00.000Z'
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Loading state disables the dropdown and the Save Rule button
+  scenarioIndex: 3
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: 'Sin evidencia en el diff de manejo de loading (isLoading/spinner/disabled) para el dropdown. Verificar en la app.'
+    phase: given
+    text: the Memberships endpoint has not yet returned
+  - order: 2
+    status: not-run
+    actual: 'Manual UI.'
+    phase: when
+    text: the Membership Rule card renders
+  - order: 3
+    status: not-run
+    actual: 'PENDIENTE: confirmar que el dropdown se muestra deshabilitado + indicador de carga.'
+    phase: then
+    text: the Membership Type dropdown is disabled and shows a loading indicator
+  - order: 4
+    status: not-run
+    actual: 'PENDIENTE: confirmar que Save Rule queda deshabilitado hasta terminar la carga.'
+    phase: then
+    text: the Save Rule button is disabled until the dropdown finishes loading
+  notes: 'GAP posible: sin evidencia de estado loading en el PR #173. Requiere verificacion manual en la app corriendo.'
+  attachments: *evidence
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Empty state shows only "All Memberships" with no error
+  scenarioIndex: 4
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: 'A nivel data: parseMembershipTypes devuelve [] si no hay tipos activos (verificado por logica). Render UI no verificado.'
+    phase: given
+    text: the Memberships service returns zero active membership types
+  - order: 2
+    status: not-run
+    actual: 'Manual UI.'
+    phase: when
+    text: the admin opens the Membership Type dropdown
+  - order: 3
+    status: not-run
+    actual: 'PENDIENTE: confirmar que solo se muestra "All Memberships".'
+    phase: then
+    text: only "All Memberships" is shown
+  - order: 4
+    status: not-run
+    actual: 'PENDIENTE: confirmar ausencia de error.'
+    phase: then
+    text: no error is displayed
+  notes: 'Data layer OK (lista vacia); render "solo All Memberships / sin error" requiere verificacion manual.'
+  attachments: *evidence
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Error state shows inline error with a working Retry
+  scenarioIndex: 5
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: 'A nivel data: listMembershipTypes lanza ApiError en respuesta no-OK (unit test 403). El manejo UI (mensaje inline + Retry) no tiene evidencia en el diff.'
+    phase: given
+    text: the Memberships endpoint returns an error or times out
+  - order: 2
+    status: not-run
+    actual: 'Manual UI.'
+    phase: when
+    text: the Membership Rule card renders
+  - order: 3
+    status: not-run
+    actual: 'PENDIENTE: confirmar mensaje inline "Couldn''t load membership types".'
+    phase: then
+    text: the dropdown shows an inline error "Couldn't load membership types"
+  - order: 4
+    status: not-run
+    actual: 'PENDIENTE: confirmar affordance "Retry".'
+    phase: then
+    text: a "Retry" affordance is available next to the dropdown
+  - order: 5
+    status: not-run
+    actual: 'PENDIENTE: confirmar que Retry re-invoca el endpoint.'
+    phase: then
+    text: clicking Retry re-invokes the endpoint and, on success, populates the dropdown
+  notes: 'El cliente lanza ApiError en error (data OK); el mensaje inline + Retry no aparece en el diff -> GAP posible, verificacion manual requerida.'
+  attachments: *evidence
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: Dropdown renders from the cached result within the same wizard session
+  scenarioIndex: 6
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: 'Sin evidencia de caching (useQuery/staleTime u otro) en el diff del slice SH-846.'
+    phase: given
+    text: the dropdown has already been populated in this wizard session
+  - order: 2
+    status: not-run
+    actual: 'Manual UI.'
+    phase: when
+    text: the admin opens another Membership Rule on the same promotion
+  - order: 3
+    status: not-run
+    actual: 'PENDIENTE: confirmar render inmediato desde cache.'
+    phase: then
+    text: the dropdown renders immediately from the cached result
+  - order: 4
+    status: not-run
+    actual: 'PENDIENTE: confirmar ausencia de segunda llamada de red (Network tab).'
+    phase: then
+    text: no extra network call to the Memberships endpoint is made
+  notes: 'GAP posible: sin evidencia de cache en el PR #173. Requiere verificacion manual con Network tab.'
+  attachments: *evidence
+- testCaseId: 90b0c278-4a9f-42e5-af0a-965bb100af46
+  testCaseKey: TC-24
+  testCaseTitle: 'Discount Wizard — Membership Type dropdown populated from the Memberships service'
+  testCaseFilePath: test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml
+  scenarioTitle: API result is deduped and active-only before rendering
+  scenarioIndex: 7
+  status: failed
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Set de datos con duplicados + inactivos preparable; el decoder los procesa item por item.'
+    phase: given
+    text: the Memberships service response contains duplicate entries and at least one inactive membership type
+  - order: 2
+    status: passed
+    actual: 'Verificado por codigo (parseMembershipTypes) + unit tests.'
+    phase: when
+    text: the admin opens the Membership Type dropdown
+  - order: 3
+    status: failed
+    actual: 'FAIL: parseMembershipTypes NO deduplica (filter->map->sort, sin Set/unique). El Scope de SH-846 pide "deduped". Si el endpoint devuelve duplicados, se renderizan repetidos. Sin unit test de dedup.'
+    phase: then
+    text: each membership type appears only once (deduped)
+  - order: 4
+    status: passed
+    actual: 'PASS: filter(status != archived) case-insensitive, maneja PascalCase y sin-status. Unit tests: "filters out archived", "excludes legacy archived", "PascalCase Active/Archived".'
+    phase: then
+    text: inactive membership types are not listed
+  - order: 5
+    status: passed
+    actual: 'PASS: .sort((a,b)=>a.label.localeCompare(b.label)); unit test de orden alfabetico.'
+    phase: then
+    text: the remaining active types are sorted alphabetically by display name below "All Memberships"
+  notes: 'FAIL por la clausula de dedup: active-only y orden PASS, pero el dedup del Scope de SH-846 NO esta implementado. Severidad baja (impacto solo si el endpoint devuelve duplicados). Defect pendiente de adjudicacion con el usuario antes de crear el ticket en Jira.'
+  attachments: *evidence
+  executedAt: '2026-07-14T15:30:00.000Z'

@@ -1,0 +1,172 @@
+schemaVersion: "1.0"
+id: "90b0c278-4a9f-42e5-af0a-965bb100af46"
+key: "TC-24"
+title: "Discount Wizard — Membership Type dropdown populated from the Memberships service (populate, sort, payload, loading, empty, error, cache)"
+description: |
+  Validates SH-846: on Step 2 (Rules & Limits) of the Discount Authoring Wizard, the Membership Type
+  dropdown on a Membership Rule card is wired to the existing Memberships service instead of the static
+  "All Memberships" placeholder. Covers population with "All Memberships" first + active types sorted by
+  display name, default selection, rule-payload mapping (membership_type_id vs null), loading state (dropdown
+  and Save Rule disabled), empty state (only "All Memberships", no error), error state (inline error + Retry),
+  within-session caching, and the in-scope-but-not-Gherkin dedup + active-only filtering.
+  QA sub-task: SH-1070. Parent task: SH-846. Epic: SH-469 (Discounts Authoring: Discount Configuration UI Updates).
+  Open risks: the story does not name the concrete Memberships endpoint ("Identify the existing Memberships
+  service endpoint" is a TBD to resolve during QA); the endpoint itself is out of scope so its data shape must
+  be confirmed against the running service; the rule-payload persistence (membership_type_id) is owned by the
+  logic story SH-844 and validated cross-repo; dedup + active-only filtering is in Scope but not exercised by
+  any Gherkin scenario in the story.
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts in the Shop admin panel."
+  - "SH-846 (Membership Type dropdown wiring) is deployed to the target environment (VeevartFrontend)."
+  - "The Discount Authoring Wizard UI (SH-845) is deployed and the admin can reach Step 2 (Rules & Limits)."
+  - "Memberships is among the selected applicable modules for the discount being authored."
+  - "The existing Memberships service endpoint that returns active membership types is reachable in the same environment."
+  - "At least one tenant with several active membership types exists to exercise population and sorting."
+  - "A tenant (or tenant state) with zero active membership types is available to exercise the empty state."
+scenarios:
+  - title: "Dropdown lists 'All Memberships' plus active membership types sorted by display name"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "populate"
+    given:
+      - "the Memberships service returns N active membership types for the tenant"
+      - "the admin is on Step 2 (Rules & Limits) of the Discount wizard"
+    when:
+      - "the admin clicks '+ Add Membership Rule'"
+    then:
+      - "a new Membership Rule card is inserted with Membership Type and Max Uses per Household columns"
+      - "the Membership Type dropdown shows 'All Memberships' as the first option"
+      - "each active membership type returned by the service is listed below 'All Memberships'"
+      - "the membership type options are sorted alphabetically by display name"
+      - "the default selection is 'All Memberships'"
+      - "the Max Uses per Household field defaults to 'Unlimited'"
+  - title: "Selecting a specific membership type sets membership_type_id on the rule payload"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "payload"
+    given:
+      - "the Membership Type dropdown is populated"
+    when:
+      - "the admin selects a specific membership type and clicks Save Rule"
+    then:
+      - "the rule payload sent to the Discounts engine contains membership_type_id = the selected id"
+  - title: "Selecting 'All Memberships' sets membership_type_id to null on the rule payload"
+    tags:
+      - "ac-2"
+      - "negative"
+      - "payload"
+    given:
+      - "the Membership Type dropdown is populated"
+    when:
+      - "the admin leaves or reselects 'All Memberships' and clicks Save Rule"
+    then:
+      - "the rule payload sent to the Discounts engine contains membership_type_id = null"
+  - title: "Loading state disables the dropdown and the Save Rule button"
+    tags:
+      - "ac-3"
+      - "loading-state"
+    given:
+      - "the Memberships endpoint has not yet returned"
+    when:
+      - "the Membership Rule card renders"
+    then:
+      - "the Membership Type dropdown is disabled and shows a loading indicator"
+      - "the Save Rule button is disabled until the dropdown finishes loading"
+  - title: "Empty state shows only 'All Memberships' with no error"
+    tags:
+      - "ac-4"
+      - "edge-case"
+      - "empty-state"
+    given:
+      - "the Memberships service returns zero active membership types"
+    when:
+      - "the admin opens the Membership Type dropdown"
+    then:
+      - "only 'All Memberships' is shown"
+      - "no error is displayed"
+  - title: "Error state shows inline error with a working Retry"
+    tags:
+      - "ac-5"
+      - "negative"
+      - "error-handling"
+    given:
+      - "the Memberships endpoint returns an error or times out"
+    when:
+      - "the Membership Rule card renders"
+    then:
+      - "the dropdown shows an inline error 'Couldn't load membership types'"
+      - "a 'Retry' affordance is available next to the dropdown"
+      - "clicking Retry re-invokes the endpoint and, on success, populates the dropdown"
+  - title: "Dropdown renders from the cached result within the same wizard session"
+    tags:
+      - "ac-6"
+      - "regression"
+      - "caching"
+    given:
+      - "the dropdown has already been populated in this wizard session"
+    when:
+      - "the admin opens another Membership Rule on the same promotion"
+    then:
+      - "the dropdown renders immediately from the cached result"
+      - "no extra network call to the Memberships endpoint is made"
+  - title: "API result is deduped and active-only before rendering"
+    tags:
+      - "edge-case"
+      - "missing-doc"
+      - "filtering"
+    given:
+      - "the Memberships service response contains duplicate entries and at least one inactive membership type"
+    when:
+      - "the admin opens the Membership Type dropdown"
+    then:
+      - "each membership type appears only once (deduped)"
+      - "inactive membership types are not listed"
+      - "the remaining active types are sorted alphabetically by display name below 'All Memberships'"
+tags:
+  - "sh-846"
+  - "sh-469"
+  - "sh-1070"
+  - "sh-845"
+  - "sh-844"
+  - "sh-377"
+  - "discounts"
+  - "discount-wizard"
+  - "memberships"
+  - "dropdown"
+  - "shop"
+  - "ui"
+parameters: []
+links:
+  jira:
+    - key: "SH-846"
+      url: "https://veevart.atlassian.net/browse/SH-846"
+      type: "story"
+    - key: "SH-1070"
+      url: "https://veevart.atlassian.net/browse/SH-1070"
+      type: "qa-subtask"
+    - key: "SH-469"
+      url: "https://veevart.atlassian.net/browse/SH-469"
+      type: "epic"
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "relates"
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "relates"
+    - key: "SH-377"
+      url: "https://veevart.atlassian.net/browse/SH-377"
+      type: "relates"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-10T15:13:55Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-10T15:13:55Z"
+  version: 1

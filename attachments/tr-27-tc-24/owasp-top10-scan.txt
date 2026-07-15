@@ -1,0 +1,16 @@
+OWASP Top 10 (2021) applicability scan — PR VeevartFrontend#173 (SH-846 slice, UI/FE-only)
+
+| ID  | Risk                       | Applicable | Check method                              | Verdict | Evidence / Justification |
+|-----|----------------------------|------------|-------------------------------------------|---------|--------------------------|
+| A01 | Broken Access Control      | No         | -                                         | N/A     | No auth/permissions/sharing/route-guard changes in diff |
+| A02 | Cryptographic Failures     | No         | -                                         | N/A     | No password/token/PII-at-rest/crypto handling |
+| A03 | Injection                  | Yes        | grep dangerouslySetInnerHTML/eval/concat; Zod parse review | PASS | Response Zod-validated; no innerHTML/eval; endpoint path hardcoded const; no dynamic query built |
+| A04 | Insecure Design            | No         | -                                         | N/A     | Wires an existing read-only GET into a dropdown; no new threat surface |
+| A05 | Security Misconfiguration  | No         | -                                         | N/A     | No infra/env/CORS/headers/debug-toggle changes |
+| A06 | Vulnerable Components      | No         | -                                         | N/A     | No package.json/lockfile changes in the SH-846 files |
+| A07 | Auth/Identification Failures| No        | -                                         | N/A     | No login/session/MFA/token-issuance changes |
+| A08 | Integrity Failures         | No         | -                                         | N/A     | No CI/CD/deserialization/plugin changes |
+| A09 | Logging/Monitoring Failures| No         | -                                         | N/A     | No logging changes; no PII logged |
+| A10 | SSRF                       | No         | -                                         | N/A     | Outbound GET uses fixed BFF path, no user-controlled URL |
+
+Applicable: 1 (A03) · PASS: 1 · FAIL: 0 · N/A: 9. No security blocker.

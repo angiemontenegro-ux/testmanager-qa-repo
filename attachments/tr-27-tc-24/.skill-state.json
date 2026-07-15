@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-846",
+  "tcKey": "TC-24",
+  "trKey": "TR-27",
+  "prNumber": 173,
+  "prRepo": "Veevarts/VeevartFrontend",
+  "startedAt": "2026-07-14T15:16:00Z",
+  "lastUpdated": "2026-07-14T15:31:00Z",
+  "status": "in-progress",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    10,
+    11
+  ],
+  "currentStep": 11,
+  "data": {
+    "classification": {
+      "category": "UI/Frontend-only",
+      "rationale": "portal discounts wizard; membership types wired to real API in PR #173 (FE half of SH-916, carries SH-846 slice)"
+    },
+    "note": "PR #173 bundles SH-846 under SH-916; not browser-driven (VeevartFrontend not checked out)",
+    "pass": 2,
+    "failed": 1,
+    "notRun": 5,
+    "findings": [
+      {
+        "id": "dedup",
+        "severity": "Low",
+        "scenario": 7,
+        "summary": "parseMembershipTypes has no dedup; SH-846 Scope requires deduped",
+        "defectFiled": false,
+        "pendingAdjudication": true
+      },
+      {
+        "id": "ui-states-no-evidence",
+        "scenarios": [
+          3,
+          5,
+          6
+        ],
+        "summary": "loading / inline-error+Retry / session-cache not evidenced in diff; manual verification needed"
+      }
+    ],
+    "owasp": {
+      "applicable": [
+        "A03"
+      ],
+      "A03": "PASS",
+      "na": 9
+    },
+    "blockedOn": "user adjudication of dedup defect + manual UI confirmation before Step 12 commit/push"
+  }
+}

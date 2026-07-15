@@ -1,0 +1,19 @@
+Unit / integration tests in PR VeevartFrontend#173 relevant to SH-846 (membership-type dropdown)
+Note: #173 is the FE half of SH-916; the SH-846 slice = "membership types from the real API".
+
+1. apps/shared/portal/features/ticketing/_shared/api/membership-types-client.test.ts
+   ~18 assertions. Covers: canonical {id,externalId,value,label} mapping; id ladder
+   (id ?? membershipTypeId ?? value); legacy {value,label} + {membershipTypeId,value};
+   active-only filter (status archived/Archived, PascalCase, no-status kept);
+   sort alphabetically by label; per-item isolation (drops malformed, empty id/value);
+   tolerates unknown fields; throws ApiError on non-OK (403).
+2. packages/ticketing-limits/src/__tests__/membership-types-parser.test.ts
+   Shared decoder parseMembershipTypes — same contract, second host (shop embed).
+3. apps/shared/portal/features/discounts/api/promotion-authoring-mappers.test.ts
+   Payload mapping: rule.membershipTypeId === '__all__' -> null ; else -> id.
+4. apps/shared/portal/features/discounts/components/codes/wizard/RulesLimitsStep.test.tsx
+   Rules & Limits step (mostly SH-916 channel-lock assertions; membership rule rows).
+
+PR body claim: 200 discounts-feature vitest tests green; typecheck + lint + i18n parity OK.
+Local re-run: NOT executed — VeevartFrontend not checked out on this machine (QA repo only).
+Verdict basis for data-layer scenarios = source + unit-test inspection (static), not local run.
