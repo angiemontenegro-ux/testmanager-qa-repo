@@ -1,7 +1,7 @@
 schemaVersion: "1.0"
 id: "091866f0-ea72-416f-8e9f-60326a885804"
 key: "TR-15"
-title: "Run TP-1: SH-809 Add logs for failed barcode/QR scans when adding items to cart in POS"
+title: "Run TP-14: SH-809 Add logs for failed barcode/QR scans when adding items to cart in POS"
 testPlanId: "2650c81c-c264-48ae-a2cf-e33e5fa636c2"
 status: planned
 environment:

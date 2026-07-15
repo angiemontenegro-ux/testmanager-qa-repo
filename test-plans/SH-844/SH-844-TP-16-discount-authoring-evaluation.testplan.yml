@@ -1,6 +1,6 @@
 schemaVersion: "1.0"
 id: "d47644a2-23fc-4523-ab92-cda567b8c858"
-key: "TP-1"
+key: "TP-16"
 title: "SH-844 Discount Authoring & Evaluation Business Logic"
 description: "QA plan for SH-844. TC-1..TC-7 cover V1 as specified in the story (authoring, application_mode & channels, Ticketing constraints & restrictions, evaluate/stacking, usage counting, quote-options, lifecycle & audit). TC-8 holds V2 / out-of-scope scenarios reconciled from the Notion Gherkin doc (do not run against V1). TC-9 tracks known API bugs and deviations as a watchlist."
 status: "draft"

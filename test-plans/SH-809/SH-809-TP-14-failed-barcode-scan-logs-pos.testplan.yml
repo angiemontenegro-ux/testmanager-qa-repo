@@ -1,6 +1,6 @@
 schemaVersion: "1.0"
 id: "2650c81c-c264-48ae-a2cf-e33e5fa636c2"
-key: "TP-1"
+key: "TP-14"
 title: "SH-809 Add logs for failed barcode/QR scans when adding items to cart in POS"
 description: "Test plan covering all functional validation for SH-809. Verifies that Salesforce log records are created with all required fields when a barcode/QR scan fails during the POS add-to-cart flow, including happy paths, edge cases, negative/non-blocking behavior, and Salesforce queryability."
 status: "draft"
