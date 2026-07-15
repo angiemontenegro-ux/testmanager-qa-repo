@@ -1,7 +1,7 @@
 schemaVersion: '1.0'
 id: tr-5151b956-9de5-4b8e-9cbb-d5d24a8eaee3
 key: TR-16
-title: 'Run TP-1: SH-844 Discount Authoring & Evaluation Business Logic'
+title: 'Run TP-16: SH-844 Discount Authoring & Evaluation Business Logic'
 status: completed
 environment:
   name: qa

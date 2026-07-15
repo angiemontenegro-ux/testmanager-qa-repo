@@ -1,6 +1,6 @@
 schemaVersion: "1.0"
 id: "c1f8600a-71db-4ea2-abac-d2f1e95494fe"
-key: "TP-1"
+key: "TP-15"
 title: "SH-942 Item Cost left blank when adding a Stock Replenishment Order"
 description: "Plan de pruebas para validar que el campo Item Cost no se auto-puebla al seleccionar un Shop Item o Variant en Stock Replenishment Orders, y que el usuario puede ingresar el costo manualmente."
 status: "draft"
