@@ -1,0 +1,31 @@
+schemaVersion: "1.0"
+id: "42c36ee3-3281-4204-9d03-94a5d50a3681"
+key: "TP-13"
+title: "SH-847 Embedded Discount Authoring Wizard from a Membership Program"
+description: "QA plan for SH-847. Covers TC-22: launching the Discount Authoring Wizard embedded from a Membership Program (entry, pre-fills, save/auto-link, cancel, parity). Executed under runs TR-25 and TR-26; scope diverged from the story as shipped (see run notes)."
+status: "draft"
+scope:
+  milestone: "SH-847"
+  targetDate: "2026-07-21"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "20e3c8a1-aa6f-4bd2-8b81-a65468594cbb"
+    key: "TC-22"
+    title: "Embedded Discount Authoring Wizard from a Membership Program (entry, pre-fills, save/auto-link, cancel, parity)"
+    filePath: "test-cases/SH-847/SH-847-TC-22-embedded-membership-discount-wizard.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-847"
+      url: "https://veevart.atlassian.net/browse/SH-847"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-07-15T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-15T00:00:00Z"

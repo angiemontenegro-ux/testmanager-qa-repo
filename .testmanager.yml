@@ -5,7 +5,7 @@ project:
   counters:
     testCase: 24
     testSuite: 0
-    testPlan: 10
+    testPlan: 13
     testRun: 27
 settings:
   defaultPriority: "medium"

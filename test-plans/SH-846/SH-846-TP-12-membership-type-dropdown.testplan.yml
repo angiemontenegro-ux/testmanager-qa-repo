@@ -1,0 +1,31 @@
+schemaVersion: "1.0"
+id: "9f5d7edf-4a86-4c7e-adbf-707c3576e3d2"
+key: "TP-12"
+title: "SH-846 Membership Type dropdown in the Discount Wizard"
+description: "QA plan for SH-846. Covers TC-24: the Discount Wizard Membership Type dropdown populated from the Memberships service (populate, sort, payload, loading, empty, error, cache). Executed under run TR-27; manual UI verification pending."
+status: "draft"
+scope:
+  milestone: "SH-846"
+  targetDate: "2026-07-21"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "90b0c278-4a9f-42e5-af0a-965bb100af46"
+    key: "TC-24"
+    title: "Discount Wizard — Membership Type dropdown populated from the Memberships service (populate, sort, payload, loading, empty, error, cache)"
+    filePath: "test-cases/SH-846/SH-846-TC-24-membership-type-dropdown-discount-wizard.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-846"
+      url: "https://veevart.atlassian.net/browse/SH-846"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-07-15T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-15T00:00:00Z"
