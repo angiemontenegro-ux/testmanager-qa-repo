@@ -91,13 +91,13 @@ results:
   notes: 'EDIT mode (opening the created promotion): heading ''Edit Discount Code'', fields populated from the record (name, code QASH845TEST, % Off, 25, Inactive). Persistent header with title + status pill + Save (top) + metadata strip (Value/Channels/Applies to) + QR. DEVIATIONS: (defect SH-1049) the same header renders in CREATE mode too; breadcrumb is a plain ''Back'' (not ''Discounts > Discount Codes''); step badges do NOT appear green on load. Sticky-on-scroll not re-tested.'
   attachments: &id001
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-23/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-23/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-23/regression-notes.txt
+    path: attachments/SH-845/TR-23/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-23/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-23/owasp-top10-scan.txt
     mimeType: text/plain
   defects:
   - jiraKey: SH-1049

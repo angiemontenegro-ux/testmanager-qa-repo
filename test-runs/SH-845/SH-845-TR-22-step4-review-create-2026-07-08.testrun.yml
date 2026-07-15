@@ -81,13 +81,13 @@ results:
   notes: 'Step 4 shows a read-only ''Review discount'' card (''Confirm the discount configuration before saving it through the authoring API'') with Kind=Discount Code, Type=% Off, Value=25%, Applies to=Ticketing, Memberships; metadata strip reflects Channels: Online. No editable field. Column labels differ from the AC (minor). Verified live.'
   attachments: &id001
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-22/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-22/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-22/regression-notes.txt
+    path: attachments/SH-845/TR-22/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-22/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-22/owasp-top10-scan.txt
     mimeType: text/plain
   defects: []
   executedAt: '2026-07-08T19:30:00.000Z'

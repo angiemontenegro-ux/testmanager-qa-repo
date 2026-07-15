@@ -91,13 +91,13 @@ results:
   notes: 'No formal accessibility/responsive pass was run (screen reader, full keyboard navigation, breakpoints). Incidental observations during the run: inputs show a visible focus ring; the layout stayed usable at ~1084px and ~1341px widths. Pending: Tab+Enter on the stepper, long-press tooltips on tablet, and screen-reader announcements for locked toggles.'
   attachments:
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-24/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-24/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-24/regression-notes.txt
+    path: attachments/SH-845/TR-24/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-24/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-24/owasp-top10-scan.txt
     mimeType: text/plain
   defects: []
 summary:

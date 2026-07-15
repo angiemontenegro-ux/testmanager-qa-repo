@@ -91,13 +91,13 @@ results:
   notes: Picker 'Create New Discount' with the correct subtitle and three cards (Discount Code / Automatic / Membership Benefit), each with icon+title+description and a Back link. Clicking Discount Code navigates to Step 1 (Basic Info) with kind=Discount Code. Verified live.
   attachments: &id001
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-17/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-17/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-17/regression-notes.txt
+    path: attachments/SH-845/TR-17/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-17/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-17/owasp-top10-scan.txt
     mimeType: text/plain
   defects: []
   executedAt: '2026-07-08T18:00:00.000Z'

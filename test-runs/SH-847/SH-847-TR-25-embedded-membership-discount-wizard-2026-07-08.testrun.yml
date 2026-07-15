@@ -7,7 +7,7 @@ environment:
   name: qa
   buildVersion: 'UI/Frontend-only. Combined review of PR #137 (SH-847: reusable modal engine + Ticketing wiring) and PR #239 (SH-950: Membership program-record surface). Unit/regression/OWASP from the diffs; 12 functional scenarios pending manual screenshot validation.'
   notes: 'Repo Veevarts/VeevartFrontend. Both PRs MERGED. Local test run not executed (repo not cloned).'
-notes: "## Solution understood\n\nSH-847 aimed to replace the legacy 'Create from scratch' mini-form inside a Membership Program's Add-discount modal with the full SH-845 Discount Authoring Wizard, pre-configured for the membership and auto-linked on save. In practice the work landed across TWO PRs: (1) PR #137 on the SH-847 branch built the reusable engine (AssociatedDiscountsWidget + DiscountCodeWizardModal + context-draft lock) and wired it into the TICKETING program wizard, explicitly deferring Membership ('no real parent surface exists'); (2) PR #239 (SH-950) delivered the Membership program-record surface (MembershipBenefitsStep, MembershipDiscountsPanel) reusing the same widget/modal and seeding the PROGRAM axis. Classification: UI/Frontend-only.\n\n## Execution\n\nStatic review of both PR diffs (no live/manual run yet). Unit tests: author-recorded 21/21 PASS on #137 + CI lint green; NOT re-run locally (repo not cloned) — coverage caveat. Technical regression 7/7 PASS, Security 5/6 PASS + 1 N/A, OWASP 1 applicable (A03) PASS / 9 N/A — no security blocker. Evidence under attachments/tr-25-tc-22/.\n\n## Findings / deviations vs AC (see scope-divergence.txt)\n\n- D1 Full-screen takeover (SH-847 decision #1) shipped as <Modal size=5xl> — CONTRADICTION.\n- D2 Two-card 'Add discount' modal (Use existing / Create from scratch) not built; single '+ New' opens the wizard.\n- D3 'Use existing' path not present in the associated widget.\n- D4 Step 2 pre-seeded rule uses the PROGRAM axis (#239), not Membership Type 'Family Plus'; SH-846 dropdown not the shipped mechanism.\n- D5 Scope checkboxes are LOCKED/DISABLED under association -> admin CANNOT add other modules (contradicts scenario 5).\n- D6 Save -> advisory modal + generic toast, not 'returns to Step 3 + linked to Family Plus'.\n- D7 No 'Back to Family Plus benefits' breadcrumb, no discard-confirmation modal copy, no route nav guard (modal isDismissable gating instead).\n\n## QA verdict\n\nThe 12 functional scenarios CANNOT be passed against SH-847 as written — the shipped product intentionally re-scoped (program axis per SH-950, modal per #137). This is a test-case-vs-story mismatch, not a code bug. Scenarios left not-run pending: (a) Product confirmation of the re-scope, and (b) manual validation against the as-built Membership Program record surface. See 'Pendiente de tu parte'."
+notes: "## Solution understood\n\nSH-847 aimed to replace the legacy 'Create from scratch' mini-form inside a Membership Program's Add-discount modal with the full SH-845 Discount Authoring Wizard, pre-configured for the membership and auto-linked on save. In practice the work landed across TWO PRs: (1) PR #137 on the SH-847 branch built the reusable engine (AssociatedDiscountsWidget + DiscountCodeWizardModal + context-draft lock) and wired it into the TICKETING program wizard, explicitly deferring Membership ('no real parent surface exists'); (2) PR #239 (SH-950) delivered the Membership program-record surface (MembershipBenefitsStep, MembershipDiscountsPanel) reusing the same widget/modal and seeding the PROGRAM axis. Classification: UI/Frontend-only.\n\n## Execution\n\nStatic review of both PR diffs (no live/manual run yet). Unit tests: author-recorded 21/21 PASS on #137 + CI lint green; NOT re-run locally (repo not cloned) — coverage caveat. Technical regression 7/7 PASS, Security 5/6 PASS + 1 N/A, OWASP 1 applicable (A03) PASS / 9 N/A — no security blocker. Evidence under attachments/SH-847/TR-25/.\n\n## Findings / deviations vs AC (see scope-divergence.txt)\n\n- D1 Full-screen takeover (SH-847 decision #1) shipped as <Modal size=5xl> — CONTRADICTION.\n- D2 Two-card 'Add discount' modal (Use existing / Create from scratch) not built; single '+ New' opens the wizard.\n- D3 'Use existing' path not present in the associated widget.\n- D4 Step 2 pre-seeded rule uses the PROGRAM axis (#239), not Membership Type 'Family Plus'; SH-846 dropdown not the shipped mechanism.\n- D5 Scope checkboxes are LOCKED/DISABLED under association -> admin CANNOT add other modules (contradicts scenario 5).\n- D6 Save -> advisory modal + generic toast, not 'returns to Step 3 + linked to Family Plus'.\n- D7 No 'Back to Family Plus benefits' breadcrumb, no discard-confirmation modal copy, no route nav guard (modal isDismissable gating instead).\n\n## QA verdict\n\nThe 12 functional scenarios CANNOT be passed against SH-847 as written — the shipped product intentionally re-scoped (program axis per SH-950, modal per #137). This is a test-case-vs-story mismatch, not a code bug. Scenarios left not-run pending: (a) Product confirmation of the re-scope, and (b) manual validation against the as-built Membership Program record surface. See 'Pendiente de tu parte'."
 results:
 - testCaseId: 20e3c8a1-aa6f-4bd2-8b81-a65468594cbb
   testCaseKey: TC-22
@@ -45,25 +45,25 @@ results:
   notes: 'D2/D3: el flujo de dos caminos (Use existing / Create from scratch) dentro de un modal "Add discount" NO se implemento. La superficie real (#239) es una seccion de Membership Discounts con un boton "+ New" que abre directamente el wizard en modal. Escenario no ejecutado: requiere confirmar re-scope con Product y luego validar contra la superficie as-built.'
   attachments: &evidence
   - name: tests-found.txt
-    path: attachments/tr-25-tc-22/scenario-0-unit-tests/tests-found.txt
+    path: attachments/SH-847/TR-25/scenario-0-unit-tests/tests-found.txt
     mimeType: text/plain
   - name: coverage-matrix.txt
-    path: attachments/tr-25-tc-22/scenario-0-unit-tests/coverage-matrix.txt
+    path: attachments/SH-847/TR-25/scenario-0-unit-tests/coverage-matrix.txt
     mimeType: text/plain
   - name: test-run-log.txt
-    path: attachments/tr-25-tc-22/scenario-0-unit-tests/test-run-log.txt
+    path: attachments/SH-847/TR-25/scenario-0-unit-tests/test-run-log.txt
     mimeType: text/plain
   - name: regression-plan.txt
-    path: attachments/tr-25-tc-22/regression-plan.txt
+    path: attachments/SH-847/TR-25/regression-plan.txt
     mimeType: text/plain
   - name: regression-results.txt
-    path: attachments/tr-25-tc-22/regression-results.txt
+    path: attachments/SH-847/TR-25/regression-results.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/tr-25-tc-22/owasp-top10-scan.txt
+    path: attachments/SH-847/TR-25/owasp-top10-scan.txt
     mimeType: text/plain
   - name: scope-divergence.txt
-    path: attachments/tr-25-tc-22/scope-divergence.txt
+    path: attachments/SH-847/TR-25/scope-divergence.txt
     mimeType: text/plain
   defects: []
 - testCaseId: 20e3c8a1-aa6f-4bd2-8b81-a65468594cbb

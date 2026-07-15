@@ -81,13 +81,13 @@ results:
   notes: '''Overall usage'' card (Single usage counters... Blank means unlimited). No separate read-only ''Current Usage'' shown (expected 0 on create). One collapsible card per module with an ''Add <Module> Rule'' button on the right (Ticketing active; Membership/Shop disabled). Verified live.'
   attachments: &id001
   - name: manual-execution-guide.txt
-    path: attachments/SH-845-TR-19/ui/manual-execution-guide.txt
+    path: attachments/SH-845/TR-19/ui/manual-execution-guide.txt
     mimeType: text/plain
   - name: regression-notes.txt
-    path: attachments/SH-845-TR-19/regression-notes.txt
+    path: attachments/SH-845/TR-19/regression-notes.txt
     mimeType: text/plain
   - name: owasp-top10-scan.txt
-    path: attachments/SH-845-TR-19/owasp-top10-scan.txt
+    path: attachments/SH-845/TR-19/owasp-top10-scan.txt
     mimeType: text/plain
   defects: []
   executedAt: '2026-07-08T18:00:00.000Z'
