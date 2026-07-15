@@ -2,19 +2,13 @@ schemaVersion: "1.0"
 id: "c42ddbf6-5c2f-40fe-ae45-998eb5d695e9"
 key: "TS-3"
 title: "POS & Scanning"
-description: "Point-of-sale and barcode/QR scanning coverage: logging of failed scans when adding items to the cart in POS (SH-809)."
+description: "Point-of-sale and barcode/QR scanning coverage: logging of failed scans when adding items to the cart in POS."
 entries:
   - type: "testcase"
     id: "58100b93-b62b-4d15-a43a-174856cf9bf1"
     key: "TC-1"
     title: "Log creation on failed barcode/QR scan when adding item to cart in POS"
     filePath: "test-cases/SH-809/SH-809-TC-1-failed-barcode-scan-logs-pos.testcase.yml"
-links:
-  jira:
-    - key: "SH-809"
-      url: "https://veevart.atlassian.net/browse/SH-809"
-      type: "story"
-  external: []
 metadata:
   createdBy: "angiemontenegro-ux"
   createdAt: "2026-07-15T00:00:00Z"

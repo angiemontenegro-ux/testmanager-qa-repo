@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "d4844c61-7990-490c-8a5f-fa9b20ecab80"
 key: "TS-2"
 title: "Discounts — Authoring Wizard (UI)"
-description: "End-to-end UI coverage for the Discount Authoring Wizard and its membership integrations: the multi-step wizard (SH-845), the Membership Type dropdown fed by the Memberships service (SH-846), and the wizard embedded from a Membership Program (SH-847)."
+description: "End-to-end UI coverage for the Discount Authoring Wizard and its membership integrations: the multi-step wizard, the Membership Type dropdown fed by the Memberships service, and the wizard embedded from a Membership Program."
 entries:
   - type: "testcase"
     id: "25258217-83be-42b3-93d4-7f53ffb3e078"
@@ -54,18 +54,6 @@ entries:
     key: "TC-22"
     title: "Embedded Discount Authoring Wizard from a Membership Program (entry, pre-fills, save/auto-link, cancel, parity)"
     filePath: "test-cases/SH-847/SH-847-TC-22-embedded-membership-discount-wizard.testcase.yml"
-links:
-  jira:
-    - key: "SH-845"
-      url: "https://veevart.atlassian.net/browse/SH-845"
-      type: "story"
-    - key: "SH-846"
-      url: "https://veevart.atlassian.net/browse/SH-846"
-      type: "story"
-    - key: "SH-847"
-      url: "https://veevart.atlassian.net/browse/SH-847"
-      type: "story"
-  external: []
 metadata:
   createdBy: "angiemontenegro-ux"
   createdAt: "2026-07-15T00:00:00Z"

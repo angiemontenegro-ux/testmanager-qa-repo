@@ -49,12 +49,6 @@ entries:
     key: "TC-9"
     title: "[KNOWN ISSUES] Discount Engine admin API — documented bugs & deviations"
     filePath: "test-cases/SH-844/SH-844-TC-9-known-api-bugs.testcase.yml"
-links:
-  jira:
-    - key: "SH-844"
-      url: "https://veevart.atlassian.net/browse/SH-844"
-      type: "story"
-  external: []
 metadata:
   createdBy: "angiemontenegro-ux"
   createdAt: "2026-07-15T00:00:00Z"
