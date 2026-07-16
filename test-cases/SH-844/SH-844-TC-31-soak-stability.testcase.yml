@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "b47fccae-08df-42d1-83d7-e3e17e81dacb"
+key: "TC-31"
+title: "Soak / stability"
+description: |
+  The Discounts engine shows no memory leak or latency creep over time under mixed
+  evaluate and authoring traffic sustained for the agreed soak duration, without a
+  restart.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size, soak duration) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "Mixed evaluate + authoring traffic generation is available for a sustained run."
+scenarios:
+  - title: "Soak run holds memory and latency flat"
+    tags:
+      - "soak"
+      - "stability"
+    given:
+      - "the Discounts engine is deployed to a load-capable environment with no restarts planned"
+    when:
+      - "mixed evaluate and authoring traffic is sustained for the agreed soak duration"
+    then:
+      - "memory usage stays flat and p95 latency stays within the agreed SLO across the entire soak run"
+      - "no restart is required during the soak run"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "soak"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 60
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

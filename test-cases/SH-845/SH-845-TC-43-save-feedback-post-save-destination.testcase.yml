@@ -1,0 +1,51 @@
+schemaVersion: "1.0"
+id: "5687a98a-b4dd-489c-85ca-5591f01d0f64"
+key: "TC-43"
+title: "Save feedback & post-save destination"
+description: |
+  Saving a discount shows clear success/failure feedback and lands the admin on a
+  predictable destination, addressing SH-845 finding SH-1050 where save returned to the
+  list instead of staying on the step.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+scenarios:
+  - title: "Save shows clear feedback and predictable destination"
+    tags:
+      - "save-feedback"
+      - "defect"
+    given:
+      - "the admin completes the wizard on the Review step"
+    when:
+      - "the admin clicks Save"
+    then:
+      - "clear success or failure feedback is shown to the admin"
+      - "the admin lands on the agreed post-save destination consistently (per SH-1050, this is currently returning to the list instead of staying on the step)"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "save-feedback"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1050"
+      url: "https://veevart.atlassian.net/browse/SH-1050"
+      type: "task"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

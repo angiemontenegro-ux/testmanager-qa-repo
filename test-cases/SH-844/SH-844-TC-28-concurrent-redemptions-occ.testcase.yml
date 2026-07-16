@@ -1,0 +1,49 @@
+schemaVersion: "1.0"
+id: "5a0c4068-33c0-40ae-982a-1862e34cc411"
+key: "TC-28"
+title: "Concurrent redemptions / usage counting (OCC)"
+description: |
+  The event-sourced usage counter holds under contention when N concurrent redemptions
+  target the same capped promotion (cap = K): checks for no double-counting, no lost
+  updates, and no optimistic-concurrency-control deadlock.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "A capped promotion with cap = K exists and can receive N concurrent redemption requests, N > K."
+scenarios:
+  - title: "Concurrent redemptions respect the usage cap"
+    tags:
+      - "concurrency"
+      - "occ"
+      - "correctness"
+    given:
+      - "a promotion with usage cap K is active and N concurrent redemption requests are prepared, with N greater than K"
+    when:
+      - "all N redemption requests are fired concurrently against the same capped promotion"
+    then:
+      - "exactly K redemptions succeed and the rest are rejected cleanly"
+      - "the final currentUsage equals K and no optimistic-concurrency-control deadlock occurs"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "concurrency"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 60
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

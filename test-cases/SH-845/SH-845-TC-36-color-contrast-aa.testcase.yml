@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "3e660d2b-0e0d-442c-92be-c09235e6d70f"
+key: "TC-36"
+title: "Color contrast (AA)"
+description: |
+  Text and UI components in the wizard meet AA contrast ratios (4.5:1 for text, 3:1 for
+  large text and UI components), specifically the brand-orange elements on white, the
+  default "Inactive" status pill, and the inline error red on the section highlight.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "A contrast-checking tool is available for measurement."
+scenarios:
+  - title: "Key UI elements meet AA contrast ratios"
+    tags:
+      - "contrast"
+      - "wcag"
+    given:
+      - "the wizard is rendered with its default brand-orange theme"
+    when:
+      - "contrast is measured for brand-orange on white, the default Inactive status pill, and the inline error red on the section highlight"
+    then:
+      - "text meets at least 4.5:1 contrast and large text/UI components meet at least 3:1 contrast in all three checks"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "color-contrast"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

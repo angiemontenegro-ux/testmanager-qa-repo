@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "94468ed0-45cc-4742-b959-7048eb280d53"
+key: "TC-33"
+title: "Keyboard-only navigation"
+description: |
+  The full 4-step Discount Authoring Wizard is operable by keyboard alone: logical tab
+  order, no keyboard traps, Enter/Space activate controls, and the stepper is reachable
+  and operable without a mouse.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+scenarios:
+  - title: "Complete the wizard using only the keyboard"
+    tags:
+      - "keyboard"
+      - "wcag"
+    given:
+      - "the admin opens the Discount Authoring Wizard using only the keyboard"
+    when:
+      - "the admin tabs through all four steps and activates controls with Enter/Space"
+    then:
+      - "tab order follows a logical, predictable sequence with no keyboard traps"
+      - "the stepper and all Next/Save/Back controls are reachable and operable without a mouse"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "keyboard"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 25
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

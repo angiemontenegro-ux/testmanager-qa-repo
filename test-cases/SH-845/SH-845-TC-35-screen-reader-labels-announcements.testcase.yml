@@ -1,0 +1,50 @@
+schemaVersion: "1.0"
+id: "1bafbc30-92d0-4e7f-b548-afaac1d75a8e"
+key: "TC-35"
+title: "Screen-reader labels & step announcements"
+description: |
+  All wizard inputs have programmatic labels, step changes and validation errors are
+  announced via aria-live regions, and the stepper conveys current/complete/upcoming
+  state non-visually to screen-reader users.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "A screen reader (e.g. VoiceOver or NVDA) is available for manual verification."
+scenarios:
+  - title: "Screen reader announces labels, step changes, and errors"
+    tags:
+      - "screen-reader"
+      - "aria"
+      - "wcag"
+    given:
+      - "the admin navigates the wizard with a screen reader enabled"
+    when:
+      - "the admin focuses inputs, moves between steps, and triggers a validation error"
+    then:
+      - "every input announces a programmatic label"
+      - "step changes and validation errors are announced through aria-live, and the stepper announces current/complete/upcoming state non-visually"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "screen-reader"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 25
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

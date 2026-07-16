@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "af7a4fa7-0ce8-4d3c-8912-36e4d4349ea5"
+key: "TC-30"
+title: "Authoring list pagination on a large tenant"
+description: |
+  GET /promotions paginates efficiently on a tenant with a large number of promotions:
+  paging through {items, total, limit, offset} is measured for stable latency across
+  pages and absence of full-table-scan regressions.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "The tenant is seeded with a large number of promotions."
+scenarios:
+  - title: "Pagination stays stable across pages on a large tenant"
+    tags:
+      - "load"
+      - "pagination"
+    given:
+      - "the tenant is seeded with a large number of promotions"
+    when:
+      - "GET /promotions is paged through using {items, total, limit, offset} across all pages"
+    then:
+      - "latency stays stable across pages"
+      - "no full-table-scan regression is observed as the offset increases"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "pagination"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

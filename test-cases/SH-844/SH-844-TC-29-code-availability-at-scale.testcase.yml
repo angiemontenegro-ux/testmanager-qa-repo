@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "4f2ba6c5-392e-4785-a7a4-913641290fca"
+key: "TC-29"
+title: "Code-availability at scale"
+description: |
+  GET /promotions/code-availability stays fast with a large code space: a tenant with the
+  agreed number of codes is checked concurrently, measuring p95 latency and correctness of
+  the available/taken result.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "The tenant is seeded with the agreed large number of discount codes."
+scenarios:
+  - title: "Code-availability check under a large code space"
+    tags:
+      - "load"
+      - "scale"
+    given:
+      - "the tenant is seeded with a large number of discount codes"
+    when:
+      - "concurrent GET /promotions/code-availability requests are made against that code space"
+    then:
+      - "p95 latency stays at or below the agreed p95 SLO"
+      - "the available/taken result is correct for every checked code"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "code-availability"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 45
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

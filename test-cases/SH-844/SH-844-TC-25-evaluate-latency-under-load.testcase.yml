@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "36f9e8b9-88be-46d2-b461-c9cfb4331ba7"
+key: "TC-25"
+title: "Evaluate latency under nominal load"
+description: |
+  POST /discounts/evaluate stays within SLO under expected traffic: sustained load at the
+  agreed target RPS for 5 minutes with a 1-line cart and 1 active promo, measuring p95
+  latency and error rate.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "The tenant has 1 active promotion applicable to a 1-line cart."
+scenarios:
+  - title: "Sustained nominal load on evaluate"
+    tags:
+      - "load"
+      - "latency"
+    given:
+      - "the Discounts engine is deployed to a load-capable environment with 1 active promo for a 1-line cart"
+    when:
+      - "POST /discounts/evaluate is driven at the agreed target RPS for 5 minutes"
+    then:
+      - "p95 latency stays at or below the agreed p95 SLO"
+      - "the error rate stays below 0.1%"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "evaluate-latency"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 45
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

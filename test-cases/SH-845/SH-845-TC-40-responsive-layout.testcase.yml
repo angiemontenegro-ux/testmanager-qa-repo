@@ -1,0 +1,49 @@
+schemaVersion: "1.0"
+id: "b355a891-e2a5-4224-84d2-e8553a98b7df"
+key: "TC-40"
+title: "Responsive layout (desktop / tablet / mobile)"
+description: |
+  The wizard is usable across desktop, tablet, and narrow mobile widths: no horizontal
+  overflow, the stepper stays legible, controls remain reachable, and no elements
+  overlap. Complements the SH-845 TC-20 responsive/a11y coverage.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "Desktop, tablet, and mobile (narrow) viewport widths can be tested."
+scenarios:
+  - title: "Wizard renders correctly across viewport widths"
+    tags:
+      - "responsive"
+      - "layout"
+    given:
+      - "the wizard is open at desktop, tablet, and narrow mobile viewport widths in turn"
+    when:
+      - "the admin views and interacts with each step at every width"
+    then:
+      - "no horizontal overflow occurs and the stepper stays legible at every width"
+      - "all controls remain reachable and no elements overlap at any width"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "responsive"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

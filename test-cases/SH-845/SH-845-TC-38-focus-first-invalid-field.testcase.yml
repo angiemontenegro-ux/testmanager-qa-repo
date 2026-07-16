@@ -1,0 +1,46 @@
+schemaVersion: "1.0"
+id: "c29d1a3c-f887-4f18-87ce-fc753d357d8f"
+key: "TC-38"
+title: "Focus moves to first invalid field on Next"
+description: |
+  Clicking Next on a step with invalid fields moves keyboard focus to the first invalid
+  field, confirming the SH-845 finding that this behavior was not explicitly verified.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+scenarios:
+  - title: "Next moves focus to the first invalid field"
+    tags:
+      - "focus"
+      - "validation"
+    given:
+      - "a wizard step has multiple invalid fields"
+    when:
+      - "the admin clicks Next"
+    then:
+      - "keyboard focus moves to the first invalid field on that step"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "focus-management"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

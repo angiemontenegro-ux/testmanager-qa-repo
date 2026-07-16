@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "dd3e1f13-fc36-4d54-8be0-563f6de493de"
+key: "TC-44"
+title: "Reduced motion"
+description: |
+  Any stepper or step-transition animation in the wizard respects the
+  prefers-reduced-motion media feature, disabling or minimizing motion for users who
+  have that preference enabled.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The OS/browser reduced-motion preference can be toggled for testing."
+scenarios:
+  - title: "Animations are reduced when prefers-reduced-motion is set"
+    tags:
+      - "reduced-motion"
+      - "wcag"
+    given:
+      - "the admin's OS/browser has prefers-reduced-motion enabled"
+    when:
+      - "the admin navigates the stepper and transitions between wizard steps"
+    then:
+      - "stepper and step-transition animations are disabled or minimized instead of playing at full motion"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "reduced-motion"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1
