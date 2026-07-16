@@ -1,0 +1,16 @@
+schemaVersion: "1.0"
+id: "b1f0e7d2-1036-4b08-9a45-000000000058"
+key: "TS-8"
+title: "Discounts — Shop 2.0 (Veevart 2.0)"
+description: "Discount Codes coverage on the new Veevart 2.0 Shop portal (automated E2E via Playwright + Cucumber, @shop2). Distinct from the Salesforce-side discount wizard/engine suites."
+entries:
+  - type: "testcase"
+    id: "6d546ca8-02e4-4a66-8407-a9105ffc090a"
+    key: "TC-45"
+    title: "Discount Codes — Veevart 2.0 (Shop 2.0)"
+    filePath: "test-cases/SH-1036/SH-1036-TC-45-discount-codes-veevart2.testcase.yml"
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-16T00:00:00Z"
