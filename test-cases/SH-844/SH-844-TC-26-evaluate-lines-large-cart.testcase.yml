@@ -1,0 +1,49 @@
+schemaVersion: "1.0"
+id: "1b29c1b6-d5ae-4521-aa76-51769fdacc25"
+key: "TC-26"
+title: "Evaluate-lines with a large cart"
+description: |
+  Per-line discount allocation on /contract/discounts/evaluate-lines scales acceptably with
+  cart size: carts of 50, 100 and 250 mixed TICKET/SHOP/FEE/TAX lines are evaluated,
+  checking latency growth and correctness of the discount math and FEE/TAX exclusion.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "Carts of 50, 100, and 250 lines with mixed TICKET/SHOP/FEE/TAX types can be generated."
+scenarios:
+  - title: "Evaluate-lines scales with cart size"
+    tags:
+      - "load"
+      - "scale"
+      - "correctness"
+    given:
+      - "the Discounts engine is deployed to a load-capable environment"
+    when:
+      - "POST /contract/discounts/evaluate-lines is called for carts of 50, 100, and 250 mixed TICKET/SHOP/FEE/TAX lines"
+    then:
+      - "latency grows sub-linearly with cart size"
+      - "discount math is correct and FEE/TAX lines are excluded from discount allocation at every cart size"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "large-cart"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 45
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

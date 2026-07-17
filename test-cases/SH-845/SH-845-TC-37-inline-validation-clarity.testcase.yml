@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "bb29a3f4-c352-4f88-871f-6da39710f0d3"
+key: "TC-37"
+title: "Inline validation clarity"
+description: |
+  Validation errors appear immediately below the invalid field, are specific and
+  actionable (e.g. "Enter a discount code."), and the affected section carries a
+  non-color-only cue.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+scenarios:
+  - title: "Inline error is specific, positioned, and not color-only"
+    tags:
+      - "validation"
+      - "wcag"
+    given:
+      - "the admin leaves a required field invalid or empty on any wizard step"
+    when:
+      - "the admin attempts to proceed and the field is validated"
+    then:
+      - "an inline, specific, actionable message appears immediately below the invalid field (e.g. \"Enter a discount code.\")"
+      - "the section carries a non-color-only cue such as an icon or border in addition to the red highlight"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "inline-validation"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

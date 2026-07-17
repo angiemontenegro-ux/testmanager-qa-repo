@@ -1,0 +1,63 @@
+schemaVersion: "1.0"
+id: "7909f37b-2fb3-46c8-b6d7-aea3f08dfcc4"
+key: "TC-39"
+title: "Destructive-action confirmation"
+description: |
+  Unchecking a module (which deletes its rules) and using the rule trash icon must ask
+  for confirmation before deleting. This case documents the expected UX; currently no
+  confirmation dialog is shown, tracked as defect SH-1052.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The wizard step has at least one configured module with rules and a rule with a trash icon."
+scenarios:
+  - title: "Unchecking a module with rules asks for confirmation"
+    tags:
+      - "destructive-action"
+      - "confirmation"
+      - "defect"
+    given:
+      - "a module with configured rules is checked/enabled on the current step"
+    when:
+      - "the admin unchecks that module"
+    then:
+      - "a confirmation dialog appears before the module's rules are deleted"
+  - title: "Deleting a rule via the trash icon asks for confirmation"
+    tags:
+      - "destructive-action"
+      - "confirmation"
+      - "defect"
+    given:
+      - "a configured rule is shown with its trash icon"
+    when:
+      - "the admin clicks the rule's trash icon"
+    then:
+      - "a confirmation dialog appears before the rule is deleted"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "destructive-confirmation"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+    - key: "SH-1052"
+      url: "https://veevart.atlassian.net/browse/SH-1052"
+      type: "task"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

@@ -1,0 +1,57 @@
+schemaVersion: "1.0"
+id: "78035337-9354-44d8-9c3c-eabfbd42e378"
+key: "TC-41"
+title: "Loading & empty states"
+description: |
+  Dropdowns such as Membership Type show a loading state and don't cause layout shift
+  while loading, and empty states (no rules configured, no date ranges) render clear
+  guidance rather than a blank area.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "A slow network or throttled condition can be simulated to observe loading states."
+scenarios:
+  - title: "Dropdown shows a loading state without layout shift"
+    tags:
+      - "loading-state"
+      - "layout-shift"
+    given:
+      - "the Membership Type dropdown data has not yet loaded"
+    when:
+      - "the admin opens the step containing the Membership Type dropdown"
+    then:
+      - "a loading state is shown in place of the dropdown and no layout shift occurs once data arrives"
+  - title: "Empty state shows clear guidance"
+    tags:
+      - "empty-state"
+    given:
+      - "a step has no rules configured or no date ranges set"
+    when:
+      - "the admin views that step"
+    then:
+      - "clear guidance text is rendered instead of a blank area"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "loading-empty-states"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

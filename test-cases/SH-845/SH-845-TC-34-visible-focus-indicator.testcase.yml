@@ -1,0 +1,46 @@
+schemaVersion: "1.0"
+id: "4d16a782-ba66-4440-bb14-af6b1d4e4794"
+key: "TC-34"
+title: "Visible focus indicator"
+description: |
+  Every interactive element in the wizard shows a clear focus ring with sufficient
+  contrast, including the brand-orange stepper circles and the Next/Save controls.
+type: "non-functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+scenarios:
+  - title: "Focus ring is visible on every interactive element"
+    tags:
+      - "focus"
+      - "wcag"
+    given:
+      - "the admin is navigating the wizard by keyboard"
+    when:
+      - "focus moves to any interactive element, including the stepper circles and Next/Save"
+    then:
+      - "a clear focus ring is shown with contrast of at least 3:1 against its background"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "focus-indicator"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

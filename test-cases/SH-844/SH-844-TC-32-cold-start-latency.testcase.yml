@@ -1,0 +1,48 @@
+schemaVersion: "1.0"
+id: "9a321413-ec0f-473b-8283-c1b8296e3a77"
+key: "TC-32"
+title: "Cold-start / first-request latency"
+description: |
+  The first request served after a deploy or scale-up event has acceptable latency, and
+  the engine warms up to steady-state latency within the agreed number of subsequent
+  requests.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "A deploy or scale-up event can be triggered on demand in the target environment."
+scenarios:
+  - title: "First request after deploy warms up within budget"
+    tags:
+      - "cold-start"
+      - "latency"
+    given:
+      - "a deploy or scale-up event has just occurred on the Discounts engine"
+    when:
+      - "the first request and the following requests are sent immediately after"
+    then:
+      - "the first request's latency stays at or below the agreed cold p95 SLO"
+      - "latency warms to steady state within the agreed number of requests"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "cold-start"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

@@ -1,0 +1,47 @@
+schemaVersion: "1.0"
+id: "a4aa53b4-a8e2-4612-a202-6ef4bc8b5090"
+key: "TC-42"
+title: "Label consistency vs product language"
+description: |
+  UI labels in the wizard match the agreed product terms rather than dev-facing jargon,
+  per the SH-845 findings on "Internal name" vs "Code Name" and "Program" vs "Event".
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Target accessibility standard is WCAG 2.1 AA (confirm)."
+  - "The Discount Authoring Wizard build from SH-845 is deployed to the target environment."
+  - "The agreed product glossary/terms are available for comparison."
+scenarios:
+  - title: "Wizard labels use agreed product terms"
+    tags:
+      - "label-consistency"
+      - "content"
+    given:
+      - "the admin views the fields previously flagged as \"Internal name\" and \"Program\""
+    when:
+      - "the admin reads the field labels across all four wizard steps"
+    then:
+      - "the labels read \"Code Name\" and \"Event\" (or the currently agreed product terms) and no dev-facing jargon is surfaced anywhere in the wizard"
+tags:
+  - "sh-845"
+  - "discounts"
+  - "ux"
+  - "accessibility"
+  - "non-functional"
+  - "content-labels"
+parameters: []
+links:
+  jira:
+    - key: "SH-845"
+      url: "https://veevart.atlassian.net/browse/SH-845"
+      type: "story"
+  external: []
+estimatedDuration: 15
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1

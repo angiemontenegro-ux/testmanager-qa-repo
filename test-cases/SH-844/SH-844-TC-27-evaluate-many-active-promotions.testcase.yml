@@ -1,0 +1,50 @@
+schemaVersion: "1.0"
+id: "7e115983-395b-4841-ba62-533286035bb9"
+key: "TC-27"
+title: "Evaluate with many active promotions"
+description: |
+  The selection / candidate-filtering algorithm in /discounts/evaluate scales with the
+  number of active promotions on the tenant: 10, 100, and 500 active promotions are seeded
+  and a single evaluate call is measured for p95 latency and correctness of the
+  highest-wins selection.
+type: "non-functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Performance SLO thresholds (p95, target RPS, cart size) are agreed with the TL."
+  - "A load-capable environment is available (dev is single-instance)."
+  - "The tenant can be seeded with 10, 100, and 500 active promotions."
+scenarios:
+  - title: "Candidate filtering scales with promotion count"
+    tags:
+      - "load"
+      - "scale"
+      - "selection"
+    given:
+      - "the tenant is seeded with 10, 100, and 500 active promotions"
+    when:
+      - "POST /discounts/evaluate is called once per promotion-count tier"
+    then:
+      - "p95 latency stays at or below the agreed p95 SLO at 500 promotions"
+      - "the highest-wins promotion is still selected correctly at every tier"
+tags:
+  - "sh-844"
+  - "discounts"
+  - "performance"
+  - "non-functional"
+  - "candidate-filtering"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 45
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1
