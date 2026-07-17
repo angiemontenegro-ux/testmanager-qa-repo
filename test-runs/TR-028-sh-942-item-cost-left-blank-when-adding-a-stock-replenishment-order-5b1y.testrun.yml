@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: tr-24f6f032-844e-4621-bce7-6bf71d7fe61d
 key: TR-028
 title: "Run: SH-942 Item Cost left blank when adding a Stock Replenishment Order"
-status: in-progress
+status: completed
 environment:
   name: qa
 results:
@@ -271,5 +271,6 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-07-17T00:22:29.501Z"
   updatedBy: sidepanel
-  updatedAt: "2026-07-17T00:23:10.564Z"
+  updatedAt: "2026-07-17T00:23:12.184Z"
 startedAt: "2026-07-17T00:23:10.564Z"
+completedAt: "2026-07-17T00:23:12.184Z"
