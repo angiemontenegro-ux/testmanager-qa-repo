@@ -1,0 +1,135 @@
+schemaVersion: "1.0"
+id: "6d546ca8-02e4-4a66-8407-a9105ffc090a"
+key: "TC-45"
+title: "Discount Codes — Veevart 2.0 (Shop 2.0)"
+description: |
+  Automated E2E coverage for Discount Codes in the Veevart 2.0 Shop portal
+  (Playwright + Cucumber, suite tag @shop2). Covers creation (happy path +
+  Active-status reflected in the table), wizard step-2 rule validation, draft
+  discard confirmation, activation confirmation, archive destructive-action
+  confirmation, usage report summary, and the Filters panel.
+  Mirrors the automated suite on Veevarts/automation-test branch
+  SH-1036-Veevart-2-0-Create-Discount (src/test/features/shop2.0/createDiscount.feature).
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The user has access to the Veevart 2.0 Shop portal (staging: app.stg.veevart.ai)."
+  - "The user can authenticate to Veevart 2.0."
+  - "The Discounts section is available in the portal."
+  - "Automated via Playwright + Cucumber (suite tag @shop2)."
+scenarios:
+  - title: "Successfully creating a Discount Code"
+    tags:
+      - "createDiscount"
+      - "smoke"
+      - "happy-path"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user creates a new Discount Code"
+    then:
+      - "the discount should be successfully created"
+  - title: "Creating a Discount Code with Active status reflects Active in the table"
+    tags:
+      - "createDiscount"
+      - "smoke"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user creates a new Discount Code with Active status"
+    then:
+      - "the discount should appear in the table with Active status"
+  - title: "Wizard step 2 blocks progression without a module rule"
+    tags:
+      - "createDiscount"
+      - "validation"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user starts a new Discount Code without adding any rule"
+    then:
+      - "the wizard step 2 should show a needs-attention badge"
+      - "a rule-required message should be visible"
+  - title: "Discarding a draft shows a confirmation dialog"
+    tags:
+      - "createDiscount"
+      - "guard"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user opens the new Discount Code wizard"
+      - "the user clicks Back to exit the wizard"
+    then:
+      - "a discard-draft confirmation dialog should appear"
+  - title: "Activating a newly created inactive discount shows a confirmation dialog"
+    tags:
+      - "activateDiscount"
+      - "smoke"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user creates a new Discount Code"
+      - "the user clicks Activate for the created discount"
+    then:
+      - "an activate confirmation dialog should appear with a warning about configured rules"
+  - title: "Archiving a discount shows a destructive-action confirmation"
+    tags:
+      - "archiveDiscount"
+      - "risk-destructive"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user clicks Archive for the first discount"
+    then:
+      - "an archive confirmation dialog should appear warning that the action is irreversible"
+  - title: "Viewing the usage report for a discount shows the summary panel"
+    tags:
+      - "usageReport"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user views the usage report for the first discount"
+    then:
+      - "the usage report page should be displayed"
+      - "the usage summary should show Total redeemed, Unique users and Channel breakdown"
+  - title: "Opening the Filters panel shows Status, Type and Scope options"
+    tags:
+      - "filterDiscount"
+    given:
+      - "the user is logged in to Veevart 2.0"
+    when:
+      - "the user navigates to the Discounts section"
+      - "the user opens the Filters panel"
+    then:
+      - "the filters panel should show Status, Type and Scope options"
+tags:
+  - "sh-1036"
+  - "shop2"
+  - "veevart-2.0"
+  - "discounts"
+  - "discount-codes"
+  - "ui"
+  - "e2e"
+parameters: []
+links:
+  jira:
+    - key: "SH-1036"
+      url: "https://veevart.atlassian.net/browse/SH-1036"
+      type: "story"
+  external: []
+estimatedDuration: 20
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1
