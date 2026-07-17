@@ -1,0 +1,275 @@
+schemaVersion: "1.0"
+id: tr-25d07a2b-3b75-495b-b6a1-14475a0115a9
+key: TR-029
+title: "Run: SH-942 Item Cost left blank when adding a Stock Replenishment Order"
+status: in-progress
+environment:
+  name: qa
+results:
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Item Cost stays blank when selecting a Shop Item
+    scenarioIndex: 0
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: Estoy en Stock Replenishment Orders dentro de un Purchase Order
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Selecciono un Shop Item en el campo Search Shop Item
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: El campo Item Cost permanece en blanco
+        attachments: []
+      - order: 4
+        status: passed
+        actual: ""
+        phase: then
+        text: El campo Item Cost es editable
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:36.797Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Item Cost stays blank when selecting a Variant
+    scenarioIndex: 1
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: He seleccionado un Shop Item con Item Cost en blanco
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Selecciono un Variant en Choose Variant
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: El campo Item Cost sigue en blanco
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:40.663Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Manually entered Item Cost is preserved after Save
+    scenarioIndex: 2
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: He seleccionado un Shop Item y un Variant con Item Cost en blanco
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Ingreso 25.00 en Item Cost y clic en Save All Stock Orders
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: El valor ingresado se preserva y el registro se guarda en Salesforce
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:44.214Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Order Cost is calculated as Item Cost x Order Quantity
+    scenarioIndex: 3
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: He seleccionado un Shop Item con Item Cost en blanco
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Ingreso 50.00 en Item Cost y 3 en Order Quantity
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: Order Cost muestra 150.00 automaticamente
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:46.631Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Each row handles Item Cost independently
+    scenarioIndex: 4
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: Tengo multiples filas de Stock Replenishment Order
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Selecciono un Shop Item en la primera fila
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: Solo el Item Cost de la primera fila queda en blanco
+        attachments: []
+      - order: 4
+        status: passed
+        actual: ""
+        phase: then
+        text: El Item Cost de las demas filas no cambia
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:48.131Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Item Cost = 0 is valid
+    scenarioIndex: 5
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: He seleccionado un Shop Item con Item Cost en blanco
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Ingreso 0 en Item Cost y 5 en Order Quantity
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: Order Cost muestra 0 y el formulario permite guardar
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:53.963Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Save without Item Cost - validation
+    scenarioIndex: 6
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: He seleccionado un Shop Item con Item Cost en blanco
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Intento guardar sin llenar Item Cost
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: Si es requerido muestra validacion, si no guarda con null
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:55.131Z"
+  - testCaseId: 833e8631-2bda-45d8-8a86-414855a5f1d5
+    testCaseKey: TC-1
+    testCaseTitle: Item Cost stays blank when adding a Stock Replenishment Order
+    testCaseFilePath: test-cases/SH-942/SH-942-TC-1-item-cost-blank-replenishment.testcase.yml
+    scenarioTitle: Item Cost solo acepta valores numericos
+    scenarioIndex: 7
+    status: passed
+    stepResults:
+      - order: 1
+        status: passed
+        actual: ""
+        phase: given
+        text: He seleccionado un Shop Item con Item Cost en blanco
+        attachments: []
+      - order: 2
+        status: passed
+        actual: ""
+        phase: when
+        text: Ingreso texto abc en Item Cost
+        attachments: []
+      - order: 3
+        status: passed
+        actual: ""
+        phase: then
+        text: El campo muestra error de validacion
+        attachments: []
+    notes: ""
+    attachments: []
+    defects: []
+    executedAt: "2026-07-17T00:23:57.214Z"
+summary:
+  total: 8
+  passed: 8
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 0
+  passRate: 100
+history: []
+metadata:
+  createdBy: sidepanel
+  createdAt: "2026-07-17T00:23:27.458Z"
+  updatedBy: sidepanel
+  updatedAt: "2026-07-17T00:23:58.646Z"
+startedAt: "2026-07-17T00:23:58.646Z"
