@@ -1,0 +1,66 @@
+schemaVersion: "1.0"
+id: "f4099d6b-0584-45ea-a28d-6338235a02f5"
+key: "TC-48"
+title: "Multi-Rule Independent Usage Counters"
+description: "QA coverage for SH-1095: validates that overallUsageLimit is tracked independently per rule (not per promotion), that an empty limit means unlimited, and that concurrent redemptions racing on the same rule's counter do not double-count."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discount Engine unified promotion model (SH-1095) is deployed to the QA/staging environment."
+  - "A promotion exists with at least two rules, each with an independent overallUsageLimit."
+scenarios:
+  - title: "Two rules with different limits reach their own thresholds independently"
+    tags:
+      - "happy-path"
+      - "usage-limits"
+    given:
+      - "rule A has overallUsageLimit 100 and rule B has overallUsageLimit 50"
+    when:
+      - "100 checkouts match rule A and 25 match rule B"
+    then:
+      - "rule A's currentUsage reaches 100 and stops matching"
+      - "rule B's currentUsage reaches 25 and keeps matching"
+
+  - title: "A rule with no overallUsageLimit set is treated as unlimited"
+    tags:
+      - "happy-path"
+      - "usage-limits"
+    given:
+      - "a rule has no overallUsageLimit value set (empty)"
+    when:
+      - "checkouts repeatedly match this rule"
+    then:
+      - "the rule continues to match with no upper bound on currentUsage"
+
+  - title: "Concurrent redemptions racing on the same rule's usage counter do not double-count"
+    tags:
+      - "edge-case"
+      - "security"
+      - "concurrency"
+    given:
+      - "a rule has overallUsageLimit 1 and currentUsage 0"
+    when:
+      - "two redemptions matching that rule are confirmed concurrently"
+    then:
+      - "only one succeeds"
+      - "no lost-update or double-count occurs"
+tags:
+  - "sh-1095"
+  - "discount-engine"
+  - "usage-limits"
+parameters: []
+links:
+  jira:
+    - key: "SH-1095"
+      url: "https://veevart.atlassian.net/browse/SH-1095"
+      type: "story"
+  external: []
+estimatedDuration: 18
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
