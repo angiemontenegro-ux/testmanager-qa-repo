@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "f4099d6b-0584-45ea-a28d-6338235a02f5"
 key: "TC-48"
 title: "Multi-Rule Independent Usage Counters"
-description: "QA coverage for SH-1095: validates that overallUsageLimit is tracked independently per rule (not per promotion), that an empty limit means unlimited, and that concurrent redemptions racing on the same rule's counter do not double-count."
+description: "QA coverage for SH-1095: validates that overallUsageLimit is tracked independently per rule (not per promotion), that an empty limit means unlimited, that concurrent redemptions racing on the same rule's counter do not double-count, and the promotion-level usage counter behavior for modules with zero rules — including migration into a rule's Overall Usage when the first rule is added, and full-promotion exclusion once every rule's cap is reached (WIZ-25; SC-04, SC-05, SC-07, SC-62)."
 type: "functional"
 priority: "high"
 status: "active"
@@ -46,6 +46,59 @@ scenarios:
     then:
       - "only one succeeds"
       - "no lost-update or double-count occurs"
+
+  - title: "A single module selected on Step 1 with zero rules shows a promotion-level usage counter pair"
+    tags:
+      - "happy-path"
+      - "usage-limits"
+      - "promotion-level"
+    given:
+      - "on Step 1 the admin selects a single module (Ticketing or Shop) and adds no rules to it (WIZ-25; SC-04)"
+    when:
+      - "the admin views that module's usage settings in the wizard"
+    then:
+      - "an Overall Usage and Current Usage counter pair is shown at the promotion level for that module, not per-rule"
+
+  - title: "Two modules selected on Step 1 with zero rules each show one promotion-level counter pair per module"
+    tags:
+      - "happy-path"
+      - "usage-limits"
+      - "promotion-level"
+    given:
+      - "on Step 1 the admin selects both Ticketing and Shop and adds no rules to either module (WIZ-25; SC-05)"
+    when:
+      - "the admin views the usage settings for the promotion"
+    then:
+      - "one promotion-level Overall Usage / Current Usage counter pair is shown for the Ticketing module"
+      - "one promotion-level Overall Usage / Current Usage counter pair is shown for the Shop module"
+      - "a single customer-facing code covers both modules"
+
+  - title: "Adding a rule to a zero-rule module with an existing promotion-level usage count prompts to migrate it"
+    tags:
+      - "edge-case"
+      - "usage-limits"
+      - "migration"
+      - "warning-modal"
+    given:
+      - "a module has zero rules and a promotion-level Overall Usage count already set to 200 (WIZ-25; SC-07)"
+    when:
+      - "the admin adds a rule to that module"
+    then:
+      - "a warning modal appears reading 'Adding a rule replaces the promotion-level usage with per-rule usage. Keep the existing count as this rule's Overall Usage?'"
+      - "on confirm, the 200 count migrates into the new rule as its Overall Usage"
+
+  - title: "A promotion is excluded from evaluation once every rule's Overall Usage cap is reached"
+    tags:
+      - "edge-case"
+      - "usage-limits"
+      - "exclusion"
+    given:
+      - "a promotion has multiple rules and every rule's Current Usage equals its Overall Usage cap (WIZ-25; SC-62)"
+    when:
+      - "a checkout is evaluated against the promotion"
+    then:
+      - "the promotion is excluded from evaluation entirely and no rule matches"
+      - "in the wizard, the admin sees Current Usage matching the cap for each rule"
 tags:
   - "sh-1095"
   - "discount-engine"
@@ -57,10 +110,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1095"
       type: "story"
   external: []
-estimatedDuration: 18
+estimatedDuration: 34
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
   updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  version: 2

@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "464733d7-04b0-461d-8b19-c8674b153b47"
 key: "TC-49"
 title: "Step 4 Review — Redemption Mode Row & Error Banner"
-description: "QA coverage for SH-1096: validates the Redemption Mode row on the Review step for both item-level (Automatic / Code Required) and order-level flows, and the Save-blocking error banners when a required customer-facing code is missing."
+description: "QA coverage for SH-1096: validates the Redemption Mode row on the Review step for both item-level (Automatic / Code Required) and order-level flows, the Save-blocking error banners when a required customer-facing code is missing, the Archive and Duplicate overflow-menu actions, the Save-blocking code-collision error, and the concurrent full-wizard edit conflict error (WIZ-04, WIZ-51, WIZ-41, WIZ-50; SC-52, SC-53, SC-60, SC-61)."
 type: "functional"
 priority: "high"
 status: "active"
@@ -56,6 +56,60 @@ scenarios:
     then:
       - "the Redemption row reads 'Redemption: Code Required (Entire Order)'"
       - "Save persists the discount"
+
+  - title: "Archiving an Active promotion excludes it from evaluation but keeps redemption history"
+    tags:
+      - "happy-path"
+      - "archive"
+      - "overflow-menu"
+    given:
+      - "an Active promotion exists and the admin is editing it (WIZ-04; SC-52)"
+    when:
+      - "the admin opens the '...' overflow menu, selects Archive, and confirms in the confirmation dialog"
+    then:
+      - "the status pill flips to Archived"
+      - "the promotion is excluded from future evaluation"
+      - "historical redemption records for the promotion remain intact"
+
+  - title: "Duplicating a promotion creates a new Draft with all fields copied"
+    tags:
+      - "happy-path"
+      - "duplicate"
+      - "overflow-menu"
+    given:
+      - "an existing promotion exists (WIZ-51; SC-53)"
+    when:
+      - "the admin opens the '...' overflow menu and selects Duplicate"
+    then:
+      - "a new Draft promotion is created with all fields copied from the original"
+      - "the admin lands on Step 1 of the new draft"
+
+  - title: "Save on the Review step fails when the customer-facing code collides with another Active promotion"
+    tags:
+      - "validation"
+      - "error-banner"
+      - "code-collision"
+    given:
+      - "the admin is on the Review step with a customer-facing code that is already used by another Active promotion (WIZ-41; SC-60)"
+    when:
+      - "the admin clicks Save"
+    then:
+      - "Save fails"
+      - "an error banner reads 'Code already in use.' with a 'Go to Step 1' link"
+      - "no record is persisted"
+
+  - title: "Concurrent full-wizard edits on the same promotion: the second Save is rejected as a conflict"
+    tags:
+      - "edge-case"
+      - "concurrency"
+      - "error-banner"
+    given:
+      - "two admins independently open the SAME promotion in the full wizard edit mode (not the Membership Program rules-only editor) (WIZ-50; SC-61)"
+    when:
+      - "both admins make changes and click Save, one after the other"
+    then:
+      - "the first Save succeeds"
+      - "the second Save fails with 'The promotion was updated by someone else. Reload to see the latest and try again.'"
 tags:
   - "sh-1096"
   - "discount-wizard"
@@ -67,10 +121,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1096"
       type: "story"
   external: []
-estimatedDuration: 24
+estimatedDuration: 44
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
   updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  version: 2
