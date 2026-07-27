@@ -1,0 +1,92 @@
+schemaVersion: "1.0"
+id: "0359fef0-72fe-44c8-a23d-0bf3ae8c843b"
+key: "TC-66"
+title: "Step 3 — Restrictions: channels, POS reason, email domains"
+description: "QA coverage for SH-1096's wizard shell Step 3 (Restrictions): validates the Available Online / Available at POS channel toggles and the Save-blocking rule when both are off, the conditional 'Require Discount Reason' toggle for POS, and the conditional 'Allowed email domains' restriction for Online-only discounts (WIZ-30, WIZ-31, WIZ-32, OPS-05)."
+type: "functional"
+priority: "high"
+status: "draft"
+format: "gherkin"
+preconditions:
+  - "The unified wizard shell (SH-1096) is deployed to the QA/staging environment."
+  - "The admin has reached Step 3 (Restrictions) of the discount wizard."
+scenarios:
+  - title: "At least one channel must be enabled to Save"
+    tags:
+      - "validation"
+      - "channels"
+    given:
+      - "Available Online and Available at POS are independently toggleable on Step 3 (WIZ-30)"
+    when:
+      - "the admin turns both Available Online and Available at POS off and attempts to Save"
+    then:
+      - "Save is blocked"
+      - "at least one channel must be enabled for the promotion to be saved"
+
+  - title: "'Require Discount Reason' for POS is only available when Available at POS is enabled"
+    tags:
+      - "happy-path"
+      - "conditional-field"
+      - "pos"
+    given:
+      - "Available at POS is enabled (WIZ-31)"
+    when:
+      - "the admin views Step 3"
+    then:
+      - "a 'Require Discount Reason' toggle for POS is visible and available"
+      - "when the toggle is turned on, POS staff must enter a reason at redemption"
+
+  - title: "'Require Discount Reason' for POS is hidden when Available at POS is disabled"
+    tags:
+      - "edge-case"
+      - "conditional-field"
+      - "pos"
+    given:
+      - "Available at POS is disabled (WIZ-31)"
+    when:
+      - "the admin views Step 3"
+    then:
+      - "the 'Require Discount Reason' toggle for POS is not visible"
+
+  - title: "Allowed email domains restriction is available only for Online-only discounts"
+    tags:
+      - "happy-path"
+      - "conditional-field"
+      - "email-domains"
+    given:
+      - "Available Online is enabled and Available at POS is disabled (WIZ-32, OPS-05)"
+    when:
+      - "the admin views Step 3"
+    then:
+      - "an 'Allowed email domains' restriction section is visible and available"
+      - "the admin can add specific email domains to restrict online redemption to those domains"
+
+  - title: "Allowed email domains restriction is hidden when POS is also enabled"
+    tags:
+      - "edge-case"
+      - "conditional-field"
+      - "email-domains"
+    given:
+      - "Available Online is enabled and Available at POS is also enabled (WIZ-32, OPS-05)"
+    when:
+      - "the admin views Step 3"
+    then:
+      - "the 'Allowed email domains' restriction section is not visible"
+tags:
+  - "sh-1096"
+  - "discount-wizard"
+  - "restrictions-step"
+parameters: []
+links:
+  jira:
+    - key: "SH-1096"
+      url: "https://veevart.atlassian.net/browse/SH-1096"
+      type: "story"
+  external: []
+estimatedDuration: 26
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
