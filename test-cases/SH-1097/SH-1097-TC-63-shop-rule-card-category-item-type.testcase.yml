@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "eecc9911-2077-4987-a8e5-07412e5ae279"
 key: "TC-63"
 title: "Shop Rule Card — Category, Item Scope & Item Type"
-description: "QA coverage for SH-1097's Shop rule card: validates Qualifying Item Type against the confirmed prototype (a 3-option select, not the free-text field described in the story's written AC — corrected twice against the real prototype), flags the open question on Category/Item scope interaction, and confirms Minimum/Max Quantity were intentionally cut by Product on 2026-07-22."
+description: "QA coverage for SH-1097's Shop rule card: validates Qualifying Item Type against the confirmed prototype (a 3-option select, not the free-text field described in the story's written AC — corrected twice against the real prototype), validates the confirmed Category-to-Item cascade behavior on scope selection, and confirms Minimum/Max Quantity were intentionally cut by Product on 2026-07-22."
 type: "functional"
 priority: "high"
 status: "active"
@@ -23,16 +23,30 @@ scenarios:
       - "exactly 3 options are offered: Any qualifying item / Same item only / Same category only"
       - "this corrects SH-1097's written AC, which describes the field as free text — the real prototype confirms a select"
 
-  - title: "'All items in categories' vs 'Specific items' toggle interaction"
+  - title: "Item selection cascades from Category scope, with an inline warning on narrowing"
+    tags:
+      - "happy-path"
+      - "confirmed-behavior"
+      - "cascade"
+    given:
+      - "each Shop rule scopes by Category and Item, not by an 'All items in categories' vs 'Specific items' toggle"
+      - "the admin has selected one or more Categories and then picked specific Items in the Item selector"
+    when:
+      - "the admin views the Item selector"
+    then:
+      - "the Item selector only offers items belonging to the currently selected Categories"
+
+  - title: "Narrowing Categories after picking Items shows an inline warning listing removed items"
     tags:
       - "edge-case"
-      - "needs-clarification"
+      - "confirmed-behavior"
+      - "cascade"
     given:
-      - "a Shop rule has Category scope and Item scope fields"
+      - "the admin has already selected specific Items scoped to certain Categories"
     when:
-      - "the admin toggles between 'All items in categories' and 'Specific items'"
+      - "the admin removes one or more of those Categories, narrowing the Category scope"
     then:
-      - "OPEN QUESTION — whether Specific items still filters by Category is unconfirmed from the prototype; do not assert a specific outcome (SH-1125 Pending Decisions #5)"
+      - "an inline warning appears listing the specific Items that were removed as a result"
 
   - title: "Minimum Quantity and Max Quantity fields are removed"
     tags:
@@ -56,10 +70,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1097"
       type: "story"
   external: []
-estimatedDuration: 18
+estimatedDuration: 22
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
   updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  version: 2
