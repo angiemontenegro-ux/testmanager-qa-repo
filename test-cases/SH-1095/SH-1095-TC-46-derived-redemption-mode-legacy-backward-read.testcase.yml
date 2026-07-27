@@ -1,0 +1,93 @@
+schemaVersion: "1.0"
+id: "3a4d80f0-2ef7-476a-b2d8-275840102555"
+key: "TC-46"
+title: "Derived Redemption Mode & Legacy Backward-Read"
+description: "QA coverage for SH-1095: validates that redemptionMode is computed (not authored) from whether any Rule carries a membershipProgramId, that legacy records without the unified model still read correctly, and flags the one open question from SH-1125 Pending Decisions that this test case does not resolve."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discount Engine unified promotion model (SH-1095) is deployed to the QA/staging environment."
+  - "At least one legacy promotion record (pre-unified-model shape) exists for backward-read verification."
+  - "A Membership Program exists and is active for scenarios that set membershipProgramId."
+scenarios:
+  - title: "Payload with no kind field is accepted and legacy kind is ignored"
+    tags:
+      - "happy-path"
+      - "backward-compatibility"
+    given:
+      - "the admin submits a promotion payload with no kind field"
+    when:
+      - "the payload is validated"
+    then:
+      - "the engine accepts the payload"
+      - "any legacy kind field present in the payload is ignored"
+
+  - title: "A rule with membershipProgramId derives AUTOMATIC mode"
+    tags:
+      - "happy-path"
+      - "derived-mode"
+      - "membership-program"
+    given:
+      - "a promotion has at least one Rule with a non-empty membershipProgramId"
+    when:
+      - "the engine computes the derived redemption mode"
+    then:
+      - "redemptionMode is set to AUTOMATIC"
+      - "the read response includes derivedRedemptionMode equal to AUTOMATIC"
+
+  - title: "No rule with membershipProgramId derives CODE_REQUIRED and requires a customer-facing code"
+    tags:
+      - "derived-mode"
+      - "validation"
+    given:
+      - "a promotion has no Rule with membershipProgramId"
+    when:
+      - "the engine computes the derived redemption mode"
+    then:
+      - "redemptionMode is set to CODE_REQUIRED"
+      - "a customer_facing_code is required on save"
+
+  - title: "Reading a legacy record derives redemptionMode from its stored kind at read time"
+    tags:
+      - "legacy"
+      - "backward-compatibility"
+      - "read-path"
+    given:
+      - "a legacy promotion record stored before the unified model, with kind = Membership Benefit and promotion-level fields in the old shape"
+    when:
+      - "the record is read via the API"
+    then:
+      - "the response maps the legacy kind and promotion-level fields to the new derivedRedemptionMode contract"
+      - "no write is triggered by the read"
+
+  - title: "Rule has membershipProgramId while the promotion also has a customer_facing_code set"
+    tags:
+      - "edge-case"
+      - "needs-clarification"
+      - "derived-mode"
+    given:
+      - "a Rule has membershipProgramId set and the promotion also has a customer_facing_code set"
+    when:
+      - "the engine computes the derived redemption mode"
+    then:
+      - "OPEN QUESTION — which redemption path wins is not yet defined by Product; do not assert a specific outcome until this is resolved (SH-1125 Pending Decisions #2)"
+tags:
+  - "sh-1095"
+  - "discount-engine"
+  - "derived-redemption"
+parameters: []
+links:
+  jira:
+    - key: "SH-1095"
+      url: "https://veevart.atlassian.net/browse/SH-1095"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

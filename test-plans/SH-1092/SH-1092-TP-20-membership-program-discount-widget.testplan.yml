@@ -1,0 +1,47 @@
+schemaVersion: "1.0"
+id: "7e16ff29-5958-427d-a0b1-567aad306967"
+key: "TP-20"
+title: "SH-1092 Membership Program — Discount Widget, Existing-Code Picker & Rules-Only Editor"
+description: "QA plan for SH-1092. TC-56 covers the benefit widget on the Membership Program page (draft — no confirmed widget mockup yet). TC-57 covers the Add Membership Benefit modal, confirmed against the prototype. TC-58 covers the rules-only editor's locked Membership Program field and scoped save (draft — no confirmed editor mockup yet)."
+status: "draft"
+scope:
+  milestone: "SH-1092"
+  targetDate: "2026-08-10"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "b88504f2-1d40-4768-936c-158b355b36d9"
+    key: "TC-56"
+    title: "Benefit Widget on Membership Program Page"
+    filePath: "test-cases/SH-1092/SH-1092-TC-56-benefit-widget-membership-program-page.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "0fde19ff-94a0-420e-8896-7b365062914c"
+    key: "TC-57"
+    title: "'Add Membership Benefit' Modal"
+    filePath: "test-cases/SH-1092/SH-1092-TC-57-add-membership-benefit-modal.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "199be1fb-62e1-4c8b-812b-96605dec092a"
+    key: "TC-58"
+    title: "Rules-Only Editor — Locked Program Field & Scoped Save"
+    filePath: "test-cases/SH-1092/SH-1092-TC-58-rules-only-editor-locked-program-field.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-1092"
+      url: "https://veevart.atlassian.net/browse/SH-1092"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"

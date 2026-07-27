@@ -1,0 +1,88 @@
+schemaVersion: "1.0"
+id: "9e093562-6acd-485d-b9fa-9e9b2b412a40"
+key: "TC-47"
+title: "Universal-Rule Constraint & Rule-Level Validation"
+description: "QA coverage for SH-1095: validates the universal-vs-scoped rule constraint per module, server-forced membersOnly when a Membership Program is set, and the Audience/Ticket-Type mutual exclusion on Ticketing rules. Flags the overallUsageLimit = 0 open question from SH-1125 Pending Decisions without resolving it."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Discount Engine unified promotion model (SH-1095) is deployed to the QA/staging environment."
+  - "A promotion with at least one existing Ticketing rule and one existing Shop rule is available for each module-specific scenario."
+scenarios:
+  - title: "Adding a second Ticketing rule to a module that already has a universal rule is blocked"
+    tags:
+      - "validation"
+      - "universal-rule"
+      - "ticketing"
+    given:
+      - "a promotion has one universal Ticketing rule (eventIds = ALL, audienceTypeIds = ALL, ticketTypeIds = ALL, no membershipProgramId, no dateTimeRange)"
+    when:
+      - "the admin adds a second Ticketing rule to the same promotion"
+    then:
+      - "the request is rejected with TICKETING_UNIVERSAL_RULE_MUST_BE_ONLY"
+
+  - title: "Adding a second Shop rule to a module that already has a universal rule is blocked"
+    tags:
+      - "validation"
+      - "universal-rule"
+      - "shop"
+    given:
+      - "a promotion has one universal Shop rule (categoryScope = ALL, itemScope = ALL, no membershipProgramId, no dateTimeRange)"
+    when:
+      - "the admin adds a second Shop rule to the same promotion"
+    then:
+      - "the request is rejected with SHOP_UNIVERSAL_RULE_MUST_BE_ONLY"
+
+  - title: "membersOnly is server-forced to true when membershipProgramId is set"
+    tags:
+      - "validation"
+      - "members-only"
+    given:
+      - "a rule payload sets membershipProgramId to a valid program and membersOnly = false"
+    when:
+      - "the engine persists the rule"
+    then:
+      - "the stored membersOnly value is true regardless of the submitted value"
+
+  - title: "Audience Type and Ticket Types are mutually exclusive on a Ticketing rule"
+    tags:
+      - "validation"
+      - "negative"
+    given:
+      - "a Ticketing rule payload sets both audienceTypeIds and ticketTypeIds to non-ALL values"
+    when:
+      - "the payload is validated"
+    then:
+      - "the request is rejected with TICKETING_AUDIENCE_TICKETTYPE_EXCLUSIVE"
+
+  - title: "overallUsageLimit set to exactly 0"
+    tags:
+      - "edge-case"
+      - "needs-clarification"
+      - "usage-limits"
+    given:
+      - "a rule has overallUsageLimit explicitly set to 0"
+    when:
+      - "a checkout attempts to redeem against this rule"
+    then:
+      - "OPEN QUESTION — whether 0 blocks all redemptions or is treated as unlimited is not yet defined by Product; do not assert a specific outcome until this is resolved (SH-1125 Pending Decisions #3)"
+tags:
+  - "sh-1095"
+  - "discount-engine"
+  - "rule-validation"
+parameters: []
+links:
+  jira:
+    - key: "SH-1095"
+      url: "https://veevart.atlassian.net/browse/SH-1095"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

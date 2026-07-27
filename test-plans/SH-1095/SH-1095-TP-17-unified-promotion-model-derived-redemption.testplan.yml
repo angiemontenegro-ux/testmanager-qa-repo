@@ -1,0 +1,47 @@
+schemaVersion: "1.0"
+id: "32a2a85e-9331-4b04-b823-4910d7192bf4"
+key: "TP-17"
+title: "SH-1095 Unified Promotion Model & Derived Redemption"
+description: "QA plan for SH-1095. TC-46 covers derived redemption mode computation and legacy backward-read. TC-47 covers the universal-vs-scoped rule constraint and rule-level validation. TC-48 covers independent per-rule usage counters. TC-46 and TC-47 each carry one open question from SH-1125 Pending Decisions that is flagged, not resolved."
+status: "draft"
+scope:
+  milestone: "SH-1095"
+  targetDate: "2026-08-10"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "3a4d80f0-2ef7-476a-b2d8-275840102555"
+    key: "TC-46"
+    title: "Derived Redemption Mode & Legacy Backward-Read"
+    filePath: "test-cases/SH-1095/SH-1095-TC-46-derived-redemption-mode-legacy-backward-read.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "9e093562-6acd-485d-b9fa-9e9b2b412a40"
+    key: "TC-47"
+    title: "Universal-Rule Constraint & Rule-Level Validation"
+    filePath: "test-cases/SH-1095/SH-1095-TC-47-universal-rule-constraint-validation.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "f4099d6b-0584-45ea-a28d-6338235a02f5"
+    key: "TC-48"
+    title: "Multi-Rule Independent Usage Counters"
+    filePath: "test-cases/SH-1095/SH-1095-TC-48-multi-rule-usage-counters.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-1095"
+      url: "https://veevart.atlassian.net/browse/SH-1095"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"

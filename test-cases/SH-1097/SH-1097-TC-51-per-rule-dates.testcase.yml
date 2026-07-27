@@ -1,0 +1,99 @@
+schemaVersion: "1.0"
+id: "461f9f5d-088d-49e4-ba3f-79a71695d6f5"
+key: "TC-51"
+title: "Per-Rule Date & Time Range — Conditional Visibility & Derivation"
+description: "QA coverage for SH-1097: validates that the Date & Time Range block on a rule card is hidden and derived when the rule is already time-bounded by a specific Event or a Membership Program, shown and editable otherwise, and cleared with a warning when the admin switches from custom dates to a derived source."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
+  - "At least one Event with a defined schedule and one active Membership Program exist."
+scenarios:
+  - title: "Date & Time Range is editable when Event = All events and no Membership Program"
+    tags:
+      - "happy-path"
+    given:
+      - "a Ticketing rule has Event = All events and no Membership Program set"
+    when:
+      - "the rule card renders"
+    then:
+      - "the Date & Time Range block and the Add a single date input are visible and user-editable"
+
+  - title: "Date & Time Range hides when a specific Event is selected"
+    tags:
+      - "happy-path"
+      - "derived-dates"
+    given:
+      - "the admin selects one or more specific events on a Ticketing rule (Event not equal to All events)"
+    when:
+      - "the rule card re-renders"
+    then:
+      - "the Date & Time Range block and the Add a single date input are hidden"
+      - "an info banner reads 'Dates are inherited from the selected event(s). No manual date restriction needed.'"
+
+  - title: "Date & Time Range hides when a Membership Program is set"
+    tags:
+      - "happy-path"
+      - "derived-dates"
+    given:
+      - "the admin sets Membership Program = Gold on a rule (Ticketing or Shop)"
+    when:
+      - "the rule card re-renders"
+    then:
+      - "the Date & Time Range block is hidden"
+      - "an info banner reads 'Dates are inherited from the selected Membership Program. No manual date restriction needed.'"
+
+  - title: "Event and Membership Program together show the intersection banner"
+    tags:
+      - "edge-case"
+      - "derived-dates"
+    given:
+      - "a Ticketing rule has Event = Summer Exhibit AND Membership Program = Gold"
+    when:
+      - "the rule card renders"
+    then:
+      - "the Date & Time Range block is hidden"
+      - "the info banner reads 'Dates are inherited from the intersection of the selected event(s) and Membership Program.'"
+
+  - title: "Custom dates are cleared when an Event or Membership Program is later selected"
+    tags:
+      - "edge-case"
+      - "data-loss-warning"
+    given:
+      - "the admin had set custom Date & Time Range values on a rule"
+    when:
+      - "the admin then picks an Event or Membership Program"
+    then:
+      - "the block hides and a warning surfaces that custom dates will be cleared on save"
+      - "on Save the custom values are cleared"
+
+  - title: "Shop rule with no Membership Program shows the Date & Time Range block"
+    tags:
+      - "happy-path"
+      - "shop"
+    given:
+      - "a Shop rule has no Membership Program set"
+    when:
+      - "the rule card renders"
+    then:
+      - "the Date & Time Range block and the Add a single date input are visible"
+tags:
+  - "sh-1097"
+  - "discount-wizard"
+  - "rule-card"
+parameters: []
+links:
+  jira:
+    - key: "SH-1097"
+      url: "https://veevart.atlassian.net/browse/SH-1097"
+      type: "story"
+  external: []
+estimatedDuration: 36
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

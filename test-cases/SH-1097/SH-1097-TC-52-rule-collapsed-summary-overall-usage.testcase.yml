@@ -1,0 +1,63 @@
+schemaVersion: "1.0"
+id: "e8542d54-e05c-4554-8caf-64b277cc5f1a"
+key: "TC-52"
+title: "Rule Collapsed Summary & Overall Usage"
+description: "QA coverage for SH-1097: validates the rule card's collapsed saved-state summary, including the derived date source and the Overall/Current Usage fields, and their unlimited (empty) state."
+type: "functional"
+priority: "low"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
+scenarios:
+  - title: "Overall Usage set to 500 shows 0/500 uses in the collapsed summary"
+    tags:
+      - "happy-path"
+      - "usage-limits"
+    given:
+      - "the admin sets Overall Usage = 500 on a rule"
+    when:
+      - "the admin saves the rule"
+    then:
+      - "the collapsed summary includes '0 / 500 uses'"
+
+  - title: "Collapsed summary reflects the derived date source"
+    tags:
+      - "happy-path"
+      - "derived-dates"
+    given:
+      - "rule A has Event = Summer Exhibit and rule B has Membership Program = Gold"
+    when:
+      - "the admin reaches Step 4 Review"
+    then:
+      - "the summary shows each rule with its derived date source ('Dates from event Summer Exhibit' and 'Dates from Gold membership')"
+
+  - title: "Overall Usage left empty is treated as unlimited in the summary"
+    tags:
+      - "edge-case"
+      - "usage-limits"
+    given:
+      - "a rule has no Overall Usage value set"
+    when:
+      - "the rule is saved and the summary renders"
+    then:
+      - "the summary shows 'Unlimited' instead of a numeric cap"
+      - "Current Usage still displays its running count"
+tags:
+  - "sh-1097"
+  - "discount-wizard"
+  - "rule-card"
+parameters: []
+links:
+  jira:
+    - key: "SH-1097"
+      url: "https://veevart.atlassian.net/browse/SH-1097"
+      type: "story"
+  external: []
+estimatedDuration: 18
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

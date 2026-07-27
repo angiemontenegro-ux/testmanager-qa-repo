@@ -1,0 +1,76 @@
+schemaVersion: "1.0"
+id: "464733d7-04b0-461d-8b19-c8674b153b47"
+key: "TC-49"
+title: "Step 4 Review — Redemption Mode Row & Error Banner"
+description: "QA coverage for SH-1096: validates the Redemption Mode row on the Review step for both item-level (Automatic / Code Required) and order-level flows, and the Save-blocking error banners when a required customer-facing code is missing."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The unified wizard shell (SH-1096) is deployed to the QA/staging environment."
+  - "A Membership Program exists for the item-level Automatic scenario."
+scenarios:
+  - title: "Step 4 shows Automatic (Membership Benefit) and saves without a code"
+    tags:
+      - "happy-path"
+    given:
+      - "Step 2 has a rule with a Membership Program selected"
+    when:
+      - "the admin reaches Step 4"
+    then:
+      - "the redemption row reads 'Redemption: Automatic (membership benefit)'"
+
+  - title: "Step 4 blocks Save with an error banner when code-required mode has no code"
+    tags:
+      - "validation"
+      - "error-banner"
+    given:
+      - "no rule on Step 2 has a Membership Program selected"
+    when:
+      - "the admin clicks Save without a code"
+    then:
+      - "an error banner cites CUSTOMER_FACING_CODE_REQUIRED_FOR_CODE_MODE with a 'Go to step 1' link"
+
+  - title: "Order-level discount without a code is blocked on Review"
+    tags:
+      - "validation"
+      - "order-level"
+      - "error-banner"
+    given:
+      - "Step 1 has Apply to = Entire order and no customer-facing code was entered"
+    when:
+      - "the admin clicks Save on the Review step"
+    then:
+      - "an error banner cites CUSTOMER_FACING_CODE_REQUIRED_FOR_ORDER_LEVEL"
+      - "a 'Go to Step 1' link jumps to the code field"
+
+  - title: "Order-level discount with a code saves and shows the Code Required (Entire Order) redemption row"
+    tags:
+      - "happy-path"
+      - "order-level"
+    given:
+      - "Step 1 has Apply to = Entire order and a customer-facing code is set"
+    when:
+      - "the admin reaches Step 4 Review"
+    then:
+      - "the Redemption row reads 'Redemption: Code Required (Entire Order)'"
+      - "Save persists the discount"
+tags:
+  - "sh-1096"
+  - "discount-wizard"
+  - "review-step"
+parameters: []
+links:
+  jira:
+    - key: "SH-1096"
+      url: "https://veevart.atlassian.net/browse/SH-1096"
+      type: "story"
+  external: []
+estimatedDuration: 24
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

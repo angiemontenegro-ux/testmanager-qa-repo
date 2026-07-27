@@ -1,0 +1,53 @@
+schemaVersion: "1.0"
+id: "7f7887b2-9a3d-4b01-ab2c-5420d630f2f5"
+key: "TC-62"
+title: "Concurrency: Rules-Only Editor vs. Full Wizard"
+description: "QA coverage for SH-1093: validates that a discount edited via the rules-only editor (Membership Program surface) and via the full wizard can coexist without conflict, and that optimistic locking protects against a true concurrent write to the same Rule from both surfaces."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Membership Program rule-only update endpoint (SH-1093) is deployed to the QA/staging environment."
+  - "A discount exists with a Rule created via the rules-only editor for a Membership Program."
+scenarios:
+  - title: "Full-wizard edit on the same discount continues to work without conflict"
+    tags:
+      - "happy-path"
+    given:
+      - "a discount has a Rule created via the rules-only editor for program X"
+    when:
+      - "an admin edits the same discount from the full wizard (Basic Info, Restrictions, Review) and saves"
+    then:
+      - "the full-wizard save succeeds"
+      - "the Rule for program X created via the rules-only editor remains intact"
+
+  - title: "Concurrent edits from the rules-only editor and the full wizard on the same Rule are protected by optimistic locking"
+    tags:
+      - "edge-case"
+      - "concurrency"
+    given:
+      - "the rules-only editor and the full wizard both load the same Rule at the same version"
+    when:
+      - "both attempt to save"
+    then:
+      - "the first save succeeds"
+      - "the second save is rejected with a stale-version error and must reload before retrying"
+tags:
+  - "sh-1093"
+  - "membership-program"
+  - "concurrency"
+parameters: []
+links:
+  jira:
+    - key: "SH-1093"
+      url: "https://veevart.atlassian.net/browse/SH-1093"
+      type: "story"
+  external: []
+estimatedDuration: 12
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

@@ -1,0 +1,61 @@
+schemaVersion: "1.0"
+id: "5ff69e50-7335-4432-8833-9326b91f2d01"
+key: "TC-59"
+title: "Eligible-Discounts Listing Endpoint"
+description: "QA coverage for SH-1093: validates the new endpoint that lists Active discounts eligible for a Membership Program, including the canonical fields returned and the exclusion of Automatic-kind, Draft, and Archived discounts."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Membership Program eligible-discount listing endpoint (SH-1093) is deployed to the QA/staging environment."
+  - "Discounts exist with kind = Automatic and kind = Membership Benefit / Discount Code, and with status Active, Draft, and Archived."
+scenarios:
+  - title: "Endpoint returns only Active discounts with full summary fields"
+    tags:
+      - "happy-path"
+    given:
+      - "the caller invokes the eligible-discounts endpoint for a Membership Program"
+    when:
+      - "the engine responds"
+    then:
+      - "only Active discounts are included"
+      - "each entry includes canonical name, customer-facing code, status, discountType, value, and (when present) the current Rule summary for this program"
+
+  - title: "Automatic-kind discounts are excluded from the eligible list"
+    tags:
+      - "negative"
+    given:
+      - "a discount has kind = Automatic"
+    when:
+      - "the eligible-discounts endpoint runs for a Membership Program"
+    then:
+      - "the Automatic discount is excluded from the list"
+
+  - title: "Draft and Archived discounts are excluded"
+    tags:
+      - "negative"
+    given:
+      - "discounts exist with status Draft and Archived"
+    when:
+      - "the eligible-discounts endpoint runs"
+    then:
+      - "neither the Draft nor the Archived discount appears in the response"
+tags:
+  - "sh-1093"
+  - "membership-program"
+  - "api"
+parameters: []
+links:
+  jira:
+    - key: "SH-1093"
+      url: "https://veevart.atlassian.net/browse/SH-1093"
+      type: "story"
+  external: []
+estimatedDuration: 18
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

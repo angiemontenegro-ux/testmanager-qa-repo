@@ -1,0 +1,65 @@
+schemaVersion: "1.0"
+id: "eecc9911-2077-4987-a8e5-07412e5ae279"
+key: "TC-63"
+title: "Shop Rule Card — Category, Item Scope & Item Type"
+description: "QA coverage for SH-1097's Shop rule card: validates Qualifying Item Type against the confirmed prototype (a 3-option select, not the free-text field described in the story's written AC — corrected twice against the real prototype), flags the open question on Category/Item scope interaction, and confirms Minimum/Max Quantity were intentionally cut by Product on 2026-07-22."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
+  - "At least one Shop category with items assigned exists."
+scenarios:
+  - title: "Qualifying Item Type is a fixed-option select, not free text"
+    tags:
+      - "happy-path"
+      - "corrected-from-prototype"
+    given:
+      - "the admin is on a Shop rule card"
+    when:
+      - "the admin views the Qualifying Item Type field"
+    then:
+      - "exactly 3 options are offered: Any qualifying item / Same item only / Same category only"
+      - "this corrects SH-1097's written AC, which describes the field as free text — the real prototype confirms a select"
+
+  - title: "'All items in categories' vs 'Specific items' toggle interaction"
+    tags:
+      - "edge-case"
+      - "needs-clarification"
+    given:
+      - "a Shop rule has Category scope and Item scope fields"
+    when:
+      - "the admin toggles between 'All items in categories' and 'Specific items'"
+    then:
+      - "OPEN QUESTION — whether Specific items still filters by Category is unconfirmed from the prototype; do not assert a specific outcome (SH-1125 Pending Decisions #5)"
+
+  - title: "Minimum Quantity and Max Quantity fields are removed"
+    tags:
+      - "modified-scope-cut"
+    given:
+      - "Product cut Minimum Quantity and Max Quantity from the Shop rule card on 2026-07-22, confirmed against the prototype"
+    when:
+      - "the admin views the Shop rule card"
+    then:
+      - "neither Minimum Quantity nor Max Quantity fields are rendered"
+      - "no replacement scenario is needed for these fields"
+tags:
+  - "sh-1097"
+  - "discount-wizard"
+  - "rule-card"
+  - "shop"
+parameters: []
+links:
+  jira:
+    - key: "SH-1097"
+      url: "https://veevart.atlassian.net/browse/SH-1097"
+      type: "story"
+  external: []
+estimatedDuration: 18
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
