@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "3a4d80f0-2ef7-476a-b2d8-275840102555"
 key: "TC-46"
 title: "Derived Redemption Mode & Legacy Backward-Read"
-description: "QA coverage for SH-1095: validates that redemptionMode is computed (not authored) from whether any Rule carries a membershipProgramId, that legacy records without the unified model still read correctly, and flags the one open question from SH-1125 Pending Decisions that this test case does not resolve."
+description: "QA coverage for SH-1095: validates that redemptionMode is computed (not authored) from whether any Rule carries a membershipProgramId, that legacy records without the unified model still read correctly, and that when a Rule has membershipProgramId AND a customer_facing_code is also set, Automatic wins — confirmed by Product (Martin Campo) 2026-07-27, resolving SH-1125 Pending Decisions #2."
 type: "functional"
 priority: "high"
 status: "active"
@@ -65,14 +65,17 @@ scenarios:
   - title: "Rule has membershipProgramId while the promotion also has a customer_facing_code set"
     tags:
       - "edge-case"
-      - "needs-clarification"
+      - "confirmed-behavior"
       - "derived-mode"
     given:
       - "a Rule has membershipProgramId set and the promotion also has a customer_facing_code set"
     when:
       - "the engine computes the derived redemption mode"
     then:
-      - "OPEN QUESTION — which redemption path wins is not yet defined by Product; do not assert a specific outcome until this is resolved (SH-1125 Pending Decisions #2)"
+      - "redemptionMode is derived as AUTOMATIC — a Rule carrying membershipProgramId forces AUTOMATIC mode and the code stops being a trigger"
+      - "the customer_facing_code persists as inert metadata on the promotion; it does not fire anything on its own"
+      - "a non-member who types the code is still excluded by the rule's scope — the same behavior already covered by the 'Non-member entering a member-gated code' scenario (SC-41)"
+      - "CONFIRMED by Product (Martin Campo) 2026-07-27: Automatic wins under the new binary derivation model."
 tags:
   - "sh-1095"
   - "discount-engine"
@@ -89,5 +92,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  updatedAt: "2026-07-27T16:00:00Z"
+  version: 2

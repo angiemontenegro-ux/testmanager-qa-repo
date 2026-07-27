@@ -1,28 +1,27 @@
 schemaVersion: "1.0"
 id: "d3754bb7-e8b0-48ba-b04b-705c4e1f7526"
 key: "TC-8"
-title: "[V2 / OUT OF SCOPE FOR V1] Counter lifecycle, additive stacking & pre-reservation"
-description: "Scenarios sourced from the Notion Gherkin doc that describe an ASPIRATIONAL / V2 design and do NOT match SH-844 (V1). Kept for traceability only. Per the Technical Contract, confirm activation and STACKED are V2, and V1 stacking is exclusive (highest wins), not additive. DO NOT run against V1 — these will fail by design. Status is draft; activate per-scenario only when the matching V2 story ships."
+title: "Counter lifecycle & pre-reservation (V2, out of scope) + confirmed V1 additive stacking"
+description: "Mixed file. Most scenarios below are sourced from the Notion Gherkin doc and describe an ASPIRATIONAL / V2 design that does NOT match SH-844 (V1) — kept for traceability only, DO NOT run against V1, these will fail by design. Status is draft; activate per-scenario only when the matching V2 story ships. Exception: the additive-stacking scenario is CONFIRMED V1 behavior — Product (Martin Campo) confirmed 2026-07-27 that V1 stacking is live and additive today (the engine emits a STACKED option in discountOptions[] and consumers auto-apply isBest); BR-074 is Closed, per BR-072/073/074/075 and the Validation Pipeline. The remaining counter-lifecycle, applyCustomerCode, and checkCustomerFacingCodeAvailability scenarios are still unconfirmed V2-only content."
 type: "functional"
 priority: "low"
 status: "draft"
 format: "gherkin"
 preconditions:
-  - "Do not execute against the V1 engine. These document V2 behavior only."
-  - "V1 source of truth is SH-844; on any conflict SH-844 wins."
+  - "Do not execute the remaining V2-only scenarios below against the V1 engine — they document aspirational V2 behavior only."
+  - "V1 source of truth is SH-844; on any conflict SH-844 wins, EXCEPT the additive-stacking scenario below, which Product confirmed directly as current V1 behavior on 2026-07-27 and which may be run against V1."
 scenarios:
-  - title: "[V2] Additive stacking of two stackable codes"
+  - title: "Additive stacking of two stackable codes"
     tags:
-      - "v2"
-      - "out-of-scope-v1"
+      - "happy-path"
       - "stacking"
     given:
       - "two stackable codes of 10% and 5% on a $100 ticket line"
     when:
       - "both are applied"
     then:
-      - "the total discount is $15 additive (not $14.50 compound)"
-      - "CONTRADICTS V1: SH-844 stacking is exclusive (highest single discount wins). V2 only."
+      - "the engine emits a STACKED option in discountOptions[] with a total discount of $15 additive (not $14.50 compound)"
+      - "CONFIRMED V1: Product (Martin Campo) confirmed 2026-07-27 that V1 stacking is additive and live today; consumers auto-apply the isBest option. BR-074 is Closed, per BR-072/073/074/075 and the Validation Pipeline."
   - title: "[V2] confirmDiscountUsage transitions Resolved to Confirmed (idempotent)"
     tags:
       - "v2"
@@ -100,5 +99,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-07T14:18:36Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-07T14:18:36Z"
-  version: 1
+  updatedAt: "2026-07-27T16:00:00Z"
+  version: 2
