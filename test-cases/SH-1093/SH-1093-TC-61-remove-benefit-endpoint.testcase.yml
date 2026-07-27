@@ -1,0 +1,53 @@
+schemaVersion: "1.0"
+id: "8fd76101-caf8-4f06-b4a4-032cae35a5c1"
+key: "TC-61"
+title: "Remove-Benefit Endpoint"
+description: "QA coverage for SH-1093: validates that removing a benefit deletes only the Rule tied to the target Membership Program, leaving the discount and its other Rules intact. Flags an unconfirmed response code for the no-existing-Rule case."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Membership Program remove-benefit endpoint (SH-1093) is deployed to the QA/staging environment."
+  - "A discount exists with Rules tied to two different Membership Programs (A and B)."
+scenarios:
+  - title: "Removing a benefit deletes only the Rule tied to that program"
+    tags:
+      - "happy-path"
+    given:
+      - "a discount has existing Rules for programs A and B"
+    when:
+      - "the caller invokes the remove-benefit endpoint for program A"
+    then:
+      - "the Rule tied to program A is removed"
+      - "the Rule tied to program B remains untouched"
+      - "the discount record itself is not deleted"
+
+  - title: "Removing a benefit for a program with no existing Rule"
+    tags:
+      - "edge-case"
+      - "needs-clarification"
+    given:
+      - "a discount has no Rule tied to the target Membership Program"
+    when:
+      - "the caller invokes the remove-benefit endpoint for that program"
+    then:
+      - "OPEN QUESTION — the exact response (204 no-op vs 404) is not specified in SH-1093; do not assert a specific status code until confirmed"
+tags:
+  - "sh-1093"
+  - "membership-program"
+  - "api"
+parameters: []
+links:
+  jira:
+    - key: "SH-1093"
+      url: "https://veevart.atlassian.net/browse/SH-1093"
+      type: "story"
+  external: []
+estimatedDuration: 12
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

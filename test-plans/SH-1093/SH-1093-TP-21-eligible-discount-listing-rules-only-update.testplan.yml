@@ -1,0 +1,55 @@
+schemaVersion: "1.0"
+id: "6a0cf75e-fe41-4715-9f46-47f8de667ce1"
+key: "TP-21"
+title: "SH-1093 Membership Program — Eligible-Discount Listing, Rules-Only Update & Benefit Removal"
+description: "QA plan for SH-1093. TC-59 covers the eligible-discounts listing endpoint. TC-60 covers security/payload-tampering rejection on the rule-only update endpoint plus its happy path and concurrency. TC-61 covers the remove-benefit endpoint, with one open question on the no-existing-Rule case. TC-62 covers concurrency between the rules-only editor and the full wizard."
+status: "draft"
+scope:
+  milestone: "SH-1093"
+  targetDate: "2026-08-10"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "5ff69e50-7335-4432-8833-9326b91f2d01"
+    key: "TC-59"
+    title: "Eligible-Discounts Listing Endpoint"
+    filePath: "test-cases/SH-1093/SH-1093-TC-59-eligible-discounts-listing-endpoint.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "bf7eea38-d679-4644-872c-f7c7021bb16f"
+    key: "TC-60"
+    title: "Rule-Only Update — Payload-Tampering Rejection (Security)"
+    filePath: "test-cases/SH-1093/SH-1093-TC-60-rule-only-update-payload-tampering.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "8fd76101-caf8-4f06-b4a4-032cae35a5c1"
+    key: "TC-61"
+    title: "Remove-Benefit Endpoint"
+    filePath: "test-cases/SH-1093/SH-1093-TC-61-remove-benefit-endpoint.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "7f7887b2-9a3d-4b01-ab2c-5420d630f2f5"
+    key: "TC-62"
+    title: "Concurrency: Rules-Only Editor vs. Full Wizard"
+    filePath: "test-cases/SH-1093/SH-1093-TC-62-concurrency-rules-only-vs-full-wizard.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-1093"
+      url: "https://veevart.atlassian.net/browse/SH-1093"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"

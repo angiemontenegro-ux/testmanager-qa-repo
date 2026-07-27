@@ -1,0 +1,78 @@
+schemaVersion: "1.0"
+id: "bf7eea38-d679-4644-872c-f7c7021bb16f"
+key: "TC-60"
+title: "Rule-Only Update — Payload-Tampering Rejection (Security)"
+description: "QA coverage for SH-1093: security-focused validation of the rule-only update endpoint. Confirms membershipProgramId is sourced only from the URL (rejecting an IDOR-style body override), rejects non-rule fields as scope escalation, verifies the happy-path create, and covers optimistic-locking concurrency."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Membership Program rule-only update endpoint (SH-1093) is deployed to the QA/staging environment."
+  - "Two Membership Programs (X and Y) exist for the mismatch scenario."
+scenarios:
+  - title: "membershipProgramId in the request body is rejected as an IDOR-style re-targeting attempt"
+    tags:
+      - "security"
+      - "idor"
+    given:
+      - "the body includes membershipProgramId pointing to a different program than the URL"
+    when:
+      - "the caller invokes the rule-only update endpoint for program X"
+    then:
+      - "the request is rejected with 400 MEMBERSHIP_PROGRAM_MISMATCH_IN_PAYLOAD"
+      - "no changes are persisted"
+
+  - title: "Non-rule fields in the payload are rejected as a scope-escalation attempt"
+    tags:
+      - "security"
+      - "scope-escalation"
+    given:
+      - "the body includes non-rule fields (name, discountType, value, status)"
+    when:
+      - "the caller invokes the rule-only update endpoint"
+    then:
+      - "the request is rejected with 400 RULES_ONLY_UPDATE_VIOLATION"
+      - "no changes are persisted"
+
+  - title: "Rule-only update creates a new Rule when none exists for this program"
+    tags:
+      - "happy-path"
+    given:
+      - "the caller invokes the rule-only update endpoint for program X with a valid rule payload for a discount not yet associated with X"
+    when:
+      - "the engine validates the payload"
+    then:
+      - "a new Rule is created on the discount with membershipProgramId = X (sourced from the URL)"
+      - "no other fields of the discount are modified"
+
+  - title: "Concurrent rule-only updates reject the second write with a stale-version error"
+    tags:
+      - "edge-case"
+      - "concurrency"
+    given:
+      - "two callers update the same Rule concurrently"
+    when:
+      - "both invoke the rule-only update endpoint"
+    then:
+      - "the second write is rejected with a stale-version error"
+      - "the caller is expected to reload the current state and retry"
+tags:
+  - "sh-1093"
+  - "membership-program"
+  - "api"
+  - "security"
+parameters: []
+links:
+  jira:
+    - key: "SH-1093"
+      url: "https://veevart.atlassian.net/browse/SH-1093"
+      type: "story"
+  external: []
+estimatedDuration: 24
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
