@@ -1,0 +1,47 @@
+schemaVersion: "1.0"
+id: "c53922e0-3635-4e97-9d43-dbd5cb6fea25"
+key: "TC-64"
+title: "Mirroring Discounts to Salesforce for POS — Smoke Coverage"
+description: "QA coverage for the JTBD 'Mirroring Discounts to Salesforce for POS' (SH-1125). No dedicated Jira story exists yet for this JTBD — this is a real gap flagged directly from the JTBD description, drafted ahead of a spec (shift-left). Flags archive/delete mirror behavior and sync timing as unspecified."
+type: "functional"
+priority: "high"
+status: "draft"
+format: "gherkin"
+preconditions:
+  - "No Jira story exists yet for this JTBD; scenarios are smoke-level and drafted directly from the JTBD description in SH-1125."
+  - "POS Mobile has visibility into the legacy Salesforce discount object that this mirror targets."
+scenarios:
+  - title: "Creating a discount produces a mirrored Salesforce record"
+    tags:
+      - "happy-path"
+    given:
+      - "an admin creates an Active discount in the Discount Engine"
+    when:
+      - "the mirror process runs"
+    then:
+      - "a corresponding record is created in the legacy Salesforce object, visible to POS Mobile"
+
+  - title: "Archive/delete mirror behavior and sync timing are unspecified"
+    tags:
+      - "needs-clarification"
+    then:
+      - "OPEN QUESTIONS — no spec states whether the mirror is removed on archive/delete, nor the sync timing (sync vs async); this test case stays in draft until a story exists for this JTBD"
+tags:
+  - "sh-1125"
+  - "discount-engine"
+  - "salesforce-mirror"
+  - "real-gap"
+parameters: []
+links:
+  jira:
+    - key: "SH-1125"
+      url: "https://veevart.atlassian.net/browse/SH-1125"
+      type: "story"
+  external: []
+estimatedDuration: 12
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

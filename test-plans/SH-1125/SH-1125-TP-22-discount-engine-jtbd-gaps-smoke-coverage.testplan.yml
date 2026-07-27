@@ -1,0 +1,39 @@
+schemaVersion: "1.0"
+id: "5c1a3e86-7090-4b84-bdb2-6c70ce8c2829"
+key: "TP-22"
+title: "SH-1125 Discount Engine — Real-Gap JTBD Smoke Coverage"
+description: "QA plan for the two JTBD flagged as real gaps in SH-1125's coverage-by-JTBD mapping: Mirroring Discounts to Salesforce for POS (TC-64) and Monitoring Discount Engine Health (TC-65). Neither has a dedicated Jira story yet — both test cases are smoke-level, drafted ahead of spec as shift-left QA, and stay in draft status until a story exists."
+status: "draft"
+scope:
+  milestone: "SH-1125"
+  targetDate: "2026-08-10"
+  environment: "qa"
+  browser: "brave"
+entries:
+  - type: "testcase"
+    id: "c53922e0-3635-4e97-9d43-dbd5cb6fea25"
+    key: "TC-64"
+    title: "Mirroring Discounts to Salesforce for POS — Smoke Coverage"
+    filePath: "test-cases/SH-1125/SH-1125-TC-64-mirroring-discounts-to-salesforce.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+  - type: "testcase"
+    id: "2cc2219d-d3b5-4962-bb1f-76c8695bca84"
+    key: "TC-65"
+    title: "Monitoring Discount Engine Health — Smoke Coverage"
+    filePath: "test-cases/SH-1125/SH-1125-TC-65-monitoring-discount-engine-health.testcase.yml"
+    assignees:
+      - username: "angiemontenegro-ux"
+        role: "owner"
+links:
+  jira:
+    - key: "SH-1125"
+      url: "https://veevart.atlassian.net/browse/SH-1125"
+      type: "story"
+  external: []
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"

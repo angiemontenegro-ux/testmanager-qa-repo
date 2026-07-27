@@ -1,0 +1,36 @@
+schemaVersion: "1.0"
+id: "2cc2219d-d3b5-4962-bb1f-76c8695bca84"
+key: "TC-65"
+title: "Monitoring Discount Engine Health — Smoke Coverage"
+description: "QA coverage for the JTBD 'Monitoring Discount Engine Health' (SH-1125). No dedicated Jira story exists yet for this JTBD — this is a real gap with zero coverage and no spec, flagged directly from the JTBD description ahead of any build (shift-left)."
+type: "functional"
+priority: "high"
+status: "draft"
+format: "gherkin"
+preconditions:
+  - "No Jira story or spec exists yet for this JTBD; nothing is built."
+scenarios:
+  - title: "Operations visibility, alerting, and reconciliation are all unspecified"
+    tags:
+      - "needs-clarification"
+    then:
+      - "OPEN QUESTIONS — no spec states the visibility surface (dashboard, report, or logs), the alert channel/threshold, or the reconciliation mechanism (manual, tool, or automated job); this test case stays in draft until a story and spec exist for this JTBD"
+tags:
+  - "sh-1125"
+  - "discount-engine"
+  - "monitoring"
+  - "real-gap"
+parameters: []
+links:
+  jira:
+    - key: "SH-1125"
+      url: "https://veevart.atlassian.net/browse/SH-1125"
+      type: "story"
+  external: []
+estimatedDuration: 6
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
