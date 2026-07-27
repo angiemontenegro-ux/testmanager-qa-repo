@@ -1,0 +1,76 @@
+schemaVersion: "1.0"
+id: "0fde19ff-94a0-420e-8896-7b365062914c"
+key: "TC-57"
+title: "'Add Membership Benefit' Modal"
+description: "QA coverage for SH-1092: validates the Add Membership Benefit modal's title, subtitle, search input, footer helper, Active-only listing, and Cancel behavior. Confirmed against the shared prototype — title/subtitle/footer copy match exactly."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Membership Program discount widget (SH-1092) is deployed to the QA/staging environment."
+  - "Discounts exist with status Active, Draft, and Archived for the same tenant."
+scenarios:
+  - title: "Modal opens with the correct title, subtitle, search input and footer helper"
+    tags:
+      - "happy-path"
+      - "confirmed-against-prototype"
+    given:
+      - "the admin clicks the '+ New' button on the benefit widget"
+    when:
+      - "the modal opens"
+    then:
+      - "the modal is titled 'Add Membership Benefit'"
+      - "the subtitle reads 'Search an active discount code, then set its rule.'"
+      - "the search input placeholder reads 'Search active discount codes...'"
+      - "the footer helper reads 'Only active discount codes are shown.'"
+
+  - title: "Only Active discount codes are listed"
+    tags:
+      - "happy-path"
+    given:
+      - "several discounts exist with status Active, Draft, and Archived"
+    when:
+      - "the modal's list renders"
+    then:
+      - "only Active discounts appear"
+      - "each row shows name, code chip, status pill, and value"
+
+  - title: "Search filters the list by name or code"
+    tags:
+      - "happy-path"
+    given:
+      - "the admin types text in the search input"
+    when:
+      - "the list re-renders"
+    then:
+      - "only Active discount codes whose name or code matches the search text remain visible"
+
+  - title: "Cancel closes the modal without persisting anything"
+    tags:
+      - "negative"
+    given:
+      - "the modal is open"
+    when:
+      - "the admin clicks Cancel"
+    then:
+      - "the modal closes"
+      - "no discount association is created"
+tags:
+  - "sh-1092"
+  - "membership-program"
+  - "benefit-widget"
+parameters: []
+links:
+  jira:
+    - key: "SH-1092"
+      url: "https://veevart.atlassian.net/browse/SH-1092"
+      type: "story"
+  external: []
+estimatedDuration: 24
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

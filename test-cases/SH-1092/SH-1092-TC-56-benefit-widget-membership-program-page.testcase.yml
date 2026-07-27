@@ -1,0 +1,61 @@
+schemaVersion: "1.0"
+id: "b88504f2-1d40-4768-936c-158b355b36d9"
+key: "TC-56"
+title: "Benefit Widget on Membership Program Page"
+description: "QA coverage for SH-1092: validates that the benefit widget on a Membership Program detail page shows each associated discount's canonical name, code, status, value, and rule summary, and always reflects the discount's current canonical name (no Membership-Program-side alias). Flags that the widget's exact visual layout has no confirmed mockup yet."
+type: "functional"
+priority: "medium"
+status: "draft"
+format: "gherkin"
+preconditions:
+  - "The Membership Program discount widget (SH-1092) is deployed to the QA/staging environment."
+  - "A Membership Program exists with at least one associated discount benefit."
+scenarios:
+  - title: "Benefit widget shows canonical name, code, status, value and rule summary"
+    tags:
+      - "happy-path"
+    given:
+      - "the admin is on a Membership Program detail page"
+    when:
+      - "the benefit widget loads"
+    then:
+      - "each associated discount is displayed with its canonical name from the Discount module"
+      - "the row shows the customer-facing code chip, status pill, value, and a one-line rule summary"
+
+  - title: "Widget row uses the canonical name, not a Membership-Program-side alias"
+    tags:
+      - "edge-case"
+    given:
+      - "a discount was renamed from the full wizard"
+    when:
+      - "the Membership Program page next loads"
+    then:
+      - "the benefit widget row for that discount shows the new canonical name"
+
+  - title: "Exact widget layout/visual design is unconfirmed"
+    tags:
+      - "needs-clarification"
+    given:
+      - "the Membership Program page prototype shared so far only shows the entry modal, tagged 'demo'"
+    when:
+      - "QA looks for the widget's exact visual layout"
+    then:
+      - "OPEN QUESTION — no confirmed mockup exists yet for the widget itself; scenarios above are drafted from the story's written AC only and this test case stays in draft until a mockup is confirmed"
+tags:
+  - "sh-1092"
+  - "membership-program"
+  - "benefit-widget"
+parameters: []
+links:
+  jira:
+    - key: "SH-1092"
+      url: "https://veevart.atlassian.net/browse/SH-1092"
+      type: "story"
+  external: []
+estimatedDuration: 18
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

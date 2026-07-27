@@ -1,0 +1,88 @@
+schemaVersion: "1.0"
+id: "199be1fb-62e1-4c8b-812b-96605dec092a"
+key: "TC-58"
+title: "Rules-Only Editor — Locked Program Field & Scoped Save"
+description: "QA coverage for SH-1092: validates that the rules-only editor renders only the rule-authoring UX scoped to the current Membership Program, that the Membership Program field is locked/read-only, and that Save persists only that rule without touching Basic Info, Restrictions, or Review. Flags that the editor's own screen has no confirmed mockup yet."
+type: "functional"
+priority: "high"
+status: "draft"
+format: "gherkin"
+preconditions:
+  - "The Membership Program discount widget (SH-1092) is deployed to the QA/staging environment."
+  - "A discount exists with at least one existing rule tied to a Membership Program."
+scenarios:
+  - title: "Membership Program field is locked and read-only"
+    tags:
+      - "happy-path"
+    given:
+      - "the admin is in the rules-only editor for a discount tied to a specific program"
+    then:
+      - "the Membership Program field is read-only, pre-populated, with a lock tooltip"
+
+  - title: "Selecting a discount from the modal opens the rules-only editor with only rule fields"
+    tags:
+      - "happy-path"
+    given:
+      - "the admin selects a discount from the Add Membership Benefit modal"
+    when:
+      - "the modal closes"
+    then:
+      - "the rules-only editor opens"
+      - "the header displays the discount's canonical name and code as read-only context"
+      - "only the rule-authoring UX is rendered (no Basic Info, Restrictions, or Review)"
+
+  - title: "Saving persists only the rule for this program"
+    tags:
+      - "happy-path"
+    when:
+      - "the admin saves"
+    then:
+      - "only the rule for this program changes; Basic Info/Restrictions/Review are untouched"
+
+  - title: "Editing an existing benefit pre-loads the current rule"
+    tags:
+      - "happy-path"
+    given:
+      - "the admin clicks an existing benefit row in the widget"
+    when:
+      - "the editor opens"
+    then:
+      - "the rules-only editor is shown pre-loaded with the current rule for this Membership Program"
+      - "the Membership Program field is read-only, showing the current program"
+
+  - title: "Cancel discards changes and returns to the Membership Program page"
+    tags:
+      - "negative"
+    given:
+      - "the rules-only editor or the Add Membership Benefit modal is open"
+    when:
+      - "the admin clicks Cancel"
+    then:
+      - "no changes are persisted"
+      - "the admin returns to the Membership Program page"
+
+  - title: "Exact rules-only editor visual layout is unconfirmed"
+    tags:
+      - "needs-clarification"
+    given:
+      - "the shared Discount Wizard prototype only shows the entry modal, tagged 'demo'"
+    then:
+      - "OPEN QUESTION — no confirmed mockup for the rules-only editor screen itself exists yet; this test case stays in draft until a mockup is confirmed (SH-1125 Pending Decisions #4)"
+tags:
+  - "sh-1092"
+  - "membership-program"
+  - "rules-only-editor"
+parameters: []
+links:
+  jira:
+    - key: "SH-1092"
+      url: "https://veevart.atlassian.net/browse/SH-1092"
+      type: "story"
+  external: []
+estimatedDuration: 36
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
