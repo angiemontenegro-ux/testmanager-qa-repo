@@ -1,0 +1,49 @@
+schemaVersion: "1.0"
+id: "728d7440-2dcd-4291-aa4b-2d0b17554ba3"
+key: "TC-54"
+title: "Unsaved-Rule Guard on Step 2 Continue"
+description: "QA coverage for SH-1097: validates that Step 2's Continue button is blocked while any newly-added rule has not been saved, and becomes available once all rules are saved."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
+scenarios:
+  - title: "Continue is blocked while any rule is unsaved"
+    tags:
+      - "validation"
+    given:
+      - "a newly-added rule is showing its 'Save Rule' button and has not been saved"
+    when:
+      - "the admin attempts to click Continue on Step 2"
+    then:
+      - "Continue is blocked/disabled until the rule is saved"
+
+  - title: "Continue becomes available once the rule is saved"
+    tags:
+      - "happy-path"
+    given:
+      - "all rules on Step 2 have been saved (no pending 'Save Rule' button visible)"
+    when:
+      - "the admin clicks Continue"
+    then:
+      - "the wizard advances to the next step"
+tags:
+  - "sh-1097"
+  - "discount-wizard"
+  - "rule-card"
+parameters: []
+links:
+  jira:
+    - key: "SH-1097"
+      url: "https://veevart.atlassian.net/browse/SH-1097"
+      type: "story"
+  external: []
+estimatedDuration: 12
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1

@@ -1,0 +1,49 @@
+schemaVersion: "1.0"
+id: "4f0d0a13-112a-4c50-93b5-7c413c2c0c36"
+key: "TC-53"
+title: "Universal-Rule Lock on Add Rule Button"
+description: "QA coverage for SH-1097: validates that the '+ Add Rule' button is disabled with a tooltip when the current rule is fully universal, and re-enables once the rule is scoped down."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
+scenarios:
+  - title: "Add Rule is disabled when the only rule is fully universal"
+    tags:
+      - "validation"
+    given:
+      - "the admin's only rule is fully universal (all scopes ALL, no membershipProgramId, no dateTimeRange)"
+    when:
+      - "the admin looks at the '+ Add Rule' button"
+    then:
+      - "the button is disabled with the universal-rule tooltip"
+
+  - title: "Add Rule re-enables once the universal rule is scoped down"
+    tags:
+      - "happy-path"
+    given:
+      - "a previously universal rule now has a specific Event or Category set"
+    when:
+      - "the rule is saved"
+    then:
+      - "the '+ Add Rule' button becomes enabled"
+tags:
+  - "sh-1097"
+  - "discount-wizard"
+  - "rule-card"
+parameters: []
+links:
+  jira:
+    - key: "SH-1097"
+      url: "https://veevart.atlassian.net/browse/SH-1097"
+      type: "story"
+  external: []
+estimatedDuration: 12
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
