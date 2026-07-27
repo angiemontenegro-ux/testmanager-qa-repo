@@ -1,0 +1,52 @@
+schemaVersion: "1.0"
+id: "dac71215-10bb-4d43-83da-a2e3c7895902"
+key: "TC-50"
+title: "Step 1 Discount Type Toggle (% Off / $ Off)"
+description: "QA coverage for SH-1096: validates that Step 1 exposes both % Off and $ Off as Discount Type options. Cesar confirmed 2026-07-23 that $ Off is already applied and supported end-to-end, resolving the earlier open question on this field."
+type: "functional"
+priority: "low"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The unified wizard shell (SH-1096) is deployed to the QA/staging environment."
+scenarios:
+  - title: "Step 1 exposes % Off and $ Off"
+    tags:
+      - "happy-path"
+      - "resolved"
+    given:
+      - "the admin views the Discount Type control on Step 1"
+    when:
+      - "the admin opens the control"
+    then:
+      - "both '% Off' and '$ Off' are selectable"
+      - "RESOLVED: Cesar confirmed 2026-07-23 that $ Off is already applied and supported end-to-end"
+
+  - title: "Switching Discount Type after entering a value keeps the numeric value but changes its unit"
+    tags:
+      - "edge-case"
+    given:
+      - "the admin has entered Discount Value = 20 with Discount Type = % Off"
+    when:
+      - "the admin switches Discount Type to $ Off"
+    then:
+      - "Discount Value remains 20"
+      - "the field's suffix/label updates from % to $"
+tags:
+  - "sh-1096"
+  - "discount-wizard"
+  - "basic-info"
+parameters: []
+links:
+  jira:
+    - key: "SH-1096"
+      url: "https://veevart.atlassian.net/browse/SH-1096"
+      type: "story"
+  external: []
+estimatedDuration: 12
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-27T00:00:00Z"
+  version: 1
