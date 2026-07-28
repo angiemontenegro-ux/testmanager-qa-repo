@@ -1,47 +1,148 @@
 schemaVersion: "1.0"
 id: "c53922e0-3635-4e97-9d43-dbd5cb6fea25"
 key: "TC-64"
-title: "Mirroring Discounts to Salesforce for POS — Smoke Coverage"
-description: "QA coverage for the JTBD 'Mirroring Discounts to Salesforce for POS' (SH-1125). No dedicated Jira story exists yet for this JTBD — this is a real gap flagged directly from the JTBD description, drafted ahead of a spec (shift-left). Flags archive/delete mirror behavior and sync timing as unspecified."
+title: "Discount Engine — Salesforce Embed (Ticketing/Membership/Shop)"
+description: "QA coverage for the JTBD 'Mirroring Discounts to Salesforce for POS', rewritten 2026-07-28 against the real shipped contract (epic SH-1028, stories SH-1029/1030/1031, all Done, in production). CORRECTION: this is not a one-way mirror job — it's native discount authoring inside Salesforce (LWC wizard + Apex evaluation engine) for Ticketing, Membership, and Shop, with a Promotion__c record created per module and SOME kind of sync back to Veevart 2.0 (direction and mechanism NOT confirmed — see the open-question scenario below; do not read this as asserting the sync is bidirectional). The original placeholder version of this TC assumed no story/feature existed; that assumption was wrong. REMAINING OPEN QUESTION: none of SH-1029/1030/1031 specify what triggers the Veevart-2.0 sync (create only? update? archive/delete?), whether it's synchronous or async, sync error/retry behavior, or sync direction — this needs confirming with Nicolas Londoño (dev) or the PM before the sync-behavior scenarios below can leave draft."
 type: "functional"
 priority: "high"
 status: "draft"
 format: "gherkin"
 preconditions:
-  - "No Jira story exists yet for this JTBD; scenarios are smoke-level and drafted directly from the JTBD description in SH-1125."
-  - "POS Mobile has visibility into the legacy Salesforce discount object that this mirror targets."
+  - "SH-1028/1029/1030/1031 are shipped and in production."
+  - "An org has the Discount Engine Salesforce embed enabled for Ticketing, Membership, and Shop."
 scenarios:
-  - title: "Creating a discount produces a mirrored Salesforce record"
+  - title: "Creating a Ticketing discount in Salesforce persists a Promotion__c and enforces Application Mode exclusivity"
     tags:
       - "happy-path"
+      - "ticketing"
+      - "sh-1029"
     given:
-      - "an admin creates an Active discount in the Discount Engine"
+      - "an admin authors a Ticketing discount natively in the Salesforce LWC wizard with Application Mode = Code Required, an Event, and a per-person ticket limit"
     when:
-      - "the mirror process runs"
+      - "the admin saves"
     then:
-      - "a corresponding record is created in the legacy Salesforce object, visible to POS Mobile"
+      - "a Promotion__c record is created with the Ticketing rule fields persisted"
+      - "submitting Application Mode on a non-Ticketing module is rejected with APPLICATION_MODE_NOT_ALLOWED_FOR_MODULE, per SH-1029's description — UNVERIFIED: this exact error-code string is documented elsewhere in this repo (SH-844-TC-1) as NOT actually raised by design in the Veevart 2.0 API (SH-916 deviation; the real code there is APPLICATION_MODE_NOT_ALLOWED_FOR_KIND). Unclear whether SH-1029 intentionally reuses the same string in the separate Salesforce/Apex validation or whether this is a documentation inconsistency in SH-1029 itself — confirm with Nicolas Londoño or the PM before treating this assertion as final"
 
-  - title: "Archive/delete mirror behavior and sync timing are unspecified"
+  - title: "Event = All Events must be the only Ticketing rule"
+    tags:
+      - "validation"
+      - "ticketing"
+      - "sh-1029"
+    given:
+      - "a Ticketing discount already has one rule with Event = All Events"
+    when:
+      - "the admin adds a second Ticketing rule to the same discount"
+    then:
+      - "the request is rejected with TICKETING_ALL_EVENTS_MUST_BE_ONLY_RULE"
+
+  - title: "Salesforce and Veevart 2.0 evaluate identical discountOptions for the same cart"
+    tags:
+      - "happy-path"
+      - "parity"
+      - "sh-1029"
+    given:
+      - "a Promotion__c exists that is also visible to the Veevart 2.0 Discount Engine via sync"
+    when:
+      - "the same cart is evaluated once from Salesforce (Apex engine) and once from Veevart 2.0"
+    then:
+      - "discountOptions[] match in order and isBest between both engines"
+
+  - title: "Membership discount: highest totalCartDiscount wins when multiple memberships are active"
+    tags:
+      - "happy-path"
+      - "membership"
+      - "sh-1030"
+    given:
+      - "a customer holds two active Membership Programs, each with its own discount benefit"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "the engine selects the benefit with the higher totalCartDiscount, per SH-1030's description citing BR-053/058 — UNVERIFIED: unlike BR-072/073/074/075 elsewhere in this repo, these two business-rule citations have no independent Product confirmation and no other occurrence in this repo; treat as sourced-from-Jira-only until confirmed"
+
+  - title: "usagesPerMembershipPeriod resets on membership renewal"
+    tags:
+      - "edge-case"
+      - "membership"
+      - "sh-1030"
+    given:
+      - "a customer already reached usagesPerMembershipPeriod for the current period"
+    when:
+      - "their membership renews into a new period"
+    then:
+      - "the usage counter resets and the membership discount is available again, per SH-1030's description citing BR-032/032b — UNVERIFIED, same caveat as BR-053/058 above"
+
+  - title: "Shop discount: Item selector cascades from Category scope, sourced from Shop Settings"
+    tags:
+      - "happy-path"
+      - "shop"
+      - "sh-1031"
+    given:
+      - "the Shop category catalog comes from the Shop Settings custom object in Salesforce; a category has been archived"
+    when:
+      - "the admin scopes a Shop discount rule"
+    then:
+      - "archived categories are hidden from selection"
+      - "an unknown/removed category reference is rejected with SHOP_CATEGORY_NOT_FOUND"
+      - "an item that doesn't belong to the selected category is rejected with SHOP_ITEM_CATEGORY_MISMATCH"
+
+  - title: "Customer-facing code uniqueness is enforced across the Salesforce embed"
+    tags:
+      - "validation"
+      - "shop"
+      - "sh-1031"
+    given:
+      - "a customer-facing code already exists on another Active discount"
+    when:
+      - "the admin tries to reuse that code on a new Shop discount"
+    then:
+      - "the request is rejected with CUSTOMER_FACING_CODE_TAKEN"
+
+  - title: "Sync trigger, direction, and error/retry behavior are unspecified — NOT RESOLVED"
     tags:
       - "needs-clarification"
+      - "sync"
+    given:
+      - "a Promotion__c is created, later updated, and later archived/deleted in Salesforce"
     then:
-      - "OPEN QUESTIONS — no spec states whether the mirror is removed on archive/delete, nor the sync timing (sync vs async); this test case stays in draft until a story exists for this JTBD"
+      - "OPEN QUESTIONS, confirmed still open as of 2026-07-28 (none of SH-1029/1030/1031 specify these): (1) does create-only sync to Veevart 2.0, or do update and archive/delete also sync; (2) is the sync synchronous or async; (3) what happens on sync failure — retry, dead-letter, silent drop; (4) is Veevart-2.0-to-Salesforce sync also bidirectional or Salesforce-authoritative only"
+      - "confirm with Nicolas Londoño (SH-1029/1030/1031 assignee) or the PM before writing assertions here — this test case stays in draft until answered"
+
+  - title: "Courses/Camps, Groups, and Rentals are explicitly out of scope for this embed"
+    tags:
+      - "out-of-scope"
+    given:
+      - "the Discount Engine Salesforce embed (SH-1028) covers only Ticketing, Membership, and Shop"
+    then:
+      - "no discount authoring surface exists in Salesforce for Courses/Camps, Groups, or Rentals modules — deferred to V2, no test needed here"
 tags:
   - "sh-1125"
+  - "sh-1028"
   - "discount-engine"
-  - "salesforce-mirror"
-  - "real-gap"
+  - "salesforce-embed"
 parameters: []
 links:
   jira:
     - key: "SH-1125"
       url: "https://veevart.atlassian.net/browse/SH-1125"
       type: "story"
+    - key: "SH-1028"
+      url: "https://veevart.atlassian.net/browse/SH-1028"
+      type: "epic"
+    - key: "SH-1029"
+      url: "https://veevart.atlassian.net/browse/SH-1029"
+      type: "story"
+    - key: "SH-1030"
+      url: "https://veevart.atlassian.net/browse/SH-1030"
+      type: "story"
+    - key: "SH-1031"
+      url: "https://veevart.atlassian.net/browse/SH-1031"
+      type: "story"
   external: []
-estimatedDuration: 12
+estimatedDuration: 45
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  updatedAt: "2026-07-28T00:00:00Z"
+  version: 2
