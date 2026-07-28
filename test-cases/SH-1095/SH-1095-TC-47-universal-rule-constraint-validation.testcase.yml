@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "9e093562-6acd-485d-b9fa-9e9b2b412a40"
 key: "TC-47"
 title: "Universal-Rule Constraint & Rule-Level Validation"
-description: "QA coverage for SH-1095: validates the universal-vs-scoped rule constraint per module, server-forced membersOnly when a Membership Program is set, and the Audience/Ticket-Type mutual exclusion on Ticketing rules. Flags the overallUsageLimit = 0 open question from SH-1125 Pending Decisions without resolving it."
+description: "QA coverage for SH-1095: validates the universal-vs-scoped rule constraint per module, server-forced membersOnly when a Membership Program is set, and the Audience/Ticket-Type mutual exclusion on Ticketing rules. Confirms the overallUsageLimit = 0 modeling convention — invalid at input validation, and treated as zero available uses if it reaches the database anyway — resolving SH-1125 Pending Decisions #3 per Product (Martin Campo) 2026-07-27."
 type: "functional"
 priority: "high"
 status: "active"
@@ -18,6 +18,7 @@ scenarios:
       - "ticketing"
     given:
       - "a promotion has one universal Ticketing rule (eventIds = ALL, audienceTypeIds = ALL, ticketTypeIds = ALL, no membershipProgramId, no dateTimeRange)"
+      - "this scenario covers the backend/API enforcement layer for the universal-rule-must-be-only constraint; it is deliberately paired with SH-1097 TC-53, which covers the frontend/UI prevention layer for the same business rule — both layers are required (a non-UI client bypassing the disabled Add Rule button must still be rejected here), this is not redundant test coverage"
     when:
       - "the admin adds a second Ticketing rule to the same promotion"
     then:
@@ -30,6 +31,7 @@ scenarios:
       - "shop"
     given:
       - "a promotion has one universal Shop rule (categoryScope = ALL, itemScope = ALL, no membershipProgramId, no dateTimeRange)"
+      - "this scenario covers the backend/API enforcement layer for the universal-rule-must-be-only constraint; it is deliberately paired with SH-1097 TC-53, which covers the frontend/UI prevention layer for the same business rule — both layers are required (a non-UI client bypassing the disabled Add Rule button must still be rejected here), this is not redundant test coverage"
     when:
       - "the admin adds a second Shop rule to the same promotion"
     then:
@@ -57,17 +59,31 @@ scenarios:
     then:
       - "the request is rejected with TICKETING_AUDIENCE_TICKETTYPE_EXCLUSIVE"
 
-  - title: "overallUsageLimit set to exactly 0"
+  - title: "overallUsageLimit set to exactly 0 is rejected by input validation"
     tags:
-      - "edge-case"
-      - "needs-clarification"
+      - "validation"
+      - "negative"
       - "usage-limits"
     given:
-      - "a rule has overallUsageLimit explicitly set to 0"
+      - "an admin submits a rule payload with overallUsageLimit explicitly set to 0"
+    when:
+      - "the payload is validated at creation/save time"
+    then:
+      - "the request is rejected at input validation with an overallUsageLimit-specific error, before the rule is persisted"
+      - "CONFIRMED by Product (Martin Campo) 2026-07-27: null/unset means unlimited, a positive integer is a cap, and 0 is invalid input — it must never be persisted via normal validation"
+
+  - title: "A 0 that reaches the database anyway is treated as zero available uses"
+    tags:
+      - "edge-case"
+      - "confirmed-behavior"
+      - "usage-limits"
+    given:
+      - "a rule record has overallUsageLimit = 0 already persisted in the database (defensive / back-compat case, bypassing normal input validation)"
     when:
       - "a checkout attempts to redeem against this rule"
     then:
-      - "OPEN QUESTION — whether 0 blocks all redemptions or is treated as unlimited is not yet defined by Product; do not assert a specific outcome until this is resolved (SH-1125 Pending Decisions #3)"
+      - "the engine treats 0 as zero available uses and excludes the rule from evaluation"
+      - "this mirrors the existing 'Rule usage cap exhausted' behavior (SC-43), where currentUsage has already reached overallUsageLimit"
 tags:
   - "sh-1095"
   - "discount-engine"
@@ -79,10 +95,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1095"
       type: "story"
   external: []
-estimatedDuration: 30
+estimatedDuration: 35
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  updatedAt: "2026-07-28T10:00:00Z"
+  version: 3

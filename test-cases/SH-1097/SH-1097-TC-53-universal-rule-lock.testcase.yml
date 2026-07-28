@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "4f0d0a13-112a-4c50-93b5-7c413c2c0c36"
 key: "TC-53"
 title: "Universal-Rule Lock on Add Rule Button"
-description: "QA coverage for SH-1097: validates that the '+ Add Rule' button is disabled with a tooltip when the current rule is fully universal, and re-enables once the rule is scoped down."
+description: "QA coverage for SH-1097: validates that the '+ Add Rule' button is disabled with a tooltip when the current rule is fully universal, and re-enables once the rule is scoped down. This is the frontend/UI prevention layer for the universal-rule-must-be-only constraint, deliberately paired with SH-1095 TC-47, which covers the backend/API enforcement layer for the same business rule — both layers are required, this is not redundant coverage."
 type: "functional"
 priority: "medium"
 status: "active"
@@ -15,6 +15,7 @@ scenarios:
       - "validation"
     given:
       - "the admin's only rule is fully universal (all scopes ALL, no membershipProgramId, no dateTimeRange)"
+      - "this scenario covers the frontend/UI prevention layer for the universal-rule-must-be-only constraint; it is deliberately paired with SH-1095 TC-47, which covers the backend/API enforcement layer for the same business rule — both layers are required, this is not redundant test coverage"
     when:
       - "the admin looks at the '+ Add Rule' button"
     then:
@@ -45,5 +46,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  updatedAt: "2026-07-28T10:00:00Z"
+  version: 2
