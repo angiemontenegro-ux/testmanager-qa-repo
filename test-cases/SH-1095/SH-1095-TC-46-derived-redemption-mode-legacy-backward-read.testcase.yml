@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "3a4d80f0-2ef7-476a-b2d8-275840102555"
 key: "TC-46"
 title: "Derived Redemption Mode & Legacy Backward-Read"
-description: "QA coverage for SH-1095: validates that redemptionMode is computed (not authored) from whether any Rule carries a membershipProgramId, that legacy records without the unified model still read correctly, and that when a Rule has membershipProgramId AND a customer_facing_code is also set, Automatic wins — confirmed by Product (Martin Campo) 2026-07-27, resolving SH-1125 Pending Decisions #2."
+description: "QA coverage for SH-1095: validates that redemptionMode is computed (not authored) from whether any Rule carries a membershipProgramId, that legacy records without the unified model still read correctly, and flags as REOPENED/DISPUTED the question of which redemption path wins when a Rule has membershipProgramId AND a customer_facing_code is also set. Product (Martin Campo, Slack, 2026-07-27) said Automatic wins; the independent 'Taller de decisiones' architecture workshop (decision D3, later the same day) recommends the opposite (código gana) to avoid silent dead rule configuration. This is now an open conflict pending an explicit team decision — not something QA can silently resolve (SH-1125 Pending Decisions #2)."
 type: "functional"
 priority: "high"
 status: "active"
@@ -65,17 +65,18 @@ scenarios:
   - title: "Rule has membershipProgramId while the promotion also has a customer_facing_code set"
     tags:
       - "edge-case"
-      - "confirmed-behavior"
+      - "needs-clarification"
       - "derived-mode"
     given:
       - "a Rule has membershipProgramId set and the promotion also has a customer_facing_code set"
     when:
       - "the engine computes the derived redemption mode"
     then:
-      - "redemptionMode is derived as AUTOMATIC — a Rule carrying membershipProgramId forces AUTOMATIC mode and the code stops being a trigger"
-      - "the customer_facing_code persists as inert metadata on the promotion; it does not fire anything on its own"
-      - "a non-member who types the code is still excluded by the rule's scope — the same behavior already covered by the 'Non-member entering a member-gated code' scenario (SC-41)"
-      - "CONFIRMED by Product (Martin Campo) 2026-07-27: Automatic wins under the new binary derivation model."
+      - "OPEN CONFLICT — two competing answers exist and neither is authoritative yet; do not assert a specific outcome until the team makes an explicit decision"
+      - "Product (Martin Campo, Slack, 2026-07-27) said Automatic wins: a Rule carrying membershipProgramId forces AUTOMATIC mode and the customer_facing_code becomes inert metadata that does not fire anything on its own"
+      - "The independent architecture workshop ('Taller de decisiones' decision D3, later the same day) recommends the opposite — código gana (code wins) — specifically to avoid silent, undetectable dead rule configuration: an admin who intentionally set up a code-required rule targeting non-members would otherwise see that rule NEVER fire, with no warning anywhere"
+      - "The workshop's own action list flags this as a live, unresolved contradiction: TC-46 (SH-1119) is marked Done asserting the Jira-derivation rule, while R4/R5/R7 of the Excel requirements are asserted false by that same closed artifact — the team has not actually made this decision yet"
+      - "QA does not pick a side here — an explicit team decision is required before this scenario can be reasserted as confirmed-behavior"
 tags:
   - "sh-1095"
   - "discount-engine"
@@ -92,5 +93,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T16:00:00Z"
-  version: 2
+  updatedAt: "2026-07-28T10:00:00Z"
+  version: 3

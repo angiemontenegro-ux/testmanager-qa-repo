@@ -2,10 +2,10 @@ schemaVersion: "1.0"
 id: "464733d7-04b0-461d-8b19-c8674b153b47"
 key: "TC-49"
 title: "Step 4 Review — Redemption Mode Row & Error Banner"
-description: "QA coverage for SH-1096: validates the Redemption Mode row on the Review step for both item-level (Automatic / Code Required) and order-level flows, the Save-blocking error banners when a required customer-facing code is missing, the Archive and Duplicate overflow-menu actions, the Save-blocking code-collision error, and the concurrent full-wizard edit conflict error (WIZ-04, WIZ-51, WIZ-41, WIZ-50; SC-52, SC-53, SC-60, SC-61)."
+description: "QA coverage for SH-1096: validates the Redemption Mode row on the Review step for both item-level (Automatic / Code Required) and order-level flows, the Save-blocking error banners when a required customer-facing code is missing, the Archive and Duplicate overflow-menu actions, the Save-blocking code-collision error, and the concurrent full-wizard edit conflict error (WIZ-04, WIZ-51, WIZ-41, WIZ-50; SC-52, SC-53, SC-60, SC-61). NOTE: the 'Taller de decisiones' workshop (decision D10, 'El paso 4 Review se rediseña?') establishes that the CURRENT Figma design for Step 4 Review is a flat table (Code Name, Customer Facing Code, Type, Value, Status, Max number of uses, Applies to, channels) with NO Redemption Mode banner/row at all. The Redemption Mode row scenarios below assert the workshop's RECOMMENDED future redesign (D10 Option A), not something implemented in the current design or build yet — this is forward-looking coverage, not yet verifiable against a build. The Archive/Duplicate/code-collision/concurrent-edit scenarios are unaffected and come from the separate, already-approved requirements checklist."
 type: "functional"
 priority: "high"
-status: "active"
+status: "draft"
 format: "gherkin"
 preconditions:
   - "The unified wizard shell (SH-1096) is deployed to the QA/staging environment."
@@ -126,5 +126,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 2
+  updatedAt: "2026-07-28T10:00:00Z"
+  version: 3

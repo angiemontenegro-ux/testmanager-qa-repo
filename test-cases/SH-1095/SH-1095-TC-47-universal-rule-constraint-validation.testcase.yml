@@ -18,6 +18,7 @@ scenarios:
       - "ticketing"
     given:
       - "a promotion has one universal Ticketing rule (eventIds = ALL, audienceTypeIds = ALL, ticketTypeIds = ALL, no membershipProgramId, no dateTimeRange)"
+      - "this scenario covers the backend/API enforcement layer for the universal-rule-must-be-only constraint; it is deliberately paired with SH-1097 TC-53, which covers the frontend/UI prevention layer for the same business rule — both layers are required (a non-UI client bypassing the disabled Add Rule button must still be rejected here), this is not redundant test coverage"
     when:
       - "the admin adds a second Ticketing rule to the same promotion"
     then:
@@ -30,6 +31,7 @@ scenarios:
       - "shop"
     given:
       - "a promotion has one universal Shop rule (categoryScope = ALL, itemScope = ALL, no membershipProgramId, no dateTimeRange)"
+      - "this scenario covers the backend/API enforcement layer for the universal-rule-must-be-only constraint; it is deliberately paired with SH-1097 TC-53, which covers the frontend/UI prevention layer for the same business rule — both layers are required (a non-UI client bypassing the disabled Add Rule button must still be rejected here), this is not redundant test coverage"
     when:
       - "the admin adds a second Shop rule to the same promotion"
     then:
@@ -98,5 +100,5 @@ metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T16:00:00Z"
-  version: 2
+  updatedAt: "2026-07-28T10:00:00Z"
+  version: 3
