@@ -1,0 +1,105 @@
+schemaVersion: "1.0"
+id: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+key: "TC-67"
+title: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+description: "QA coverage for SH-1169 (Bug, High, Case 00176210 — 'giftshop tax report', Masonic Temple, Library & Museum), QA sub-task SH-1173, fix delivered in PR #2554. Sale Items synced from Shopify via the external V2 sync are written with Technical_Bypass_Triggers__c = true, which skips SaleItemTriggerHandler.calculateAmount(), so Amount__c keeps whatever the external payload sent (observed in production as the unit price only, ignoring quantity — Sale Item S-3094: Price 40 x Qty 3 stored as 40 instead of 120). The fix adds a narrow onBypassedBeforeWrite() hook that recomputes Amount__c and Price_Without_Tax__c as Item_Price__c * Number_of_Items_bought__c, scoped to Source__c = 'Shopify' only. Implementation lives in the AuctiferaDX Salesforce package (force-app/main/default/classes/SaleItemTriggerHandler.cls + TriggerHandler.cls). Open risks: Technical_Bypass_Triggers__c is a shared mechanism used by other objects, so the scope must stay narrow (Sale_Item + Shopify only); the external Shopify order payload is built outside this repo, so QA validates the Salesforce-side recompute, not the payload; Shopify taxes are applied at the Client Purchase level, not per Sale Item, so no per-item tax is added on top of Price x Quantity."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The SH-1169 / PR #2554 fix is deployed (SaleItemTriggerHandler.onBypassedBeforeWrite + the TriggerHandler technical-bypass hook)."
+  - "A Sale_Item__c can be created under a Client Purchase referencing a Catalog Item."
+  - "Ability to reproduce a V2-sync write, i.e. write a Sale_Item__c with Technical_Bypass_Triggers__c = true (anonymous Apex or the real Shopify sync path)."
+scenarios:
+  - title: "Shopify bypassed update recomputes Amount as Price x Quantity (S-3094)"
+    tags:
+      - "happy-path"
+      - "regression-evidence"
+      - "shopify"
+      - "case-00176210"
+      - "s-3094"
+    given:
+      - "an existing Sale_Item__c under a Client Purchase, tax-free catalog item"
+    when:
+      - "it is updated as a Shopify V2-sync write: Item_Price__c = 40, Number_of_Items_bought__c = 3, Amount__c = 40 (wrong value from the external payload), Price_Without_Tax__c = 120, Source__c = 'Shopify', Technical_Bypass_Triggers__c = true"
+    then:
+      - "Amount__c is recomputed to 120 (Item_Price__c * Number_of_Items_bought__c), not left at 40"
+      - "Price_Without_Tax__c equals 120"
+  - title: "Non-Shopify bypassed write is left untouched (scope guard)"
+    tags:
+      - "edge-case"
+      - "negative"
+      - "scope"
+    given:
+      - "an existing Sale_Item__c under a Client Purchase"
+    when:
+      - "it is updated with Item_Price__c = 40, Number_of_Items_bought__c = 3, Amount__c = 40, Technical_Bypass_Triggers__c = true and Source__c set to any non-Shopify value (e.g. 'POS Mobile')"
+    then:
+      - "Amount__c is left exactly as written (40) — the recompute hook does not fire for non-Shopify sources"
+  - title: "Normal Salesforce write (no bypass) still calculates Amount correctly"
+    tags:
+      - "regression"
+      - "pos"
+    given:
+      - "a Sale_Item__c created directly in Salesforce (e.g. POS Mobile) without Technical_Bypass_Triggers__c"
+    when:
+      - "it is inserted/updated with an Item_Price__c and Number_of_Items_bought__c"
+    then:
+      - "SaleItemTriggerHandler.calculateAmount() runs normally and Amount__c reflects Price x Quantity plus the existing tax/discount formula — unaffected by the fix"
+  - title: "Shopify bypassed write with null Item_Price or null Quantity is skipped safely"
+    tags:
+      - "edge-case"
+      - "missing-doc"
+      - "null-guard"
+    given:
+      - "a Shopify V2-sync Sale_Item__c write with Technical_Bypass_Triggers__c = true and Source__c = 'Shopify'"
+    when:
+      - "either Item_Price__c or Number_of_Items_bought__c is null on the record"
+    then:
+      - "the record is skipped by the recompute hook (no Amount__c change) and no exception (NullPointerException) is thrown"
+  - title: "General technical-bypass mechanism is unaffected for other objects"
+    tags:
+      - "regression"
+      - "bypass-mechanism"
+    given:
+      - "a bypassed before-write on any object other than Sale_Item__c (Technical_Bypass_Triggers__c = true)"
+    when:
+      - "the record is written"
+    then:
+      - "the before-pass is still skipped for that write and the flag is cleared afterwards, so a later manual edit runs triggers normally — the new hook adds no side effect for other objects"
+  - title: "Bypassed Shopify INSERT self-heals via the Client Purchase cascade (documented nuance)"
+    tags:
+      - "edge-case"
+      - "documented-nuance"
+    given:
+      - "a fresh Sale_Item__c inserted under a Client Purchase as a Shopify V2-sync write with Technical_Bypass_Triggers__c = true"
+    then:
+      - "inserting the child triggers a same-transaction Client Purchase recalculation that re-saves the child unflagged, so Amount__c ends up correct even on insert — which is why the SH-1169 reproduction is modeled as an UPDATE, not an insert"
+tags:
+  - "sh-1169"
+  - "sh-1173"
+  - "shop"
+  - "sale-item"
+  - "shopify-sync"
+  - "technical-bypass"
+parameters: []
+links:
+  jira:
+    - key: "SH-1169"
+      url: "https://veevart.atlassian.net/browse/SH-1169"
+      type: "bug"
+    - key: "SH-1173"
+      url: "https://veevart.atlassian.net/browse/SH-1173"
+      type: "qa-subtask"
+  external:
+    - key: "PR-2554"
+      url: "https://github.com/Veevarts/AuctiferaDX/pull/2554"
+      type: "pull-request"
+estimatedDuration: 30
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-31T15:51:15Z"
+  updatedBy: "codex"
+  updatedAt: "2026-07-31T15:51:15Z"
+  version: 1
