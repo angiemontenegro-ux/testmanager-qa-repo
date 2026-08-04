@@ -87,7 +87,7 @@ results:
             mimeType: image/png
             size: 166059
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: >-
@@ -95,7 +95,7 @@ results:
           SRO
         attachments: []
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the item's current stock remains 13, not 23
@@ -118,7 +118,11 @@ results:
         text: >-
           a Purchase Order has two or more existing line items already in status 'Received - Complete', each with its
           own ICH and a known stock/weighted-average-cost value
-        attachments: []
+        attachments:
+          - name: 1785874370890-step-1.png
+            path: attachments/TR-032/1785874370890-step-1.png
+            mimeType: image/png
+            size: 344172
       - order: 2
         status: not-run
         actual: ""
@@ -231,5 +235,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:05:29.660Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:10:02.628Z"
+  updatedAt: "2026-08-04T20:12:53.254Z"
 startedAt: "2026-08-04T20:06:17.157Z"
