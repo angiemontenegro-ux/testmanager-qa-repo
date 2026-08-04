@@ -61,7 +61,7 @@ results:
     status: not-run
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: >-
@@ -89,7 +89,11 @@ results:
         text: >-
           no second ICH (equivalent to the previously observed ICH-0552, Previous Stock 13 -> 23) is created for that
           SRO
-        attachments: []
+        attachments:
+          - name: 1785875305710-step-3.png
+            path: attachments/TR-033/1785875305710-step-3.png
+            mimeType: image/png
+            size: 201771
       - order: 4
         status: not-run
         actual: ""
@@ -227,5 +231,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:28:12.694Z"
+  updatedAt: "2026-08-04T20:28:26.616Z"
 startedAt: "2026-08-04T20:24:42.565Z"
