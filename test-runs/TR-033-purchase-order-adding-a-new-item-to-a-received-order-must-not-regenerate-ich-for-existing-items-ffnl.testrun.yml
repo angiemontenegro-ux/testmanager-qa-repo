@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: tr-0565f2c8-10b0-4436-9fab-8870e8a2af88
 key: TR-033
 title: "Run: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items"
-status: in-progress
+status: completed
 environment:
   name: default
 results:
@@ -263,5 +263,6 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:40:11.748Z"
+  updatedAt: "2026-08-04T20:40:12.624Z"
 startedAt: "2026-08-04T20:24:42.565Z"
+completedAt: "2026-08-04T20:40:12.624Z"
