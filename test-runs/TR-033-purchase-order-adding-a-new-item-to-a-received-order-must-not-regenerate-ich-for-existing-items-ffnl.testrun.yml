@@ -128,7 +128,11 @@ results:
         actual: ""
         phase: when
         text: a new line item is added to the same Purchase Order and the order is saved
-        attachments: []
+        attachments:
+          - name: 1785875422822-step-2.png
+            path: attachments/TR-033/1785875422822-step-2.png
+            mimeType: image/png
+            size: 409488
       - order: 3
         status: not-run
         actual: ""
@@ -235,5 +239,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:30:00.465Z"
+  updatedAt: "2026-08-04T20:30:24.400Z"
 startedAt: "2026-08-04T20:24:42.565Z"
