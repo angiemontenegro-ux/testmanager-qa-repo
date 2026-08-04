@@ -25,13 +25,13 @@ results:
             mimeType: image/png
             size: 297408
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: a new line item is added to the same Purchase Order and the order is saved
         attachments: []
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: exactly one new ICH is created, and it belongs to the newly added item only
@@ -41,7 +41,11 @@ results:
         actual: ""
         phase: then
         text: the existing item's ICH count remains 1 (no additional ICH is created for it)
-        attachments: []
+        attachments:
+          - name: 1785875223915-step-4.png
+            path: attachments/TR-033/1785875223915-step-4.png
+            mimeType: image/png
+            size: 201261
     notes: ""
     attachments: []
     defects: []
@@ -218,5 +222,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:24:42.565Z"
+  updatedAt: "2026-08-04T20:27:05.617Z"
 startedAt: "2026-08-04T20:24:42.565Z"
