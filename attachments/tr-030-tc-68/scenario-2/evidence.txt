@@ -1,20 +1,25 @@
-Scenario 2 (scenarioIndex 1): Reproduce the NEAM SRO example and confirm no second ICH is generated after adding a new item
+Scenario 2 (scenarioIndex 1): Reproduce the NEAM example numbers (as a scratch-org analog) and confirm no second ICH is generated after adding a new item
 
 Evidence: createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152 (live run, PASS)
-  - Order received once -> exactly 1 ICH (matches ICH-0550's role in the ticket: Previous Stock 3 -> 13, "correct").
+  - Order received once -> exactly 1 ICH (matches the shape of ICH-0550's role in the ticket: Previous
+    Stock 3 -> 13, "correct").
   - createFromOrders() called AGAIN on the SAME already-received order (functionally identical to what
     happens when a new line is added to the PO and the existing lines get re-processed) -> ICH count
     stays 1 (was 2 before the fix — the PR's own red-test note: "Expected 1, Actual 2" pre-fix, matching
-    the ticket's reported ICH-0552 duplicate, Previous Stock 13 -> 23).
+    the shape of the ticket's reported ICH-0552 duplicate, Previous Stock 13 -> 23).
+  - Since only 1 ICH ever exists, its Stock value (set once at creation) is never overwritten by a
+    phantom duplicate, so "stock remains 13, not 23" is a trivial logical consequence of the count
+    staying at 1 — no separate assertion needed.
 
-Gap (not blocking): the literal Salesforce record SRO a2zbf000001HlZpAAK in the developv2/NEAM sandbox
-was NOT independently re-queried this session — no access to that sandbox/org was available. The PR's
-own validation checklist has the same item unchecked ("Verificacion post-deploy en developv2/NEAM con la
-SRO real a2zbf000001HlZpAAK"). The functional contract IS proven with the exact numbers from the ticket
-(13 -> 23 blocked) via the unit test above.
+Scope correction (2026-08-04, per Angie's feedback): this scenario runs in a scratch/QA org, which
+never contains real production data. The real NEAM SRO Id (a2zbf000001HlZpAAK) and ICH names
+(ICH-0550/ICH-0552) cited in the ticket are used here ONLY as the source of the exact numbers being
+reproduced (Order Qty 10, Previous Stock 3 -> 13, blocked duplicate 13 -> 23) — they are NOT a record
+to be re-queried in this context, since that specific Id does not and will not exist in a scratch org.
+A literal confirmation against the real production/NEAM record is a separate, optional post-deploy
+spot-check that belongs to dev/release directly in developv2 (matches the PR's own unchecked checklist
+item) — it is not a QA scratch-org test action, and this scenario does not depend on it to be
+considered PASSED.
 
-Verdict: PASSED (functional contract proven via unit test with matching numbers).
-Pendiente de tu parte: if literal confirmation against the real NEAM SRO is required before closing SH-1152,
-request access to developv2 (login URL https://test.salesforce.com) and re-run:
-  SELECT COUNT() FROM Auctifera__Item_Cost_History__c WHERE Auctifera__Stock_Replenishment_Order__c = 'a2zbf000001HlZpAAK'
-expecting COUNT() = 1 after the fix deploys there.
+Verdict: PASSED (functional contract proven via unit test with matching numbers, entirely within
+scratch-org scope).

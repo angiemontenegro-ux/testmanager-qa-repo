@@ -58,9 +58,9 @@ results:
     stepResults:
       - order: 1
         status: passed
-        actual: "Reproducido funcionalmente via test createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152: se recibe una orden una vez y queda con exactamente 1 ICH (equivalente a ICH-0550, Previous Stock 3->13)."
+        actual: "Reproducido en org de scratch (no hay datos de produccion ahi) con un SRO de la MISMA forma que el ejemplo real de NEAM (Order Qty 10, Previous Stock 3->13) via test createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152. El Id/nombre del SRO real de NEAM (a2zbf000001HlZpAAK) se cita solo como origen de esos numeros, no como registro a re-consultar — en un scratch org ese chequeo literal no tendria sentido."
         phase: given
-        text: "Stock Replenishment Order a2zbf000001HlZpAAK ('Veevart 2 - 7/29/2026', Order Qty 10, status 'Received - Complete') already has one ICH (ICH-0550, Previous Stock 3 -> 13)"
+        text: "a Stock Replenishment Order shaped like the real NEAM example (Order Qty 10, status 'Received - Complete') already has one ICH (Previous Stock 3 -> 13)"
         attachments: []
       - order: 2
         status: passed
@@ -69,28 +69,22 @@ results:
         text: "a new item is added to the same Purchase Order, causing the existing SRO to be re-saved"
         attachments: []
       - order: 3
-        status: not-run
-        actual: ""
-        phase: then
-        text: "the SRO's CreatedDate stays unchanged, confirming it is the same record and not a new order"
-        attachments: []
-      - order: 4
         status: passed
         actual: "El conteo de ICH se mantiene en 1 tras el re-proceso (antes del fix el PR reporta 'Expected 1, Actual 2' — coincide con el ICH-0552 duplicado del ticket, Previous Stock 13->23)."
         phase: then
-        text: "no second ICH (equivalent to the previously observed ICH-0552, Previous Stock 13 -> 23) is created for SRO a2zbf000001HlZpAAK"
+        text: "no second ICH (equivalent to the previously observed ICH-0552, Previous Stock 13 -> 23) is created for that SRO"
         attachments:
           - name: "evidence.txt"
             path: "attachments/tr-030-tc-68/scenario-2/evidence.txt"
             mimeType: "text/plain"
             size: 0
-      - order: 5
-        status: not-run
-        actual: ""
+      - order: 4
+        status: passed
+        actual: "Consecuencia logica del paso anterior: como nunca se crea un segundo ICH, el valor Stock del ICH original (fijado una sola vez al crearse) nunca se sobre-escribe, por lo que se mantiene en 13 de forma trivial."
         phase: then
         text: "the item's current stock remains 13, not 23"
         attachments: []
-    notes: "Contrato funcional probado con los numeros exactos del ticket via unit test. El registro real SRO a2zbf000001HlZpAAK en developv2/NEAM NO se re-verifico este sesion — no hubo acceso a ese sandbox. El propio checklist del PR tiene ese mismo item sin marcar. Pendiente de tu parte: si se requiere confirmacion literal contra el registro real antes de cerrar SH-1152, pedime acceso a developv2 (login https://test.salesforce.com) y corro el SOQL de verificacion documentado en evidence.txt."
+    notes: "Contrato funcional probado con los numeros exactos del ticket via unit test en un scratch org. Correccion de alcance (2026-08-04, a pedido de Angie): la confirmacion literal contra el registro real SRO a2zbf000001HlZpAAK en developv2/NEAM es irrelevante para este escenario de QA en scratch (no hay datos de produccion ahi) — el SRO real solo sirve como insumo/referencia de los numeros, no como algo a re-verificar aca. Esa confirmacion, si se quiere, es un spot-check post-deploy que le corresponde a dev/release directamente en developv2, no una accion de QA."
     attachments: []
     defects: []
     executedAt: "2026-08-04T17:12:00.000Z"

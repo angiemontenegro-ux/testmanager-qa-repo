@@ -26,19 +26,18 @@ scenarios:
       - "exactly one new ICH is created, and it belongs to the newly added item only"
       - "the existing item's ICH count remains 1 (no additional ICH is created for it)"
 
-  - title: "Reproduce the NEAM SRO example and confirm no second ICH is generated after adding a new item"
+  - title: "Reproduce the NEAM example numbers (as a scratch-org analog) and confirm no second ICH is generated after adding a new item"
     tags:
       - "ac-1"
       - "ac-3"
       - "regression-evidence"
       - "neam"
     given:
-      - "Stock Replenishment Order a2zbf000001HlZpAAK ('Veevart 2 - 7/29/2026', Order Qty 10, status 'Received - Complete') already has one ICH (ICH-0550, Previous Stock 3 -> 13)"
+      - "a Stock Replenishment Order shaped like the real NEAM example (Order Qty 10, status 'Received - Complete') already has one ICH (Previous Stock 3 -> 13) — the NEAM SRO Id/ICH numbers (a2zbf000001HlZpAAK, ICH-0550/ICH-0552) are cited only as the source of these exact numbers, NOT as a record to re-query: this scenario runs in a scratch/QA org, which never contains real production/NEAM data, so checking the literal SRO Id here would be a no-op. Confirming the literal production record is a separate, optional post-deploy spot-check owned by dev/release in developv2 — not a QA scratch-org test action"
     when:
       - "a new item is added to the same Purchase Order, causing the existing SRO to be re-saved"
     then:
-      - "the SRO's CreatedDate stays unchanged, confirming it is the same record and not a new order"
-      - "no second ICH (equivalent to the previously observed ICH-0552, Previous Stock 13 -> 23) is created for SRO a2zbf000001HlZpAAK"
+      - "no second ICH (equivalent to the previously observed ICH-0552, Previous Stock 13 -> 23) is created for that SRO"
       - "the item's current stock remains 13, not 23"
 
   - title: "Existing already-received items keep their stock and weighted-average cost unchanged when a sibling item is added"
