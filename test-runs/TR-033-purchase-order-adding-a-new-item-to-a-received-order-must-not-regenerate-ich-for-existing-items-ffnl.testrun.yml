@@ -12,7 +12,7 @@ results:
     testCaseFilePath: test-cases/SH-1152/SH-1152-TC-68-purchase-order-add-item-duplicate-ich.testcase.yml
     scenarioTitle: Adding a new item to a received Purchase Order creates exactly one ICH, scoped to the new item only
     scenarioIndex: 0
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
         status: passed
@@ -37,7 +37,7 @@ results:
         text: exactly one new ICH is created, and it belongs to the newly added item only
         attachments: []
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the existing item's ICH count remains 1 (no additional ICH is created for it)
@@ -49,6 +49,7 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:27:09.779Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
@@ -70,7 +71,11 @@ results:
           scenario runs in a scratch/QA org, which never contains real production/NEAM data, so checking the literal SRO
           Id here would be a no-op. Confirming the literal production record is a separate, optional post-deploy
           spot-check owned by dev/release in developv2 — not a QA scratch-org test action
-        attachments: []
+        attachments:
+          - name: 1785875291101-step-1.png
+            path: attachments/TR-033/1785875291101-step-1.png
+            mimeType: image/png
+            size: 368514
       - order: 2
         status: not-run
         actual: ""
@@ -211,16 +216,16 @@ results:
     defects: []
 summary:
   total: 5
-  passed: 0
+  passed: 1
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 5
-  passRate: 0
+  notRun: 4
+  passRate: 20
 history: []
 metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:27:05.617Z"
+  updatedAt: "2026-08-04T20:28:12.694Z"
 startedAt: "2026-08-04T20:24:42.565Z"
