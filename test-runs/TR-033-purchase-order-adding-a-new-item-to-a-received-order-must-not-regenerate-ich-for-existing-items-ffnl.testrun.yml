@@ -214,18 +214,22 @@ results:
     testCaseFilePath: test-cases/SH-1152/SH-1152-TC-68-purchase-order-add-item-duplicate-ich.testcase.yml
     scenarioTitle: Adding a new item to a Purchase Order that is not yet Received does not prematurely create any ICH
     scenarioIndex: 4
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: >-
           a Purchase Order has one existing line item in a status other than 'Received - Complete' (e.g. Draft or
           Pending) with no ICH yet
-        attachments: []
+        attachments:
+          - name: 1785875905773-step-1.png
+            path: attachments/TR-033/1785875905773-step-1.png
+            mimeType: image/png
+            size: 224388
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: >-
@@ -233,7 +237,7 @@ results:
           - Complete'
         attachments: []
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no ICH is created for either the existing item or the new item
@@ -241,18 +245,19 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:38:21.294Z"
 summary:
   total: 5
-  passed: 4
+  passed: 5
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 1
-  passRate: 80
+  notRun: 0
+  passRate: 100
 history: []
 metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:37:07.640Z"
+  updatedAt: "2026-08-04T20:38:27.450Z"
 startedAt: "2026-08-04T20:24:42.565Z"
