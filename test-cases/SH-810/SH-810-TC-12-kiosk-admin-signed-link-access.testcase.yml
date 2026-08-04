@@ -136,6 +136,7 @@ scenarios:
       - "no JWT is generated"
       - "no redirect to the Kiosk Admin URL occurs"
 tags:
+  - "automation"
   - "sh-810"
   - "kiosk-admin"
   - "security"
@@ -151,6 +152,6 @@ estimatedDuration: 55
 metadata:
   createdBy: "codex"
   createdAt: "2026-06-01T00:00:00Z"
-  updatedBy: "codex"
-  updatedAt: "2026-06-01T00:00:00Z"
-  version: 1
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 2

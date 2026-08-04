@@ -1,0 +1,166 @@
+schemaVersion: "1.0"
+id: "98d6cb9d-3764-4990-a186-2518d1129354"
+key: "TC-46"
+title: "Kiosk Admin management — Locations, Kiosks and Configuration"
+description: "QA coverage for SH-1106: functional/CRUD automation of the Kiosk Admin SPA (Locations home, per-location Kiosks list, and Kiosk Configuration). Complements TC-12 (SH-810), which covers signed-link authentication. Automated end-to-end in the automation-test repo (Cucumber + Playwright); the authenticated session is obtained via a real Salesforce-signed link (no signing secret required)."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "An authenticated Kiosk Admin session exists, obtained via the Salesforce 'Open Kiosk Admin' signed link (no signing secret needed)."
+  - "The Kiosk Admin URL is https://admin.kiosk.dev.veev.veevartapp.com/ and the backend API is https://api.kiosk.dev.veev.veevartapp.com."
+  - "Test data (locations and kiosks) is seeded and torn down via the admin API, not via manually-created rows."
+scenarios:
+  - title: "Locations home renders the list and the primary action"
+    tags:
+      - "automation"
+      - "locations"
+      - "smoke"
+    given:
+      - "the admin is authenticated in the Kiosk Admin"
+    when:
+      - "the admin opens the Locations home at #locations"
+    then:
+      - "the Create Location button is visible"
+      - "the locations list (role=grid) shows the columns Name, Created, Kiosks and Actions"
+
+  - title: "Create a location and see it listed with zero kiosks"
+    tags:
+      - "automation"
+      - "locations"
+      - "create"
+    given:
+      - "the admin is on the Locations home"
+    when:
+      - "the admin clicks Create Location, enters a unique name and clicks Create"
+    then:
+      - "the Create Location modal closes"
+      - "the created location appears in the list"
+      - "the created location shows 0 in the Kiosks column"
+
+  - title: "Create Location is blocked with an empty name"
+    tags:
+      - "automation"
+      - "locations"
+      - "validation"
+      - "needs-behavior-confirm"
+    given:
+      - "the admin is on the Locations home"
+    when:
+      - "the admin opens the Create Location modal and clicks Create without entering a name"
+    then:
+      - "no location is created"
+      - "the Create Location modal stays open"
+
+  - title: "View Kiosks navigates to a location's kiosks list"
+    tags:
+      - "automation"
+      - "locations"
+      - "navigation"
+    given:
+      - "a location with at least one kiosk exists (seeded via API)"
+    when:
+      - "the admin clicks View Kiosks on that location row"
+    then:
+      - "the URL matches #kiosks/loc_<id>"
+      - "the Registered Kiosks list is shown"
+
+  - title: "Kiosks list renders columns and per-row actions"
+    tags:
+      - "automation"
+      - "kiosks"
+      - "smoke"
+    given:
+      - "a location with 2 kiosks exists (seeded via API)"
+    when:
+      - "the admin opens that location's kiosks list"
+    then:
+      - "the kiosks list shows the columns ID, Terminal ID, Location, Status, Last Seen and Actions"
+      - "the Register New Kiosk button is visible"
+      - "every kiosk row exposes a View and a Deactivate action"
+
+  - title: "A freshly registered kiosk shows Active status and no last seen"
+    tags:
+      - "automation"
+      - "kiosks"
+      - "status"
+    given:
+      - "a location with 1 freshly registered kiosk exists (seeded via API)"
+    when:
+      - "the admin opens that location's kiosks list"
+    then:
+      - "the first kiosk row status is Active"
+      - "the first kiosk row Last Seen shows the empty marker (—)"
+
+  - title: "Deactivating a kiosk removes it from Active"
+    tags:
+      - "automation"
+      - "kiosks"
+      - "deactivate"
+      - "destructive"
+    given:
+      - "a location with 1 kiosk exists (seeded via API)"
+    when:
+      - "the admin opens the kiosks list and deactivates the first kiosk"
+    then:
+      - "that kiosk no longer shows status Active"
+
+  - title: "Configuration page shows the kiosk settings"
+    tags:
+      - "automation"
+      - "config"
+      - "smoke"
+    given:
+      - "a kiosk exists with idle 120s, warning 30s and max session 600s (seeded via API)"
+    when:
+      - "the admin opens that kiosk's configuration"
+    then:
+      - "the settings show Idle Timeout 120s, Warning Threshold 30s, Max Session Duration 600s and Channel Kiosk"
+      - "the Provisioning panel offers a Regenerate Code action"
+
+  - title: "Editing a kiosk pre-loads current values and persists changes"
+    tags:
+      - "automation"
+      - "config"
+      - "edit"
+    given:
+      - "a kiosk exists with idle 120s, warning 30s and max session 600s (seeded via API)"
+    when:
+      - "the admin opens the Edit Kiosk modal, sets idle 90, warning 20 and max session 480, and saves"
+    then:
+      - "the Edit Kiosk form initially pre-loads idle 120, warning 30 and max session 480"
+      - "after saving, the settings show Idle Timeout 90s, Warning Threshold 20s and Max Session Duration 480s"
+
+  - title: "Regenerating the provisioning code issues a different code"
+    tags:
+      - "automation"
+      - "config"
+      - "provisioning"
+      - "destructive"
+    given:
+      - "a kiosk exists (seeded via API) and its current provisioning code is captured via API"
+    when:
+      - "the admin opens the configuration and clicks Regenerate Code"
+    then:
+      - "a new provisioning code is issued"
+      - "the new provisioning code differs from the captured one"
+tags:
+  - "automation"
+  - "sh-1106"
+  - "kiosk-admin"
+  - "management"
+parameters: []
+links:
+  jira:
+    - key: "SH-1106"
+      url: "https://veevart.atlassian.net/browse/SH-1106"
+      type: "task"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-07-16T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-07-16T00:00:00Z"
+  version: 1
