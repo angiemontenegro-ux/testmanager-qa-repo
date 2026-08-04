@@ -167,7 +167,7 @@ results:
     status: not-run
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a Stock Replenishment Order already has exactly one ICH
@@ -179,7 +179,11 @@ results:
         text: >-
           any operation capable of triggering ICH creation or regeneration runs against that same order — including the
           add-a-new-item flow, a direct re-save of the order, and the existing Received-Complete status-transition path
-        attachments: []
+        attachments:
+          - name: 1785875605529-step-2.png
+            path: attachments/TR-033/1785875605529-step-2.png
+            mimeType: image/png
+            size: 290928
       - order: 3
         status: not-run
         actual: ""
@@ -241,5 +245,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:32:03.122Z"
+  updatedAt: "2026-08-04T20:33:27.263Z"
 startedAt: "2026-08-04T20:24:42.565Z"
