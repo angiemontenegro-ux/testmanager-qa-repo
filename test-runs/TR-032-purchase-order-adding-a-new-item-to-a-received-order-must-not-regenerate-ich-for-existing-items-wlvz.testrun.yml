@@ -71,7 +71,11 @@ results:
           scenario runs in a scratch/QA org, which never contains real production/NEAM data, so checking the literal SRO
           Id here would be a no-op. Confirming the literal production record is a separate, optional post-deploy
           spot-check owned by dev/release in developv2 — not a QA scratch-org test action
-        attachments: []
+        attachments:
+          - name: 1785874157686-step-1.png
+            path: attachments/TR-032/1785874157686-step-1.png
+            mimeType: image/png
+            size: 188502
       - order: 2
         status: not-run
         actual: ""
@@ -223,5 +227,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:05:29.660Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:08:18.657Z"
+  updatedAt: "2026-08-04T20:09:19.414Z"
 startedAt: "2026-08-04T20:06:17.157Z"
