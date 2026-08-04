@@ -193,7 +193,11 @@ results:
         actual: ""
         phase: then
         text: no additional ICH is created for that order regardless of which path triggered the operation
-        attachments: []
+        attachments:
+          - name: 1785875741521-step-3.png
+            path: attachments/TR-033/1785875741521-step-3.png
+            mimeType: image/png
+            size: 293739
       - order: 4
         status: not-run
         actual: ""
@@ -249,5 +253,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:35:10.877Z"
+  updatedAt: "2026-08-04T20:35:42.776Z"
 startedAt: "2026-08-04T20:24:42.565Z"
