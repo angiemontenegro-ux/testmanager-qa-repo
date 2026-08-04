@@ -1,0 +1,102 @@
+schemaVersion: "1.0"
+id: "7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5"
+key: "TC-68"
+title: "Purchase Order — adding a new item to a received order must not regenerate ICH for existing items"
+description: "QA coverage for SH-1152 (adding a new item to a received Purchase Order regenerates ICH for existing items and re-adds their stock). Implementation domain: AuctiferaDX Salesforce package (Auctifera namespace), Apex trigger handler StockReplenishmentOrderTriggerHandler.cls + ItemCostHistoryService.cls. Confirmed in the developv2 sandbox (NEAM) with SRO a2zbf000001HlZpAAK, which produced ICH-0550 (correct, Previous Stock 3->13) and a duplicate ICH-0552 (incorrect, Previous Stock 13->23) after the order was re-modified to add a new line item. Root-cause note from the ticket: the only anti-duplicate guard found in code is getOrdersBecomingReceivedComplete() on the afterUpdate status-transition path; ItemCostHistoryService.createFromOrders() itself performs no existence check before inserting ICHs, so any path that re-triggers ICH creation outside a genuine status transition (such as adding a new item to an already-received order) can bypass the guard. Sibling sub-task SH-1153 (quantity update on a received order not reflected in the ICH) touches the same code paths but is a separate, not-started fix — out of scope here, flagged as a regression-risk callout only."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "A Purchase Order exists with at least one line item (Stock Replenishment Order) already in status 'Received - Complete', with exactly one Item Cost History (ICH) created for it."
+  - "Access to the developv2 sandbox (NEAM) or an equivalent sandbox with Auctifera Shop/Purchase Order data to reproduce and validate the fix."
+  - "Confirm which handler code version is deployed to the validation sandbox before asserting pass/fail — the ticket flags that the guard on the update path may be older than the fix under test."
+scenarios:
+  - title: "Adding a new item to a received Purchase Order creates exactly one ICH, scoped to the new item only"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "purchase-order"
+      - "item-cost-history"
+    given:
+      - "a Purchase Order has one existing line item in status 'Received - Complete' with exactly one ICH"
+    when:
+      - "a new line item is added to the same Purchase Order and the order is saved"
+    then:
+      - "exactly one new ICH is created, and it belongs to the newly added item only"
+      - "the existing item's ICH count remains 1 (no additional ICH is created for it)"
+
+  - title: "Reproduce the NEAM SRO example and confirm no second ICH is generated after adding a new item"
+    tags:
+      - "ac-1"
+      - "ac-3"
+      - "regression-evidence"
+      - "neam"
+    given:
+      - "Stock Replenishment Order a2zbf000001HlZpAAK ('Veevart 2 - 7/29/2026', Order Qty 10, status 'Received - Complete') already has one ICH (ICH-0550, Previous Stock 3 -> 13)"
+    when:
+      - "a new item is added to the same Purchase Order, causing the existing SRO to be re-saved"
+    then:
+      - "the SRO's CreatedDate stays unchanged, confirming it is the same record and not a new order"
+      - "no second ICH (equivalent to the previously observed ICH-0552, Previous Stock 13 -> 23) is created for SRO a2zbf000001HlZpAAK"
+      - "the item's current stock remains 13, not 23"
+
+  - title: "Existing already-received items keep their stock and weighted-average cost unchanged when a sibling item is added"
+    tags:
+      - "ac-2"
+      - "regression"
+      - "weighted-average-cost"
+    given:
+      - "a Purchase Order has two or more existing line items already in status 'Received - Complete', each with its own ICH and a known stock/weighted-average-cost value"
+    when:
+      - "a new line item is added to the same Purchase Order and the order is saved"
+    then:
+      - "none of the existing items' stock values change"
+      - "none of the existing items' weighted-average cost values change"
+      - "none of the existing items gain an additional ICH record"
+
+  - title: "The anti-duplicate ICH guard applies uniformly across all creation/regeneration paths, not only the status-transition (update) path"
+    tags:
+      - "ac-3"
+      - "edge-case"
+      - "missing-doc"
+      - "regression"
+    given:
+      - "a Stock Replenishment Order already has exactly one ICH"
+    when:
+      - "any operation capable of triggering ICH creation or regeneration runs against that same order — including the add-a-new-item flow, a direct re-save of the order, and the existing Received-Complete status-transition path"
+    then:
+      - "no additional ICH is created for that order regardless of which path triggered the operation"
+      - "the order continues to have at most one ICH after each operation"
+
+  - title: "Adding a new item to a Purchase Order that is not yet Received does not prematurely create any ICH"
+    tags:
+      - "negative"
+      - "no-op"
+      - "purchase-order"
+    given:
+      - "a Purchase Order has one existing line item in a status other than 'Received - Complete' (e.g. Draft or Pending) with no ICH yet"
+    when:
+      - "a new line item is added to the same Purchase Order and the order is saved without transitioning to 'Received - Complete'"
+    then:
+      - "no ICH is created for either the existing item or the new item"
+tags:
+  - "sh-1152"
+  - "shop"
+  - "purchase-order"
+  - "item-cost-history"
+  - "inventory"
+parameters: []
+links:
+  jira:
+    - key: "SH-1152"
+      url: "https://veevart.atlassian.net/browse/SH-1152"
+      type: "story"
+  external: []
+estimatedDuration: 60
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-08-04T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-08-04T00:00:00Z"
+  version: 1

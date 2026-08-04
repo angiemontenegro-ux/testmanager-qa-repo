@@ -1,0 +1,36 @@
+Executed live via `sf apex run test` against scratch org AuctiferaDX__sh1169 (namespace Auctifera,
+expires 2026-08-08). PR branch bug/duplicate-ich-received-po-SH-1152 checked out in an isolated git
+worktree (/tmp/auctiferadx-sh1152-pr) and deployed with:
+  sf project deploy start --source-dir force-app/main/shop --target-org AuctiferaDX__sh1169 --wait 15
+Deploy result: Succeeded (force-app/main/shop bundle).
+
+=== Run 1: ItemCostHistoryServiceTest (includes the 3 new SH-1152 tests) ===
+sf apex run test --tests ItemCostHistoryServiceTest --target-org AuctiferaDX__sh1169 --result-format human --wait 15
+
+Tests Ran: 31
+Outcome: Passed
+Pass Rate: 100%
+Fail Rate: 0%
+Test Run Id: 707O40000CpoxaT
+Org Id: 00DO400000bwoOvMAI
+
+Relevant lines:
+Auctifera.ItemCostHistoryServiceTest.createFromOrders_createsICHOnlyForTheNewLineInAMixedBatch_SH1152         Pass  2137
+Auctifera.ItemCostHistoryServiceTest.createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152   Pass  1146
+Auctifera.ItemCostHistoryServiceTest.createFromOrders_recreatesOwnICHWhenOnlyAVariantSeedICHSharesTheSRO_SH1152 Pass 3048
+
+=== Run 2: StockReplenishOrderTriggerHandlerTest (blast-radius regression — the single production caller) ===
+sf apex run test --tests StockReplenishOrderTriggerHandlerTest --target-org AuctiferaDX__sh1169 --result-format human --wait 15
+
+Tests Ran: 54
+Outcome: Passed
+Pass Rate: 100%
+Fail Rate: 0%
+Test Run Id: 707O40000CpqgeL
+Org Id: 00DO400000bwoOvMAI
+
+Notably green: removesICHWhenOrderLeavesReceivedCompleteTest, editLastOrderRecalculatesICHTest,
+doesNotCreateICHWhenOrderIsNotReceivedCompleteTest, massiveTest, outOfStockTest1/2 — no regression
+in the leave/re-enter Received-Complete cycle, the bulk/batch path, or the non-received no-op path.
+
+Total: 85/85 tests passed across both classes (0 failures).

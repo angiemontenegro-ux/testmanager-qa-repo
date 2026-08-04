@@ -1,0 +1,19 @@
+Scenario 4 (scenarioIndex 3): The anti-duplicate ICH guard applies uniformly across all creation/regeneration paths, not only the status-transition (update) path
+
+Evidence:
+1. Code read: the guard (filterOrdersWithoutExistingICH) is centralized INSIDE createFromOrders() itself
+   (ItemCostHistoryService.cls), not in the trigger handler's status-transition check. createFromOrders()
+   is the single production chokepoint called from:
+     - afterInsert() [unconditional, all new stocks]
+     - afterUpdate() [stockOrdersBecomingReceivedComplete — the original, narrower guard]
+     - afterUndelete() -> delegates to afterInsert() (StockReplenishmentOrderTriggerHandler.cls:535)
+   Because the guard lives at the chokepoint, all three paths are covered uniformly by construction —
+   this directly answers the ticket's own open question ("verify which handler version is deployed...
+   the guard exists on the update path... may be hitting a create/re-process path that bypasses it").
+2. createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152 (live, PASS) — proves the
+   guard fires on a direct re-call (the add-new-item re-processing path), not just the update-transition path.
+3. createFromOrders_recreatesOwnICHWhenOnlyAVariantSeedICHSharesTheSRO_SH1152 (live, PASS) — proves the
+   guard does NOT over-suppress: a legitimate re-creation (order leaves and re-enters Received-Complete)
+   still works even when a variant-seed ICH sharing the same SRO survives.
+
+Verdict: PASSED

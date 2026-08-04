@@ -1,0 +1,15 @@
+SH-1152 / TC-68 / TR-030 — Technical + Security regression plan (built BEFORE execution, step 5)
+
+| Item                                                                              | Type      | Risk   | Check method                                                                                           | Verdict (see regression-results.txt) |
+|------------------------------------------------------------------------------------|-----------|--------|----------------------------------------------------------------------------------------------------------|------|
+| afterInsert() calls createItemCostHistories(stocks) unconditionally on ALL inserts  | Technical | Low    | Code read: a just-inserted Id cannot already have an ICH within the same transaction; filter is a no-op | TBD  |
+| afterUpdate() -> stockOrdersBecomingReceivedComplete (the ORIGINAL guarded path)    | Technical | Medium | Confirm leaving-then-re-entering Received-Complete still creates a fresh ICH (deletion + guard interplay) | TBD |
+| afterUndelete() delegates to afterInsert() (line 535)                              | Technical | Low    | Code read + structural coverage (chokepoint fix covers it); no dedicated undelete test exists            | TBD  |
+| seedVariantsFromParentICH / recalculateICHsFromOrders — sibling ICH methods         | Technical | Low    | grep confirms neither calls createFromOrders; untouched by this PR                                       | TBD  |
+| 1 extra SOQL added in createFromOrders (filterOrdersWithoutExistingICH)            | Technical | Low    | Code read: bulkified `IN :receivedOrderIds`, no loop-SOQL, single query                                  | TBD  |
+| New SOQL: SELECT ... FROM Auctifera__Item_Cost_History__c WHERE ... IN :receivedOrderIds | Security  | Low  | Bind variable used, no string concatenation (A03 Injection)                                              | TBD  |
+| New business rule (dedup guard) — could over- or under-suppress legitimate ICH creation | Security/Design | Medium | Dev added a dedicated scope-guard test (variant-seed sharing SRO) precisely for the over-suppression risk | TBD |
+| Secrets / credentials in diff                                                      | Security  | Low    | grep for password/api-key/secret/token/bearer/.env/-----BEGIN                                            | TBD  |
+| PII in new debug/logging statements                                                | Security  | Low    | grep for system.debug/console.log in the diff                                                            | TBD  |
+| Sharing model / FLS on the new SOQL                                                 | Security  | Low    | Class remains `with sharing`; no AccessLevel.SYSTEM_MODE or WITH SECURITY_ENFORCED added by this diff     | TBD  |
+| Dependencies (package.json / requirements)                                         | Security  | N/A    | Apex-only PR, no dependency manifest touched                                                             | N/A  |

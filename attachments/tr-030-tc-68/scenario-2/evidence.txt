@@ -1,0 +1,20 @@
+Scenario 2 (scenarioIndex 1): Reproduce the NEAM SRO example and confirm no second ICH is generated after adding a new item
+
+Evidence: createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152 (live run, PASS)
+  - Order received once -> exactly 1 ICH (matches ICH-0550's role in the ticket: Previous Stock 3 -> 13, "correct").
+  - createFromOrders() called AGAIN on the SAME already-received order (functionally identical to what
+    happens when a new line is added to the PO and the existing lines get re-processed) -> ICH count
+    stays 1 (was 2 before the fix — the PR's own red-test note: "Expected 1, Actual 2" pre-fix, matching
+    the ticket's reported ICH-0552 duplicate, Previous Stock 13 -> 23).
+
+Gap (not blocking): the literal Salesforce record SRO a2zbf000001HlZpAAK in the developv2/NEAM sandbox
+was NOT independently re-queried this session — no access to that sandbox/org was available. The PR's
+own validation checklist has the same item unchecked ("Verificacion post-deploy en developv2/NEAM con la
+SRO real a2zbf000001HlZpAAK"). The functional contract IS proven with the exact numbers from the ticket
+(13 -> 23 blocked) via the unit test above.
+
+Verdict: PASSED (functional contract proven via unit test with matching numbers).
+Pendiente de tu parte: if literal confirmation against the real NEAM SRO is required before closing SH-1152,
+request access to developv2 (login URL https://test.salesforce.com) and re-run:
+  SELECT COUNT() FROM Auctifera__Item_Cost_History__c WHERE Auctifera__Stock_Replenishment_Order__c = 'a2zbf000001HlZpAAK'
+expecting COUNT() = 1 after the fix deploys there.

@@ -1,0 +1,12 @@
+Scenario 3 (scenarioIndex 2): Existing already-received items keep their stock and weighted-average cost unchanged when a sibling item is added
+
+Evidence:
+1. createFromOrders_createsICHOnlyForTheNewLineInAMixedBatch_SH1152 (live run, PASS) — existingOrder's
+   ICH count stays exactly 1 after the batch that also processes newOrder.
+2. Code-path proof (ItemCostHistoryService.cls, createFromOrders): filterOrdersWithoutExistingICH runs
+   FIRST and removes existingOrder from `ordersWithoutICH` entirely. shopItemIds/variantIds,
+   loadPreICHSnapshots, and buildICHs are all computed from `ordersWithoutICH` only (post-fix diff,
+   lines 24-32) — existingOrder never reaches any snapshot-loading or DML step in this call. No write
+   touches its ICH, so its stock and weighted-average cost fields are structurally guaranteed unchanged.
+
+Verdict: PASSED (test + code proof)

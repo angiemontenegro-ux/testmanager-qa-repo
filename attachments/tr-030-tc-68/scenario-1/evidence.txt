@@ -1,0 +1,12 @@
+Scenario 1 (scenarioIndex 0): Adding a new item to a received Purchase Order creates exactly one ICH, scoped to the new item only
+
+Evidence: createFromOrders_createsICHOnlyForTheNewLineInAMixedBatch_SH1152 (live run, PASS)
+  - existingOrder (already Received-Complete, has its own ICH) + newOrder (Draft -> flipped to
+    Received-Complete) passed to createFromOrders() in the SAME batch — this is the literal
+    "add a new line to an already-received PO" scenario.
+  - Assert: existingOrder keeps exactly 1 ICH (COUNT() query) -> confirmed 1.
+  - Assert: newOrder gets exactly 1 new ICH -> confirmed 1.
+  - Assert: newOrder's ICH Previous_Stock = 10 (the pre-batch on-hand stock, not double-counted) -> confirmed.
+  - Assert: newOrder's ICH Stock = 15 (10 + incoming 5) -> confirmed.
+
+Verdict: PASSED

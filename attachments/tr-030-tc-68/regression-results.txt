@@ -1,0 +1,28 @@
+SH-1152 / TC-68 / TR-030 — Technical + Security regression results (step 8)
+
+TECHNICAL
+
+| Item                                                                              | Check method executed                                                                                  | Verdict |
+|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|---------|
+| afterInsert() unconditional call — filter is a no-op for brand-new inserts         | Live run: StockReplenishOrderTriggerHandlerTest insert-path tests (shopItemCostCalculationInsertTest*, itemVariantOrderRollUpTest*, massiveTest) — 54/54 pass | PASS |
+| afterUpdate() status-transition path (leave -> re-enter Received-Complete)         | Live run: removesICHWhenOrderLeavesReceivedCompleteTest + editLastOrderRecalculatesICHTest (existing, both pass) + dev's new createFromOrders_recreatesOwnICHWhenOnlyAVariantSeedICHSharesTheSRO_SH1152 (proves recreation works even with a shared-SRO variant-seed ICH present) | PASS |
+| afterUndelete() -> afterInsert() delegation                                        | Code read confirms delegation (line 535); fix lives in createFromOrders itself (the chokepoint both afterInsert and afterUndelete funnel through), so coverage is structural. No dedicated undelete-specific test exists — flagged as a minor test-coverage gap (Rule 12), not a regression, since the guard's location makes the path structurally safe | PASS (structural) — gap noted |
+| seedVariantsFromParentICH / recalculateICHsFromOrders untouched                    | grep confirms neither method calls createFromOrders; PR diff does not touch either method                | PASS |
+| 1 extra SOQL, bulkified                                                           | Code read: single `IN :receivedOrderIds` query, no loop-SOQL                                              | PASS |
+
+Technical: 5/5 PASS (1 with a noted structural-coverage caveat, not a fail)
+
+SECURITY
+
+| Item                                                                | Check method executed                                                                                       | Verdict |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|---------|
+| New SOQL injection risk                                              | `grep -iE "(SELECT\|INSERT\|UPDATE\|DELETE).*\+.*'"` against the PR diff only (not full branch history) — no hits | PASS |
+| New business rule over/under-suppression                            | Dedicated dev test for the over-suppression edge case (variant-seed sharing SRO); 3/3 new tests pass live       | PASS |
+| Secrets / credentials in diff                                        | `grep -iE "(password\|api[_-]?key\|secret\|token\|bearer\|\.env\|-----BEGIN)"` against the PR diff — no hits    | PASS |
+| PII in logging                                                       | `grep -iE "system\.debug\|console\.log"` against the diff — no hits (no new logging added)                     | PASS |
+| Sharing model / FLS                                                  | `with sharing` unchanged; no `AccessLevel.SYSTEM_MODE` / `WITH SECURITY_ENFORCED` added                         | PASS |
+| Dependencies                                                         | N/A — no package.json/requirements/lockfile in an Apex-only PR                                                  | N/A  |
+
+Security: 5/5 PASS · 0 High/Critical blockers · 1 N/A (justified)
+
+No defects raised. No security blockers. See owasp-top10-scan.txt for the full OWASP pass.

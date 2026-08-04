@@ -1,0 +1,29 @@
+PR #2559 — fix(shop): prevent duplicate ich when re-processing received stock orders SH-1152
+Branch: bug/duplicate-ich-received-po-SH-1152
+Repo: Veevarts/AuctiferaDX
+
+File modified: force-app/main/shop/unitTests/ItemCostHistoryServiceTest.cls
+3 new tests added (all @IsTest static void):
+
+1. createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152
+   - Direct repro of the ticket's symptom: receives an order (1st ICH), re-calls createFromOrders
+     on the SAME already-received order (what happens when a new line is added to the PO), asserts
+     ICH count stays 1 (was 2 before the fix, per the PR's own red-test note: "Expected 1, Actual 2").
+   - Maps to: AC-1, AC-3 (TC-68 Scenario 2, Scenario 4)
+
+2. createFromOrders_recreatesOwnICHWhenOnlyAVariantSeedICHSharesTheSRO_SH1152
+   - Scope-guard regression test: proves the fix matches on (SRO + ShopItem + Variant) scope, not
+     SRO alone. A variant-seed ICH sharing the same SRO must NOT block re-creation of the order's
+     OWN ICH after it is deleted and the order re-enters Received-Complete.
+   - Maps to: AC-3 (TC-68 Scenario 4) — this is dev-added extra coverage beyond the ticket's literal
+     ACs, protecting against an over-broad guard.
+
+3. createFromOrders_createsICHOnlyForTheNewLineInAMixedBatch_SH1152
+   - The literal ticket scenario: one already-received line (has its ICH) + one new line in the
+     SAME batch. Asserts the existing line keeps exactly 1 ICH (not re-processed) and the new line
+     gets exactly 1 ICH with the correct Previous_Stock (10, the pre-batch on-hand stock) and Stock
+     (15 = 10 + incoming 5) — proving no double-count.
+   - Maps to: AC-1, AC-2 (TC-68 Scenario 1, Scenario 3)
+
+AC / coverage matrix: see coverage-matrix.txt
+Test run log (executed live in scratch org AuctiferaDX__sh1169): see test-run-log.txt

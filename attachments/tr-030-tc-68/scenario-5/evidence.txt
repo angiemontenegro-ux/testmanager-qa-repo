@@ -1,0 +1,14 @@
+Scenario 5 (scenarioIndex 4): Adding a new item to a Purchase Order that is not yet Received does not prematurely create any ICH
+
+Evidence:
+1. Code read (ItemCostHistoryService.cls, unmodified by this PR): filterOrdersWithoutExistingICH only
+   builds `receivedOrderIds` from orders whose status is 'Received - Complete'; non-received orders are
+   returned untouched, unfiltered.
+2. Code read (groupStockOrdersByScopeKey, pre-existing method, NOT touched by this PR — confirmed via the
+   PR diff and by the fix's own comment "Only Received - Complete orders can produce an ICH"): only
+   Received-Complete orders are grouped into scope keys; buildICHs iterates only those groups, so a
+   non-received order can never produce an ICH regardless of this fix.
+3. Live regression run: StockReplenishOrderTriggerHandlerTest.doesNotCreateICHWhenOrderIsNotReceivedCompleteTest
+   — PASS (existing, unmodified test, part of the 54/54 green run).
+
+Verdict: PASSED (pre-existing, unmodified behavior; confirmed unaffected by the fix)

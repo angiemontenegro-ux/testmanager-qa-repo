@@ -1,0 +1,16 @@
+TC-68 scenario -> dev test coverage matrix (SH-1152)
+
+| TC-68 Scenario                                                        | Tag(s)                        | Dev test(s)                                                                              | Coverage |
+|------------------------------------------------------------------------|--------------------------------|-------------------------------------------------------------------------------------------|----------|
+| 1. New item creates exactly one ICH, scoped to new item only          | ac-1, happy-path                | createFromOrders_createsICHOnlyForTheNewLineInAMixedBatch_SH1152                          | Full     |
+| 2. Reproduce NEAM SRO example, no second ICH                          | ac-1, ac-3, regression-evidence | createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152                   | Functional analog (exact numbers 13->23 blocked match the ticket) — literal SRO a2zbf000001HlZpAAK in developv2/NEAM NOT independently re-verified (no sandbox access this session) |
+| 3. Existing items' stock/cost unchanged when sibling item added       | ac-2, regression                | createFromOrders_createsICHOnlyForTheNewLineInAMixedBatch_SH1152 (ICH-count assertion) + code-path analysis (existingOrder is filtered out of ordersWithoutICH before buildICHs/loadPreICHSnapshots run — no DML touches it, so cost cannot change) | Full (test + code proof) |
+| 4. Anti-duplicate guard applies across ALL creation/regeneration paths | ac-3, edge-case, missing-doc    | createFromOrders_doesNotCreateDuplicateICHWhenOrderAlreadyHasOne_SH1152 + createFromOrders_recreatesOwnICHWhenOnlyAVariantSeedICHSharesTheSRO_SH1152 + code read confirming StockReplenishmentOrderTriggerHandler.afterUndelete() delegates to afterInsert() (line 535), so the guard being IN createFromOrders (the single chokepoint) covers insert, update, and undelete uniformly | Full     |
+| 5. Non-received PO does not prematurely create an ICH                 | negative, no-op                 | Not directly covered by new tests. Code proof: filterOrdersWithoutExistingICH only queries Received-Complete orders (unmodified precondition); groupStockOrdersByScopeKey (pre-existing, NOT touched by this PR) only groups Received-Complete orders into scope keys, so buildICHs never produces an ICH for non-received orders — confirmed by reading ItemCostHistoryService.cls unchanged code + existing (passing) test doesNotCreateICHWhenOrderIsNotReceivedCompleteTest in StockReplenishOrderTriggerHandlerTest | Full (pre-existing + unmodified behavior, confirmed via code read + existing green test) |
+
+Gaps flagged (Rule 12 — coverage gap, not auto-FAIL):
+- Scenario 2's literal NEAM SRO (a2zbf000001HlZpAAK) was not re-verified against the real developv2 sandbox
+  this session (no sandbox access available). The PR's own validation checklist has this same item unchecked
+  ("Verificacion post-deploy en developv2/NEAM con la SRO real"). QA covered the functional contract via the
+  dev's red-test-turned-green unit test, which reproduces the exact reported numbers (Previous Stock 13 -> 23
+  blocked). Recommend the assignee closes their own checklist item post-deploy; not blocking QA sign-off.
