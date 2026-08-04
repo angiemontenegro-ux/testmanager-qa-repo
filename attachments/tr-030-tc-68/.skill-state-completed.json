@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1152",
+  "tcKey": "TC-68",
+  "trKey": "TR-030",
+  "prNumber": 2559,
+  "startedAt": "2026-08-04T17:00:00Z",
+  "lastUpdated": "2026-08-04T17:25:00Z",
+  "status": "completed",
+  "completedSteps": [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12],
+  "currentStep": null,
+  "data": {
+    "note": "TC-68, not TC-67 — a key collision with SH-1169's TC-67 (merged to main mid-session, PR #18) forced a renumber. See test-cases/SH-1152/SH-1152-TC-68-purchase-order-add-item-duplicate-ich.testcase.yml and the Jira SH-1177 description update.",
+    "commitSha": "6fc323f",
+    "prNumber": 2559,
+    "prBranch": "bug/duplicate-ich-received-po-SH-1152",
+    "verdict": "5/5 scenarios PASS. 85/85 Apex tests PASS (31 ItemCostHistoryServiceTest + 54 StockReplenishOrderTriggerHandlerTest) live in scratch org AuctiferaDX__sh1169. Technical regression 5/5 PASS, Security regression 5/5 PASS, OWASP 2 applicable both PASS. No defects raised.",
+    "notRunStep": "Scenario 2 step 3+5 (literal SRO a2zbf000001HlZpAAK confirmation in developv2/NEAM) — no sandbox access this session, non-blocking, matches PR's own unchecked checklist item.",
+    "gitOpsIncident": "Accidentally committed first onto a stale leftover local branch (qa/post-merge-qa-owned-decisions) instead of main, because `git merge --ff-only origin/main` was run while checked out there rather than on main. Recovered via checkout main + ff-merge + cherry-pick, then pushed main cleanly. No data lost, no force-push needed."
+  }
+}
