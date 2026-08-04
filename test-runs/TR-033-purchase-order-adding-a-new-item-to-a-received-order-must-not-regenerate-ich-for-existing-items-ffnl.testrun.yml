@@ -235,7 +235,11 @@ results:
         text: >-
           a new line item is added to the same Purchase Order and the order is saved without transitioning to 'Received
           - Complete'
-        attachments: []
+        attachments:
+          - name: 1785875992397-step-2.png
+            path: attachments/TR-033/1785875992397-step-2.png
+            mimeType: image/png
+            size: 410544
       - order: 3
         status: passed
         actual: ""
@@ -259,5 +263,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:38:27.450Z"
+  updatedAt: "2026-08-04T20:39:54.823Z"
 startedAt: "2026-08-04T20:24:42.565Z"
