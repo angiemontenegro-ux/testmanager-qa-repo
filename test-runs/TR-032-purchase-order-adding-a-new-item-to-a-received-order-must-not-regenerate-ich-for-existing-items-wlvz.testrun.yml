@@ -81,7 +81,11 @@ results:
         actual: ""
         phase: when
         text: a new item is added to the same Purchase Order, causing the existing SRO to be re-saved
-        attachments: []
+        attachments:
+          - name: 1785874201591-step-2.png
+            path: attachments/TR-032/1785874201591-step-2.png
+            mimeType: image/png
+            size: 166059
       - order: 3
         status: not-run
         actual: ""
@@ -227,5 +231,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:05:29.660Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:09:19.414Z"
+  updatedAt: "2026-08-04T20:10:02.628Z"
 startedAt: "2026-08-04T20:06:17.157Z"
