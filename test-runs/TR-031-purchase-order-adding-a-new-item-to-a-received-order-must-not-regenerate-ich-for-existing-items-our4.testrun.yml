@@ -62,6 +62,7 @@ results:
     scenarioTitle: Reproduce the NEAM SRO example and confirm no second ICH is generated after adding a new item
     scenarioIndex: 1
     status: passed
+    executedAt: "2026-08-04T20:46:18.978Z"
     stepResults:
       - order: 1
         status: passed
@@ -100,7 +101,6 @@ results:
     notes: ""
     attachments: []
     defects: []
-    executedAt: "2026-08-04T20:46:18.978Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
@@ -108,6 +108,7 @@ results:
     scenarioTitle: Existing already-received items keep their stock and weighted-average cost unchanged when a sibling item is added
     scenarioIndex: 2
     status: passed
+    executedAt: "2026-08-04T20:46:23.701Z"
     stepResults:
       - order: 1
         status: passed
@@ -144,7 +145,6 @@ results:
     notes: ""
     attachments: []
     defects: []
-    executedAt: "2026-08-04T20:46:23.701Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
@@ -154,6 +154,7 @@ results:
       status-transition (update) path
     scenarioIndex: 3
     status: passed
+    executedAt: "2026-08-04T20:46:25.979Z"
     stepResults:
       - order: 1
         status: passed
@@ -184,7 +185,6 @@ results:
     notes: ""
     attachments: []
     defects: []
-    executedAt: "2026-08-04T20:46:25.979Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
@@ -192,6 +192,7 @@ results:
     scenarioTitle: Adding a new item to a Purchase Order that is not yet Received does not prematurely create any ICH
     scenarioIndex: 4
     status: passed
+    executedAt: "2026-08-04T20:46:28.788Z"
     stepResults:
       - order: 1
         status: passed
@@ -218,7 +219,6 @@ results:
     notes: ""
     attachments: []
     defects: []
-    executedAt: "2026-08-04T20:46:28.788Z"
 summary:
   total: 5
   passed: 5
@@ -232,4 +232,4 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T18:53:59.048Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:46:30.403Z"
+  updatedAt: "2026-08-04T21:07:06.392Z"
