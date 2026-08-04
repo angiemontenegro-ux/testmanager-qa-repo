@@ -39,7 +39,11 @@ results:
         actual: ""
         phase: then
         text: exactly one new ICH is created, and it belongs to the newly added item only
-        attachments: []
+        attachments:
+          - name: 1785869748752-step-3.png
+            path: attachments/TR-031/1785869748752-step-3.png
+            mimeType: image/png
+            size: 231141
       - order: 4
         status: passed
         actual: ""
@@ -223,5 +227,5 @@ metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T18:53:59.048Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T18:55:18.353Z"
+  updatedAt: "2026-08-04T18:55:49.866Z"
 startedAt: "2026-08-04T18:54:27.074Z"
