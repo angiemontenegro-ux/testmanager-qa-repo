@@ -220,9 +220,14 @@ summary:
   notRun: 0
   passRate: 100
 history:
-  - to: completed
-    reason: "Ejecucion completa: 31/31 tests de ItemCostHistoryServiceTest + 54/54 tests de StockReplenishOrderTriggerHandlerTest en vivo (scratch org AuctiferaDX__sh1169), 5/5 escenarios de TC-68 PASS, 0 hallazgos de seguridad (OWASP: 2 aplicables, 2 PASS, 0 FAIL). Un paso queda not-run (verificacion literal del SRO real a2zbf000001HlZpAAK en developv2/NEAM, sin acceso a ese sandbox esta sesion) y se documenta como pendiente no bloqueante."
-    at: "2026-08-04T17:20:00.000Z"
+  - action: created
+    timestamp: "2026-08-04T17:09:30.000Z"
+    user: codex
+  - action: completed
+    timestamp: "2026-08-04T17:20:00.000Z"
+    user: codex
+    from: in-progress
+    to: completed
 metadata:
   createdBy: codex
   createdAt: "2026-08-04T17:09:00.000Z"
