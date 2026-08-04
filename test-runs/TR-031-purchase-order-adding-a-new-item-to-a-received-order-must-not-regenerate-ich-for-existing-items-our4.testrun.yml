@@ -5,6 +5,7 @@ title: "Run: Purchase Order — adding a new item to a received order must not r
 status: in-progress
 environment:
   name: default
+startedAt: "2026-08-04T18:54:27.074Z"
 results:
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
@@ -13,6 +14,7 @@ results:
     scenarioTitle: Adding a new item to a received Purchase Order creates exactly one ICH, scoped to the new item only
     scenarioIndex: 0
     status: passed
+    executedAt: "2026-08-04T18:54:30.867Z"
     stepResults:
       - order: 1
         status: passed
@@ -53,17 +55,16 @@ results:
     notes: ""
     attachments: []
     defects: []
-    executedAt: "2026-08-04T18:54:30.867Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
     testCaseFilePath: test-cases/SH-1152/SH-1152-TC-68-purchase-order-add-item-duplicate-ich.testcase.yml
     scenarioTitle: Reproduce the NEAM SRO example and confirm no second ICH is generated after adding a new item
     scenarioIndex: 1
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: >-
@@ -71,19 +72,19 @@ results:
           Complete') already has one ICH (ICH-0550, Previous Stock 3 -> 13)
         attachments: []
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: a new item is added to the same Purchase Order, causing the existing SRO to be re-saved
         attachments: []
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the SRO's CreatedDate stays unchanged, confirming it is the same record and not a new order
         attachments: []
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: >-
@@ -91,7 +92,7 @@ results:
           a2zbf000001HlZpAAK
         attachments: []
       - order: 5
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the item's current stock remains 13, not 23
@@ -99,16 +100,17 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:46:18.978Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
     testCaseFilePath: test-cases/SH-1152/SH-1152-TC-68-purchase-order-add-item-duplicate-ich.testcase.yml
     scenarioTitle: Existing already-received items keep their stock and weighted-average cost unchanged when a sibling item is added
     scenarioIndex: 2
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: >-
@@ -116,25 +118,25 @@ results:
           own ICH and a known stock/weighted-average-cost value
         attachments: []
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: a new line item is added to the same Purchase Order and the order is saved
         attachments: []
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: none of the existing items' stock values change
         attachments: []
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: none of the existing items' weighted-average cost values change
         attachments: []
       - order: 5
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: none of the existing items gain an additional ICH record
@@ -142,6 +144,7 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:46:23.701Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
@@ -150,16 +153,16 @@ results:
       The anti-duplicate ICH guard applies uniformly across all creation/regeneration paths, not only the
       status-transition (update) path
     scenarioIndex: 3
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: a Stock Replenishment Order already has exactly one ICH
         attachments: []
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: >-
@@ -167,13 +170,13 @@ results:
           add-a-new-item flow, a direct re-save of the order, and the existing Received-Complete status-transition path
         attachments: []
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no additional ICH is created for that order regardless of which path triggered the operation
         attachments: []
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the order continues to have at most one ICH after each operation
@@ -181,16 +184,17 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:46:25.979Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
     testCaseFilePath: test-cases/SH-1152/SH-1152-TC-68-purchase-order-add-item-duplicate-ich.testcase.yml
     scenarioTitle: Adding a new item to a Purchase Order that is not yet Received does not prematurely create any ICH
     scenarioIndex: 4
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
-        status: not-run
+        status: passed
         actual: ""
         phase: given
         text: >-
@@ -198,7 +202,7 @@ results:
           Pending) with no ICH yet
         attachments: []
       - order: 2
-        status: not-run
+        status: passed
         actual: ""
         phase: when
         text: >-
@@ -206,7 +210,7 @@ results:
           - Complete'
         attachments: []
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no ICH is created for either the existing item or the new item
@@ -214,18 +218,18 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:46:28.788Z"
 summary:
   total: 5
-  passed: 1
+  passed: 5
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 4
-  passRate: 20
+  notRun: 0
+  passRate: 100
 history: []
 metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T18:53:59.048Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T18:55:49.866Z"
-startedAt: "2026-08-04T18:54:27.074Z"
+  updatedAt: "2026-08-04T20:46:30.403Z"
