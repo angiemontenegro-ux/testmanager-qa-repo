@@ -164,7 +164,7 @@ results:
       The anti-duplicate ICH guard applies uniformly across all creation/regeneration paths, not only the
       status-transition (update) path
     scenarioIndex: 3
-    status: not-run
+    status: passed
     stepResults:
       - order: 1
         status: passed
@@ -189,7 +189,7 @@ results:
             mimeType: image/png
             size: 290754
       - order: 3
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: no additional ICH is created for that order regardless of which path triggered the operation
@@ -199,7 +199,7 @@ results:
             mimeType: image/png
             size: 293739
       - order: 4
-        status: not-run
+        status: passed
         actual: ""
         phase: then
         text: the order continues to have at most one ICH after each operation
@@ -207,6 +207,7 @@ results:
     notes: ""
     attachments: []
     defects: []
+    executedAt: "2026-08-04T20:36:00.951Z"
   - testCaseId: 7139e5bb-e2c1-4cd8-9cb7-dd82d6b5a1b5
     testCaseKey: TC-68
     testCaseTitle: Purchase Order — adding a new item to a received order must not regenerate ICH for existing items
@@ -242,16 +243,16 @@ results:
     defects: []
 summary:
   total: 5
-  passed: 3
+  passed: 4
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 2
-  passRate: 60
+  notRun: 1
+  passRate: 80
 history: []
 metadata:
   createdBy: sidepanel
   createdAt: "2026-08-04T20:21:23.609Z"
   updatedBy: sidepanel
-  updatedAt: "2026-08-04T20:35:42.776Z"
+  updatedAt: "2026-08-04T20:37:07.640Z"
 startedAt: "2026-08-04T20:24:42.565Z"
