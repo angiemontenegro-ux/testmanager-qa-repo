@@ -2,15 +2,16 @@ schemaVersion: "1.0"
 id: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
 key: "TC-67"
 title: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
-description: "QA coverage for SH-1169 (Bug, High, Case 00176210 — 'giftshop tax report', Masonic Temple, Library & Museum), QA sub-task SH-1173, fix delivered in PR #2554. Sale Items synced from Shopify via the external V2 sync are written with Technical_Bypass_Triggers__c = true, which skips SaleItemTriggerHandler.calculateAmount(), so Amount__c keeps whatever the external payload sent (observed in production as the unit price only, ignoring quantity — Sale Item S-3094: Price 40 x Qty 3 stored as 40 instead of 120). The fix adds a narrow onBypassedBeforeWrite() hook that recomputes Amount__c and Price_Without_Tax__c as Item_Price__c * Number_of_Items_bought__c, scoped to Source__c = 'Shopify' only. Implementation lives in the AuctiferaDX Salesforce package (force-app/main/default/classes/SaleItemTriggerHandler.cls + TriggerHandler.cls). Open risks: Technical_Bypass_Triggers__c is a shared mechanism used by other objects, so the scope must stay narrow (Sale_Item + Shopify only); the external Shopify order payload is built outside this repo, so QA validates the Salesforce-side recompute, not the payload; Shopify taxes are applied at the Client Purchase level, not per Sale Item, so no per-item tax is added on top of Price x Quantity."
+description: "QA coverage for SH-1169 (Bug, High, Case 00176210 — 'giftshop tax report', Masonic Temple, Library & Museum), QA sub-task SH-1173, fix delivered in PR #2569 (branch renamed from the original #2554). Sale Items synced from Shopify via the external V2 sync are written with Technical_Bypass_Triggers__c = true, which skips SaleItemTriggerHandler.calculateAmount(), so Amount__c keeps whatever the external payload sent (observed in production as the unit price only, ignoring quantity — Sale Item S-3094: Price 40 x Qty 3 stored as 40 instead of 120). Updated 2026-08-05 after review by César (ctapascov): the first version of the fix recomputed Amount__c = Price_Without_Tax__c = Item_Price__c * Number_of_Items_bought__c directly (the gross price), which ignores any discount or item-level tax on the line. The reviewed fix instead delegates to SaleItemTriggerHandler.calculateAmount() (scoped to Source__c = 'Shopify'), the same price -> subtotal (minus discount) -> total (plus tax) chain every other Sale Item goes through, which also fills Subtotal_before_discount__c and keeps Tax_Amount__c consistent. Implementation lives in the AuctiferaDX Salesforce package (force-app/main/default/classes/SaleItemTriggerHandler.cls + TriggerHandler.cls). Open risks: Technical_Bypass_Triggers__c is a shared mechanism used by other objects, so the scope must stay narrow (Sale_Item + Shopify only); the external Shopify order payload is built outside this repo, so QA validates the Salesforce-side recompute, not the payload; the previous assumption that 'Shopify taxes are applied at the Client Purchase level, not per Sale Item' was unproven — the fix no longer relies on it, calculateAmount() adds Tax_2__c on top of the subtotal whenever the item carries one (see Scenario 8)."
 type: "functional"
 priority: "high"
 status: "active"
 format: "gherkin"
 preconditions:
-  - "The SH-1169 / PR #2554 fix is deployed (SaleItemTriggerHandler.onBypassedBeforeWrite + the TriggerHandler technical-bypass hook)."
+  - "The SH-1169 / PR #2569 fix is deployed (SaleItemTriggerHandler.onBypassedBeforeWrite delegating to calculateAmount() + the TriggerHandler technical-bypass hook)."
   - "A Sale_Item__c can be created under a Client Purchase referencing a Catalog Item."
   - "Ability to reproduce a V2-sync write, i.e. write a Sale_Item__c with Technical_Bypass_Triggers__c = true (anonymous Apex or the real Shopify sync path)."
+  - "When reproducing multiple scenarios via anonymous Apex, run each one as its own execution (own transaction) — chaining several bypassed writes in one transaction can exhaust the 100 SOQL/transaction limit once calculateAmount()'s extra queries run for each bypassed write."
 scenarios:
   - title: "Shopify bypassed update recomputes Amount as Price x Quantity (S-3094)"
     tags:
@@ -76,6 +77,33 @@ scenarios:
       - "a fresh Sale_Item__c inserted under a Client Purchase as a Shopify V2-sync write with Technical_Bypass_Triggers__c = true"
     then:
       - "inserting the child triggers a same-transaction Client Purchase recalculation that re-saves the child unflagged, so Amount__c ends up correct even on insert — which is why the SH-1169 reproduction is modeled as an UPDATE, not an insert"
+  - title: "Shopify bypassed update recomputes Amount net of discount (César's review)"
+    tags:
+      - "regression-evidence"
+      - "shopify"
+      - "discount"
+      - "review-followup"
+    given:
+      - "an existing Sale_Item__c under a Client Purchase, tax-free catalog item"
+    when:
+      - "it is updated as a Shopify V2-sync write: Item_Price__c = 40, Number_of_Items_bought__c = 3, Additional_Discount_Amount__c = -20 (org validation requires discounts stored negative), Amount__c = 40 (wrong value from the external payload), Price_Without_Tax__c = 120 (wrong: equals the gross, ignores the discount), Source__c = 'Shopify', Technical_Bypass_Triggers__c = true"
+    then:
+      - "Subtotal_before_discount__c equals 120 (the gross, Item_Price__c * Number_of_Items_bought__c, untouched by the discount)"
+      - "Price_Without_Tax__c and Amount__c both equal 100 (net of the 20 discount) — not 120"
+  - title: "Shopify bypassed update adds item-level tax on top of Amount (César's review)"
+    tags:
+      - "regression-evidence"
+      - "shopify"
+      - "tax"
+      - "review-followup"
+    given:
+      - "an existing Sale_Item__c under a Client Purchase, catalog item taxed at 10% ('Tax not included in the price')"
+    when:
+      - "it is updated as a Shopify V2-sync write: Item_Price__c = 50, Number_of_Items_bought__c = 2, Amount__c = 50 (wrong value from the external payload), Source__c = 'Shopify', Technical_Bypass_Triggers__c = true"
+    then:
+      - "Price_Without_Tax__c equals 100 (Item_Price__c * Number_of_Items_bought__c, no discount on this line)"
+      - "Tax_Amount__c equals 10 (10% of the 100 subtotal) — not left stale/untouched"
+      - "Amount__c equals 110 (subtotal plus tax) — not just Price x Quantity (100)"
 tags:
   - "sh-1169"
   - "sh-1173"
@@ -83,6 +111,8 @@ tags:
   - "sale-item"
   - "shopify-sync"
   - "technical-bypass"
+  - "discount"
+  - "tax"
 parameters: []
 links:
   jira:
@@ -93,13 +123,13 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1173"
       type: "qa-subtask"
   external:
-    - key: "PR-2554"
-      url: "https://github.com/Veevarts/AuctiferaDX/pull/2554"
+    - key: "PR-2569"
+      url: "https://github.com/Veevarts/AuctiferaDX/pull/2569"
       type: "pull-request"
-estimatedDuration: 30
+estimatedDuration: 40
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-31T15:51:15Z"
-  updatedBy: "codex"
-  updatedAt: "2026-07-31T15:51:15Z"
-  version: 1
+  updatedBy: "claude"
+  updatedAt: "2026-08-05T16:30:00Z"
+  version: 2
