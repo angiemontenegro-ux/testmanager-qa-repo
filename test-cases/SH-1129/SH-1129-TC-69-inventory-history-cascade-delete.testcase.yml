@@ -1,0 +1,121 @@
+schemaVersion: "1.0"
+id: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+key: "TC-69"
+title: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+description: "QA coverage for SH-1129 (ItemPerLocationTriggerHandler.beforeDelete() cascade-deleted ALL Auctifera__Inventory_History__c rows tied to a deleted Auctifera__Item_per_location__c, regardless of date). QA Sub-task: SH-1179. Implementation domain: AuctiferaDX Salesforce package (Auctifera namespace), Apex trigger handler ItemPerLocationTriggerHandler.cls + object metadata for Inventory_History__c.Item_per_location__c + Veevart permission set + InventoryHistoryBatch.cls. PR #2541 (merged to main 2026-07-30) removed the cascade-delete workaround and instead changed Inventory_History__c.Item_per_location__c from a required Restrict lookup to an optional SetNull lookup, so Salesforce clears the reference on IPL delete instead of destroying the history row. Discovered as a side effect of SH-1115's Eiteljorg consolidation, which deleted 146 duplicate IPLs and silently wiped historical inventory-value snapshots for dates unrelated to the consolidation (e.g. 2026-07-12), requiring manual reconstruction of the lost rows. Open risk: the PR's own test plan could not validate the new Veevart permission-set FLS grant in the AuctiferaDX__sh890 scratch org (partial permission-set deploys fail on unrelated fields there) — only a full CI/production-shaped org build can confirm it, so Scenario 3 here is flagged accordingly. Also ships a dedup-key change in InventoryHistoryBatch.cls (keying on Shop Item + Item Variant + Location instead of the now-nullable Item_per_location__c) to prevent duplicate same-day snapshots for orphaned history rows — this is the SH-1142 fix bundled into the same PR; covered here as a regression check, not as SH-1142's own QA record."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "PR #2541 (bug/inventory-history-cascade-delete-SH-1129) is deployed to the target org/sandbox."
+  - "An Auctifera__Item_per_location__c (IPL) record exists with at least one Auctifera__Inventory_History__c snapshot generated via InventoryHistoryRecorder / InventoryHistoryBatch."
+  - "Access to a sandbox/scratch org with standard-user permissions assigned via the Veevart permission set to validate FLS on Inventory_History__c.Item_per_location__c (Scenario 3 needs a full-org-shaped deploy, not a partial permission-set deploy)."
+scenarios:
+  - title: "Deleting a single Item per location preserves its Inventory History records"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "inventory-history"
+      - "item-per-location"
+    given:
+      - "an Item_per_location__c record has at least one associated Inventory_History__c snapshot"
+    when:
+      - "the Item_per_location__c record is deleted via standard DML"
+    then:
+      - "the Inventory_History__c record still exists after the delete"
+      - "its Item_per_location__c lookup is null (SetNull), not the record itself"
+      - "Shop_Item__c, Location__c, Date__c, and Inventory_Value__c remain populated on the surviving record"
+
+  - title: "Bulk-deleting multiple Item per locations preserves history across every date, mirroring the SH-1115 Eiteljorg consolidation"
+    tags:
+      - "ac-1"
+      - "ac-3"
+      - "regression-evidence"
+      - "eiteljorg"
+      - "bulk"
+    given:
+      - "3 or more Item_per_location__c records each have their own Inventory_History__c snapshot, including at least one snapshot dated before the deletion event (analogous to the 2026-07-12 snapshot wiped by the real 146-record Eiteljorg consolidation)"
+    when:
+      - "all of the Item_per_location__c records are deleted in a single bulk DML call"
+    then:
+      - "every Inventory_History__c row from the deleted IPLs survives, regardless of its snapshot date"
+      - "every surviving row has its Item_per_location__c lookup cleared and its historical Date__c / Inventory_Value__c unchanged"
+
+  - title: "FLS on Inventory_History__c.Item_per_location__c lets a standard user insert history rows now that the field is optional"
+    tags:
+      - "ac-2"
+      - "missing-doc"
+      - "permissions"
+      - "fls"
+    given:
+      - "the Veevart permission set is deployed with its new fieldPermissions entry (read/edit) for Inventory_History__c.Item_per_location__c"
+      - "the validating org is a full-org-shaped deploy — NOT the AuctiferaDX__sh890 scratch org, where the PR's own test plan notes a partial permission-set deploy fails on unrelated fields"
+    when:
+      - "a standard user assigned the Veevart permission set triggers InventoryHistoryBatch to insert a new Inventory_History__c record"
+    then:
+      - "the insert succeeds with no FLS/insufficient-access error, even though the field is no longer implicitly required"
+
+  - title: "InventoryHistoryBatch does not create a duplicate same-day snapshot for a history row orphaned by an earlier IPL delete"
+    tags:
+      - "regression"
+      - "inventory-history-batch"
+      - "dedup"
+      - "sh-1142-spillover"
+    given:
+      - "today's Inventory_History__c already exists for a given Shop Item + Item Variant + Location combination, with Item_per_location__c already null (orphaned earlier the same day by an IPL delete)"
+    when:
+      - "InventoryHistoryBatch runs again for the IPL currently representing that same Shop Item + Item Variant + Location"
+    then:
+      - "no second Inventory_History__c row is created for that date"
+      - "exactly one Inventory_History__c record remains for that Shop Item + Item Variant + Location + Date"
+
+  - title: "Deleting an Item per location with zero Inventory History records completes without error"
+    tags:
+      - "edge-case"
+      - "no-op"
+    given:
+      - "an Item_per_location__c record exists with no associated Inventory_History__c records"
+    when:
+      - "the Item_per_location__c record is deleted"
+    then:
+      - "the delete completes successfully with no exception"
+      - "no Inventory_History__c records are created or altered as a side effect"
+
+  - title: "Inventory History page layout no longer forces a value into Item per location"
+    tags:
+      - "ui"
+      - "layout"
+      - "missing-doc"
+    given:
+      - "an Inventory_History__c record exists whose Item_per_location__c is null (post-delete state)"
+    when:
+      - "a user opens that record's page layout in Lightning"
+    then:
+      - "the Item_per_location__c field shows behavior Edit, not Required — the user is not blocked from saving or viewing the record because the lookup is empty"
+tags:
+  - "sh-1129"
+  - "sh-1179"
+  - "shop"
+  - "inventory"
+  - "inventory-history"
+  - "item-per-location"
+parameters: []
+links:
+  jira:
+    - key: "SH-1129"
+      url: "https://veevart.atlassian.net/browse/SH-1129"
+      type: "bug"
+    - key: "SH-1179"
+      url: "https://veevart.atlassian.net/browse/SH-1179"
+      type: "qa-sub-task"
+  external:
+    - description: "PR #2541 — fix(shop): stop cascade-deleting Inventory_History__c on IPL delete SH-1129"
+      url: "https://github.com/Veevarts/AuctiferaDX/pull/2541"
+estimatedDuration: 75
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-08-05T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-08-05T00:00:00Z"
+  version: 1

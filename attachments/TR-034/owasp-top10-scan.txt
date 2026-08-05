@@ -1,0 +1,18 @@
+OWASP Top 10 (2021) applicability scan — SH-1129 / PR #2541 / TC-69
+=====================================================================
+
+| ID  | Risk                       | Applicable | Check method                                         | Verdict | Evidence / Justification |
+|-----|----------------------------|------------|-------------------------------------------------------|---------|---------------------------|
+| A01 | Broken Access Control      | Yes        | Diff review of Veevart.permissionset-meta.xml         | PASS    | New fieldPermissions entry (read/edit on Inventory_History__c.Item_per_location__c) mirrors the identical existing grant already present for sibling lookups (Sale_Item__c, Inventory_Adjustment__c, StockReplenishmentOrder__c) on the same permission set. No new object-level CRUD, no broader-than-sibling grant, no privilege escalation. |
+| A02 | Cryptographic Failures     | No         | -                                                       | N/A     | No credential, token, or PII-at-rest handling in scope. |
+| A03 | Injection                  | Yes        | `grep -iE "(SELECT\|INSERT\|UPDATE\|DELETE).*\+.*['\"]"` on PR diff + review of all SOQL in changed files | PASS | All queries (ItemPerLocationTriggerHandler.cls removal, InventoryHistoryBatch.cls rewrite) use bind variables (:itemPerLocationIds, :shopItemIds) — no string concatenation. |
+| A04 | Insecure Design            | No         | -                                                       | N/A     | Bug fix reducing an unwanted deletion side effect; no new business logic or threat surface introduced. |
+| A05 | Security Misconfiguration  | No         | -                                                       | N/A     | No infra, env var, CORS, or debug-toggle files touched. |
+| A06 | Vulnerable Components      | No         | -                                                       | N/A     | No package.json/requirements/lockfile changes — this PR only touches Apex + Salesforce metadata. |
+| A07 | Authentication Failures    | No         | -                                                       | N/A     | No login, session, MFA, or token-issuance surface touched. |
+| A08 | Integrity Failures         | No         | -                                                       | N/A     | No CI/CD pipeline or deserialization code touched. |
+| A09 | Logging Failures           | No         | -                                                       | N/A     | Removed code's System.debug() calls carried no PII; new code logs nothing in the affected path — observability-neutral change. |
+| A10 | SSRF                       | No         | -                                                       | N/A     | No outbound HTTP/callout code introduced. |
+
+Applicable: 2 (A01, A03) · PASS: 2 · FAIL: 0 · N/A: 8
+No Applicable item left with verdict TBD.

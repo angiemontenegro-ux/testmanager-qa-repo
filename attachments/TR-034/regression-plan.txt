@@ -1,0 +1,22 @@
+Regression plan — SH-1129 / PR #2541 / TC-69
+==============================================
+
+TECHNICAL REGRESSION
+---------------------
+
+| Item | Type | Risk | Check method | Verdict |
+|---|---|---|---|---|
+| CatalogItemTriggerHandler.beforeDelete() -> deleteInventoryHistory() (force-app/main/default/classes/CatalogItemTriggerHandler.cls:824-855) still unconditionally hard-deletes ALL Inventory_History__c rows for a deleted CatalogItem (Shop Item), keyed by Shop_Item__c instead of Item_per_location__c — same unconditional, no-date-filter pattern SH-1129 just fixed, but on a different parent object, untouched by this PR | Technical | Medium | Read the method directly (grep confirmed it is the only other DML.vdelete against Auctifera__Inventory_History__c in the codebase besides the one this PR removed) | FINDING — see summary |
+| InventoryHistoryBatch.cls dedup key changed from Auctifera__Item_per_location__c to a composite Shop_Item__c+Item_Variant__c+Location__c string (getDedupKey) | Technical | Low | Covered by testOnlyNewRecordsSkipsDuplicateForOrphanedHistory; no other caller of buildRecordsToInsert / the batch found via grep | PASS |
+| Inventory_History__c.Item_per_location__c consumers other than the trigger/batch (InventoryHistoryRecorder.cls, ItemPerLocationTriggerHandlerTest.cls, InventoryHistoryBatchTest.cls, InventoryHistoryRecorderTest.cls) | Technical | Low | grep confirms InventoryHistoryRecorder only WRITES the lookup on insert (unaffected by delete-side change); no read-path assumes it is always non-null | PASS |
+| Inventory History page layout — Item_per_location__c required->Edit | Technical | Low | Diff-confirmed; no validation rule or other layout references this field as required elsewhere (grep found none) | PASS |
+
+SECURITY REGRESSION
+--------------------
+
+| Item | Type | Risk | Check method | Verdict |
+|---|---|---|---|---|
+| SOQL injection — new/changed queries in ItemPerLocationTriggerHandler.cls / InventoryHistoryBatch.cls | Security | Low | `grep -iE "(SELECT|INSERT|UPDATE|DELETE).*\+.*['\"]"` on PR diff — no matches; all queries use bind variables (:itemPerLocationIds, :shopItemIds) | PASS |
+| Secrets / credentials in diff | Security | Low | `grep -iE "(password|api[_-]?key|secret|token|bearer|-----BEGIN)"` on PR diff — no matches | PASS |
+| Permission set FLS grant — Veevart.permissionset-meta.xml adds read/edit on Inventory_History__c.Item_per_location__c | Security | Medium | Diff review — grant mirrors the identical existing pattern already present for the sibling lookups Sale_Item__c, Inventory_Adjustment__c, and StockReplenishmentOrder__c on the same permission set (no broader grant, no new object-level CRUD, compensates for FLS lost when the field became non-required) | PASS (see OWASP A01) |
+| PII exposure via logging | Security | Low | Removed code had System.debug() in a catch block (no PII, no user-controlled data); new code has no logging at all in that path | PASS |

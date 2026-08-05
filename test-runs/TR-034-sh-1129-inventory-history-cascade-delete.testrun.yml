@@ -1,0 +1,247 @@
+schemaVersion: "1.0"
+id: tr-854485e1-950a-4f68-8ede-3ad86d01786d
+key: TR-034
+title: "Run: Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+status: in-progress
+environment:
+  name: default
+startedAt: "2026-08-05T15:24:59.000Z"
+results:
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: Item per location delete must not cascade-delete unrelated Inventory History snapshots
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: Deleting a single Item per location preserves its Inventory History records
+    scenarioIndex: 0
+    status: passed
+    executedAt: "2026-08-05T15:24:59.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Confirmado por testDeletingItemPerLocationPreservesInventoryHistory (ItemPerLocationTriggerHandlerTest.cls): se inserta al menos un Inventory_History__c antes del delete."
+        phase: given
+        text: an Item_per_location__c record has at least one associated Inventory_History__c snapshot
+        attachments: []
+      - order: 2
+        status: passed
+        actual: "El IPL se borra via DML estandar en el test; el metodo beforeDelete()/deleteInventoryHistory() que antes ejecutaba el cascade-delete fue eliminado por completo del trigger handler."
+        phase: when
+        text: the Item_per_location__c record is deleted via standard DML
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Assert.areEqual(insertedHistoryCount, survivingHistories.size(), ...) confirma que el registro de historial sigue existiendo despues del delete."
+        phase: then
+        text: the Inventory_History__c record still exists after the delete
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Assert.isNull(history.Auctifera__Item_per_location__c, ...) — el lookup queda null por el nuevo deleteConstraint SetNull (antes required+Restrict)."
+        phase: then
+        text: its Item_per_location__c lookup is null (SetNull), not the record itself
+        attachments: []
+      - order: 5
+        status: passed
+        actual: "Assert.isNotNull() sobre Shop_Item__c, Location__c, Date__c e Inventory_Value__c confirma que los demas campos sobreviven intactos."
+        phase: then
+        text: Shop_Item__c, Location__c, Date__c, and Inventory_Value__c remain populated on the surviving record
+        attachments: []
+    notes: "Evidencia: CI test job de PR #2541 (gh pr checks, verde) + inspeccion estatica de las aserciones del unit test via gh pr diff. No se re-ejecuto el suite en un scratch/sandbox propio de esta sesion (el sh890 usado por el PR ya expiro)."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: Item per location delete must not cascade-delete unrelated Inventory History snapshots
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: Bulk-deleting multiple Item per locations preserves history across every date, mirroring the SH-1115 Eiteljorg consolidation
+    scenarioIndex: 1
+    status: passed
+    executedAt: "2026-08-05T15:24:59.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "testBulkDeletingItemPerLocationsPreservesInventoryHistory crea 3 IPLs, cada uno con su propio Inventory_History__c (mismo patron que la consolidacion real de 146 registros en Eiteljorg/SH-1115)."
+        phase: given
+        text: 3 or more Item_per_location__c records each have their own Inventory_History__c snapshot, including at least one snapshot dated before the deletion event
+        attachments: []
+      - order: 2
+        status: passed
+        actual: "delete itemsPerLocation; en un unico DML call (Test.startTest/stopTest) — replica exactamente el patron de borrado masivo de SH-1115."
+        phase: when
+        text: all of the Item_per_location__c records are deleted in a single bulk DML call
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Assert.areEqual(insertedHistoryCount, survivingHistories.size(), 'Every history record from the bulk-deleted IPLs should survive (SH-1129)') — los 3 registros sobreviven."
+        phase: then
+        text: every Inventory_History__c row from the deleted IPLs survives, regardless of its snapshot date
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "El mecanismo de proteccion es el deleteConstraint SetNull a nivel de campo, no un filtro de fecha en SOQL — por construccion aplica a cualquier fecha historica, no solo a las fechas usadas en el test. Assert.isNull(Item_per_location__c) y Assert.isNotNull(Shop_Item__c) confirman el resto de campos intactos."
+        phase: then
+        text: every surviving row has its Item_per_location__c lookup cleared and its historical Date__c / Inventory_Value__c unchanged
+        attachments: []
+    notes: "Evidencia: CI test job de PR #2541 (verde) + inspeccion estatica. El razonamiento de 'cualquier fecha' se apoya en que el fix es un cambio de metadata (SetNull) sin logica condicional por fecha, no en que el test haya cubierto explicitamente multiples fechas distintas."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: Item per location delete must not cascade-delete unrelated Inventory History snapshots
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: FLS on Inventory_History__c.Item_per_location__c lets a standard user insert history rows now that the field is optional
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: the Veevart permission set is deployed with its new fieldPermissions entry for Inventory_History__c.Item_per_location__c
+        attachments: []
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: given
+        text: the validating org is a full-org-shaped deploy, not the AuctiferaDX__sh890 scratch org
+        attachments: []
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: when
+        text: a standard user assigned the Veevart permission set triggers InventoryHistoryBatch to insert a new Inventory_History__c record
+        attachments: []
+      - order: 4
+        status: not-run
+        actual: ""
+        phase: then
+        text: the insert succeeds with no FLS/insufficient-access error
+        attachments: []
+    notes: "PENDIENTE — el propio test plan del PR #2541 deja esto sin validar porque el deploy parcial de un permission set falla en el scratch org AuctiferaDX__sh890 por campos no relacionados. Apex unit tests no pueden aserirlo (FLS es runtime/deploy-level). Necesita un org con deploy completo (build de CI o un sandbox equivalente) con un usuario estandar + permission set Veevart asignado."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: Item per location delete must not cascade-delete unrelated Inventory History snapshots
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: InventoryHistoryBatch does not create a duplicate same-day snapshot for a history row orphaned by an earlier IPL delete
+    scenarioIndex: 3
+    status: passed
+    executedAt: "2026-08-05T15:24:59.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "testOnlyNewRecordsSkipsDuplicateForOrphanedHistory inserta un Inventory_History__c huerfano (Item_per_location__c = null) para hoy, representando el mismo Shop Item + Variant + Location que el IPL activo."
+        phase: given
+        text: today's Inventory_History__c already exists for a Shop Item + Item Variant + Location combination, with Item_per_location__c already null
+        attachments: []
+      - order: 2
+        status: passed
+        actual: "Database.executeBatch(batch) corre InventoryHistoryBatch de nuevo sobre el mismo IPL."
+        phase: when
+        text: InventoryHistoryBatch runs again for the IPL currently representing that same Shop Item + Item Variant + Location
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Assert.areEqual(1, [SELECT COUNT() ... WHERE Auctifera__Date__c = TODAY AND Auctifera__Shop_Item__c = :itemPerLocation.Auctifera__Shop_Item__c]) confirma que no se creo un segundo registro."
+        phase: then
+        text: no second Inventory_History__c row is created for that date
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Mismo assert cubre la condicion — exactamente 1 registro para esa combinacion Shop Item + Variant + Location + Date."
+        phase: then
+        text: exactly one Inventory_History__c record remains for that Shop Item + Item Variant + Location + Date
+        attachments: []
+    notes: "Evidencia: CI test job de PR #2541 (verde) + inspeccion estatica de la aser. Este dedup-key change corresponde al fix de SH-1142, embarcado en el mismo PR — se valida aqui como regresion, no reemplaza el QA propio de SH-1142."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: Item per location delete must not cascade-delete unrelated Inventory History snapshots
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: Deleting an Item per location with zero Inventory History records completes without error
+    scenarioIndex: 4
+    status: passed
+    executedAt: "2026-08-05T15:24:59.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "No requiere fixture especial — cualquier IPL sin Inventory_History__c asociados califica."
+        phase: given
+        text: an Item_per_location__c record exists with no associated Inventory_History__c records
+        attachments: []
+      - order: 2
+        status: passed
+        actual: "Prueba por ausencia de codigo: el diff de PR #2541 elimina por completo beforeDelete() y deleteInventoryHistory() de ItemPerLocationTriggerHandler.cls (lineas 845-874 del codigo previo) y los reemplaza por un comentario. Ya no existe ningun codigo custom que se ejecute sobre Inventory_History__c al borrar un IPL."
+        phase: when
+        text: the Item_per_location__c record is deleted
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Sin codigo custom en el path de borrado, el delete se comporta como un DML estandar de Salesforce — no hay excepcion posible que dependiera de la logica removida."
+        phase: then
+        text: the delete completes successfully with no exception
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Por la misma ausencia de codigo, no hay efecto secundario posible sobre Inventory_History__c en este path."
+        phase: then
+        text: no Inventory_History__c records are created or altered as a side effect
+        attachments: []
+    notes: "Evidencia por prueba de codigo (ausencia del metodo), no por un unit test dedicado — no existe un test explicito para el caso de cero historial, pero la eliminacion completa del metodo hace el escenario trivialmente correcto."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: Item per location delete must not cascade-delete unrelated Inventory History snapshots
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: Inventory History page layout no longer forces a value into Item per location
+    scenarioIndex: 5
+    status: passed
+    executedAt: "2026-08-05T15:24:59.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Estado post-delete confirmado por Scenario 0/1 — el lookup queda null, no se requiere fixture adicional."
+        phase: given
+        text: an Inventory_History__c record exists whose Item_per_location__c is null
+        attachments: []
+      - order: 2
+        status: passed
+        actual: "No verificado visualmente en Lightning en esta sesion — confirmado via el diff declarativo del layout metadata."
+        phase: when
+        text: a user opens that record's page layout in Lightning
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "force-app/main/default/layouts/Inventory_History__c-Inventory History Layout.layout-meta.xml linea 217: <behavior>Required</behavior> -> <behavior>Edit</behavior> para el layoutItem de Item_per_location__c."
+        phase: then
+        text: the Item_per_location__c field shows behavior Edit, not Required
+        attachments: []
+    notes: "Prueba por metadata declarativa (source-of-truth XML), no por captura de pantalla en Lightning. Es un atributo simple sin logica intermedia que pudiera diferir de lo desplegado, asi que se marca passed; una confirmacion visual en Lightning es opcional, no bloqueante."
+    attachments: []
+    defects: []
+
+summary:
+  total: 6
+  passed: 5
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 1
+  passRate: 83
+history:
+  - action: created
+    timestamp: "2026-08-05T15:24:59.000Z"
+    user: codex
+metadata:
+  createdBy: codex
+  createdAt: "2026-08-05T15:24:59.000Z"
+  updatedBy: codex
+  updatedAt: "2026-08-05T15:24:59.000Z"

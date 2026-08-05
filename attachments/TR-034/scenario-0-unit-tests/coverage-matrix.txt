@@ -1,0 +1,16 @@
+AC / Scenario -> Test coverage matrix — TC-69 / SH-1129
+=========================================================
+
+| Scenario (TC-69)                                              | Tag(s)              | Test file / method                                              | Coverage |
+|-----------------------------------------------------------------|---------------------|-------------------------------------------------------------------|----------|
+| 0. Single IPL delete preserves Inventory History                | ac-1, happy-path    | ItemPerLocationTriggerHandlerTest.testDeletingItemPerLocationPreservesInventoryHistory | Covered |
+| 1. Bulk IPL delete preserves history across dates (Eiteljorg)   | ac-1, ac-3          | ItemPerLocationTriggerHandlerTest.testBulkDeletingItemPerLocationsPreservesInventoryHistory | Covered (date-agnostic by construction — see notes) |
+| 2. FLS lets standard user insert history after field goes optional | ac-2, missing-doc  | none (Apex tests cannot assert FLS)                                | GAP — dev did not add coverage; PR test plan explicitly flags as unvalidated in scratch org |
+| 3. Batch dedup avoids duplicate for orphaned history            | regression          | InventoryHistoryBatchTest.testOnlyNewRecordsSkipsDuplicateForOrphanedHistory | Covered |
+| 4. Delete IPL with zero history is a no-op                     | edge-case           | none (no dedicated test)                                          | Covered by source-code proof (the entire cascade-delete method was removed) |
+| 5. Layout no longer forces Item_per_location__c                | ui, layout          | none (declarative metadata, not exercised by Apex tests)           | Covered by source-code proof (layout-meta.xml diff) |
+
+Gaps: AC-2 (Scenario 2) is the only scenario with zero dev-test coverage AND no static proof
+possible — FLS is a runtime deploy-time behavior that can only be confirmed in a real org.
+Flagged as not-run; needs a full-org-shaped sandbox (not the ephemeral AuctiferaDX__sh890
+scratch org the PR used, which fails on partial permission-set deploys).

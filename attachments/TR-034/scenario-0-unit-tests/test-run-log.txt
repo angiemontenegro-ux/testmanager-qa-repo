@@ -1,0 +1,26 @@
+Test execution evidence source — SH-1129 / PR #2541
+=====================================================
+
+PR #2541 is already MERGED to main (2026-07-30). The `AuctiferaDX__sh890` scratch org used
+for the PR's own manual test run (45/45 passed, 98% class coverage on
+ItemPerLocationTriggerHandler, per PR body) no longer exists (scratch orgs are ephemeral).
+
+No fresh QA-invoked test run was executed in this session. Evidence instead comes from:
+
+1. `gh pr checks 2541` — all CI checks GREEN:
+     build          pass   1h8m5s
+     lint           pass   1m15s
+     test           pass   1m23s
+     AWS CodeBuild  pass   (GitHub_Action_AuctiferaDX)
+   The `test` job runs the full Apex test suite (including the new/modified tests below)
+   against the project's CI-provisioned org — this is the authoritative automated run.
+
+2. Static inspection of the test assertions themselves, read via `gh pr diff 2541`
+   (see tests-found.txt / coverage-matrix.txt) — confirms the assertions in
+   testDeletingItemPerLocationPreservesInventoryHistory,
+   testBulkDeletingItemPerLocationsPreservesInventoryHistory, and
+   testOnlyNewRecordsSkipsDuplicateForOrphanedHistory exactly match TC-69's expected
+   behavior for Scenarios 0, 1, and 3.
+
+Decision: this satisfies Step 4's "tests pass + coverage matches ACs -> green flag" path.
+No test failed on the PR branch, so this is NOT a stop-and-raise-defect situation.

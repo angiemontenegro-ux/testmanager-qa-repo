@@ -1,0 +1,18 @@
+Regression results — SH-1129 / PR #2541 / TC-69
+=================================================
+
+TECHNICAL: 3/4 PASS · 1 FINDING (out-of-scope, flagged for user decision — not a FAIL of SH-1129)
+SECURITY:  4/4 PASS · 0 blockers
+
+| Item | Verdict |
+|---|---|
+| CatalogItemTriggerHandler still cascade-deletes ALL Inventory_History__c on Shop Item delete (same bug pattern, different parent, untouched by this PR) | FINDING (not a FAIL — outside SH-1129's declared scope; see summary for filing decision) |
+| InventoryHistoryBatch dedup key change | PASS |
+| Item_per_location__c consumers (Recorder/tests) unaffected by delete-side change | PASS |
+| Inventory History layout required->Edit, no other layout depends on it being required | PASS |
+| SOQL injection scan | PASS |
+| Secrets/credentials scan | PASS |
+| Permission set FLS grant matches existing sibling-field pattern, no privilege escalation | PASS |
+| PII-in-logging scan | PASS |
+
+No High/Critical security blocker. No Applicable item left TBD.

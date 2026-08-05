@@ -1,0 +1,31 @@
+PR #2541 (bug/inventory-history-cascade-delete-SH-1129) — test files changed
+======================================================================
+
+force-app/main/default/classes/ItemPerLocationTriggerHandlerTest.cls
+  - testDeletingItemPerLocationPreservesInventoryHistory (renamed from testDeleteInventoryHistory)
+      Asserts count of surviving Inventory_History__c rows == count inserted before delete,
+      Item_per_location__c is null on every surviving row, and Shop_Item__c / Location__c /
+      Date__c / Inventory_Value__c remain populated. Maps to AC-1 (TC-69 Scenario 0).
+  - testBulkDeletingItemPerLocationsPreservesInventoryHistory (new)
+      Bulk-deletes 3 Item_per_location__c records in one DML call (mirrors the 146-record
+      SH-1115 Eiteljorg consolidation). Asserts all 3 associated Inventory_History__c rows
+      survive with Item_per_location__c null and Shop_Item__c still populated.
+      Maps to AC-1 + AC-3 (TC-69 Scenario 1).
+
+force-app/main/shop/unitTests/InventoryHistoryBatchTest.cls
+  - testOnlyNewRecordsSkipsDuplicateForOrphanedHistory (new)
+      Inserts an orphaned Inventory_History__c row (Item_per_location__c = null) for today,
+      then runs InventoryHistoryBatch again for the IPL representing the same Shop Item +
+      Item Variant + Location. Asserts exactly 1 history row remains for that combination —
+      no duplicate snapshot created. Maps to the InventoryHistoryBatch dedup regression
+      (TC-69 Scenario 3, spillover from sibling ticket SH-1142 shipped in this same PR).
+
+No test asserts:
+  - AC-2 (permission-set FLS on Inventory_History__c.Item_per_location__c) — Apex unit tests
+    cannot assert FLS; this is a metadata/deploy-level concern. PR's own test plan explicitly
+    leaves this unchecked ("can only be validated by the full CI org build").
+  - The zero-history delete no-op (TC-69 Scenario 4) — no dedicated test, but covered by
+    source-code proof: the entire beforeDelete()/deleteInventoryHistory() method was removed,
+    so no custom code path executes on IPL delete at all.
+  - The layout behavior change (TC-69 Scenario 5) — declarative metadata, not exercised by Apex
+    tests; confirmed directly from the layout-meta.xml diff.
