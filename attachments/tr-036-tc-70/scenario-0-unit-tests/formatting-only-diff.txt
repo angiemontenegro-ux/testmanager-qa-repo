@@ -1,0 +1,44 @@
+110c110,112
+<             WHERE Auctifera__Purchase_Order__c IN :purchaseOrderIds AND Auctifera__Order_Status__c = 'Received - Complete'
+---
+>             WHERE
+>                 Auctifera__Purchase_Order__c IN :purchaseOrderIds
+>                 AND Auctifera__Order_Status__c = 'Received - Complete'
+167c169
+< }
+\ No newline at end of file
+---
+> }
+362c362,364
+<             Auctifera__Purchase_Order__c purchaseOrder = new Auctifera__Purchase_Order__c(Name = 'PO SH-1174 Late Expense');
+---
+>             Auctifera__Purchase_Order__c purchaseOrder = new Auctifera__Purchase_Order__c(
+>                 Name = 'PO SH-1174 Late Expense'
+>             );
+378,379c380,389
+<             shopItem = [SELECT Id, Auctifera__Current_Item_Cost__c FROM Auctifera__CatalogItem__c WHERE Id = :shopItem.Id];
+<             Assert.areEqual(8, shopItem.Auctifera__Current_Item_Cost__c, 'Cost should be the raw $8.00 before any expense');
+---
+>             shopItem = [
+>                 SELECT Id, Auctifera__Current_Item_Cost__c
+>                 FROM Auctifera__CatalogItem__c
+>                 WHERE Id = :shopItem.Id
+>             ];
+>             Assert.areEqual(
+>                 8,
+>                 shopItem.Auctifera__Current_Item_Cost__c,
+>                 'Cost should be the raw $8.00 before any expense'
+>             );
+392c402,406
+<             shopItem = [SELECT Id, Auctifera__Current_Item_Cost__c FROM Auctifera__CatalogItem__c WHERE Id = :shopItem.Id];
+---
+>             shopItem = [
+>                 SELECT Id, Auctifera__Current_Item_Cost__c
+>                 FROM Auctifera__CatalogItem__c
+>                 WHERE Id = :shopItem.Id
+>             ];
+401c415
+< }
+\ No newline at end of file
+---
+> }

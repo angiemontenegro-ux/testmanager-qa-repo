@@ -1,0 +1,184 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://saas-data-8535-dev-ed.scratch.my.salesforce.com",
+      "orgId": "00DOv00000YPxZBMA1",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 11,
+      "skipped": 0,
+      "testRunId": "707Ov00006Vh374",
+      "testStartTime": "2026-08-05T22:09:00.000Z",
+      "testsRan": 11,
+      "userId": "005Ov000012ije5IAA",
+      "username": "test-wskgksfy0wn4@example.com",
+      "commandTime": "718 ms",
+      "testExecutionTime": "35610 ms",
+      "testTotalTime": "35690 ms"
+    },
+    "tests": [
+      {
+        "Id": "07MOv00000v1RN9MAM",
+        "QueueItemId": "709Ov00000cCUpFIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "addingExpenseAfterReceiptReproratesLandedCost",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROVIA2",
+          "Name": "LandedCostOnReceiptTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 5423,
+        "FullName": "Auctifera.LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost"
+      },
+      {
+        "Id": "07MOv00000v1RNAMA2",
+        "QueueItemId": "709Ov00000cCUpFIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "sequentialReceiptProratesExpenseAcrossAllReceivedLines",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROVIA2",
+          "Name": "LandedCostOnReceiptTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 4957,
+        "FullName": "Auctifera.LandedCostOnReceiptTest.sequentialReceiptProratesExpenseAcrossAllReceivedLines"
+      },
+      {
+        "Id": "07MOv00000v1RNBMA2",
+        "QueueItemId": "709Ov00000cCUpFIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "singleLineReceiptFoldsExpenseIntoMovingAverage",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROVIA2",
+          "Name": "LandedCostOnReceiptTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 2950,
+        "FullName": "Auctifera.LandedCostOnReceiptTest.singleLineReceiptFoldsExpenseIntoMovingAverage"
+      },
+      {
+        "Id": "07MOv00000v1RNCMA2",
+        "QueueItemId": "709Ov00000cCUpFIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "twoLineReceiptProratesExpenseByValue",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROVIA2",
+          "Name": "LandedCostOnReceiptTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 2803,
+        "FullName": "Auctifera.LandedCostOnReceiptTest.twoLineReceiptProratesExpenseByValue"
+      },
+      {
+        "Id": "07MOv00000v1RNDMA2",
+        "QueueItemId": "709Ov00000cCUpFIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "variantReceiptFoldsExpenseIntoVariantCost",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROVIA2",
+          "Name": "LandedCostOnReceiptTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 3507,
+        "FullName": "Auctifera.LandedCostOnReceiptTest.variantReceiptFoldsExpenseIntoVariantCost"
+      },
+      {
+        "Id": "07MOv00000v1dBNMAY",
+        "QueueItemId": "709Ov00000cCUpGIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "allocationsReconcileExactlyWithRoundingRemainder",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROUIA2",
+          "Name": "LandedCostAllocatorTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 3084,
+        "FullName": "Auctifera.LandedCostAllocatorTest.allocationsReconcileExactlyWithRoundingRemainder"
+      },
+      {
+        "Id": "07MOv00000v1dBOMAY",
+        "QueueItemId": "709Ov00000cCUpGIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "fallsBackToQuantityWhenTotalValueIsZero",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROUIA2",
+          "Name": "LandedCostAllocatorTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 3940,
+        "FullName": "Auctifera.LandedCostAllocatorTest.fallsBackToQuantityWhenTotalValueIsZero"
+      },
+      {
+        "Id": "07MOv00000v1dBPMAY",
+        "QueueItemId": "709Ov00000cCUpGIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "lineWithoutPurchaseOrderLandsOnRawCost",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROUIA2",
+          "Name": "LandedCostAllocatorTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 2588,
+        "FullName": "Auctifera.LandedCostAllocatorTest.lineWithoutPurchaseOrderLandsOnRawCost"
+      },
+      {
+        "Id": "07MOv00000v1dBQMAY",
+        "QueueItemId": "709Ov00000cCUpGIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "proratesByValueAcrossLines",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROUIA2",
+          "Name": "LandedCostAllocatorTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 3011,
+        "FullName": "Auctifera.LandedCostAllocatorTest.proratesByValueAcrossLines"
+      },
+      {
+        "Id": "07MOv00000v1dBRMAY",
+        "QueueItemId": "709Ov00000cCUpGIAW",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707Ov00006Vh374IAB",
+        "MethodName": "zeroExpenseLeavesUnitCostUnchanged",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pOv00000ewROUIA2",
+          "Name": "LandedCostAllocatorTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 3347,
+        "FullName": "Auctifera.LandedCostAllocatorTest.zeroExpenseLeavesUnitCostUnchanged"
+      }
+    ]
+  }
+}

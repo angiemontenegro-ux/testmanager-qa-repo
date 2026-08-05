@@ -1,9 +1,32 @@
 Regression results — SH-1174 / TC-70 / TR-036
 
-Security items: all executed, all PASS (see regression-plan.txt for detail + check method). No High/Critical security findings. No blockers of security origin.
+*** UPDATED 2026-08-05T22:10Z — see CORRECTION-org-artifact.md. The FAIL that originally halted this
+*** run was an artifact of the AuctiferaDX__sh890 org, not a defect in PR #2567. The PR's own suite
+*** passes 11/11 on the exact committed code in two independent orgs.
 
-Technical items: 3 of 5 executed (backward-compat raw-cost path PASS via existing unit test; local-repo isolation PASS via worktree). 2 of 5 DEFERRED (shared cost pipeline e2e suite, governor-limit bulk check) — execution halted per Rule 6 after LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost failed deterministically on independent re-run against the PR's exact code (PR #2567, head f3b892c702a3189acedef26a3b9e108618c71abd) in AuctiferaDX__sh890. Filed as SH-1182 (High, blocks SH-1174).
+Security items: all executed, all PASS (see regression-plan.txt for detail + check method). No
+High/Critical security findings. No blockers of security origin.
 
-This is not a security regression — it is a functional correctness bug (moving average zeroed instead of re-prorated when a PO expense is added/edited after the goods are already received). No defect filed under the OWASP categories for this; see owasp-top10-scan.txt.
+Technical items: 3 of 5 executed and PASS. 2 of 5 (shared cost pipeline e2e suite, governor-limit
+bulk check) were DEFERRED when execution halted on the now-retracted defect. They remain deferred —
+not because of a blocker, but because they were never re-run after the correction. They are the
+cheapest remaining technical work and should run in sh1174qa (clean org, full deploy, expires
+2026-08-08):
+  - Run ItemCostCalculationBusinessCasesTest (25 e2e) — the PR body claims 100%; verify independently.
+  - Confirm no LIMIT_EXCEEDED on bulk multi-PO receipts (extra SOQL in the trigger path).
 
-Resume plan: once SH-1182 is fixed and the dev's own test suite is green (including addingExpenseAfterReceiptReproratesLandedCost), re-run this executor to (1) confirm the fix, (2) execute the 2 deferred Technical items, and (3) cover the 2 real coverage gaps identified in TC-70's coverage matrix (ac-3: second receipt into an item with existing average; ac-5: short/partial receipt -> Inventory Adjustment) via sandbox validation, since neither has dev unit-test coverage.
+Test-suite verdict on the exact committed code (f3b892c):
+  - AuctiferaDX__sh1169, byte-exact PR files deployed .... 11/11 PASS
+  - sh1174qa, clean org, full force-app deploy .......... 11/11 PASS
+  - AuctiferaDX__sh890, Jul 9 baseline + 12 files ....... 10/11 (1 FAIL — org artifact, retired)
+
+No security regression was found at any point. The retracted issue was a functional-correctness
+false positive, filed as SH-1182 and now downgraded to Low with a manual close requested.
+
+Remaining genuine gaps for SH-1174 sign-off (both still not-run, both real coverage gaps in the PR,
+unrelated to the retracted defect):
+  - ac-3: a later receipt averages the landed cost again (second receipt into an item that already
+    carries an average from a prior, separate PO)
+  - ac-5: short receipt — expense folds into units actually received; shortfall corrected via a
+    separate Inventory Adjustment. Also tied to the ticket's still-open Decision #1, so the assumed
+    behaviour must be re-verified once that decision is formally closed.
