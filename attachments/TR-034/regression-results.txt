@@ -1,12 +1,12 @@
 Regression results — SH-1129 / PR #2541 / TC-69
 =================================================
 
-TECHNICAL: 3/4 PASS · 1 FINDING (out-of-scope, flagged for user decision — not a FAIL of SH-1129)
+TECHNICAL: 3/4 PASS · 1 item already tracked separately (not a FAIL of SH-1129)
 SECURITY:  4/4 PASS · 0 blockers
 
 | Item | Verdict |
 |---|---|
-| CatalogItemTriggerHandler still cascade-deletes ALL Inventory_History__c on Shop Item delete (same bug pattern, different parent, untouched by this PR) | FINDING (not a FAIL — outside SH-1129's declared scope; see summary for filing decision) |
+| CatalogItemTriggerHandler still cascade-deletes ALL Inventory_History__c on Shop Item delete (same bug pattern, different parent, untouched by this PR) | ALREADY TRACKED as SH-1143 ("Not started"), found during PR #2541 code review by César, deliberately out of SH-1129's scope. Not filed again here. |
 | InventoryHistoryBatch dedup key change | PASS |
 | Item_per_location__c consumers (Recorder/tests) unaffected by delete-side change | PASS |
 | Inventory History layout required->Edit, no other layout depends on it being required | PASS |

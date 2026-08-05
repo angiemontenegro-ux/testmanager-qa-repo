@@ -156,7 +156,7 @@ results:
         phase: then
         text: exactly one Inventory_History__c record remains for that Shop Item + Item Variant + Location + Date
         attachments: []
-    notes: "Evidencia: CI test job de PR #2541 (verde) + inspeccion estatica de la aser. Este dedup-key change corresponde al fix de SH-1142, embarcado en el mismo PR — se valida aqui como regresion, no reemplaza el QA propio de SH-1142."
+    notes: "Evidencia: CI test job de PR #2541 (verde) + inspeccion estatica de la aser. Este dedup-key change corresponde al fix de SH-1142, embarcado en el mismo PR — se valida aqui como regresion, no reemplaza el QA propio de SH-1142. Nota de regresion tecnica: CatalogItemTriggerHandler.cls tiene el mismo patron de cascade-delete sin filtro de fecha que SH-1129 corrigio, pero sobre CatalogItem/Shop Item en vez de IPL. Ya esta trackeado como SH-1143 (Not started, descubierto por Cesar en el code review del PR #2541, deliberadamente fuera de este scope) — no se filea de nuevo."
     attachments: []
     defects: []
 
@@ -239,6 +239,9 @@ summary:
 history:
   - action: created
     timestamp: "2026-08-05T15:24:59.000Z"
+    user: codex
+  - action: updated
+    timestamp: "2026-08-05T15:45:00.000Z"
     user: codex
 metadata:
   createdBy: codex
