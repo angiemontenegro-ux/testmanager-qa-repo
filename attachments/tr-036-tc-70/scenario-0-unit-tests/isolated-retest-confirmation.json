@@ -1,0 +1,41 @@
+{
+  "status": 100,
+  "result": {
+    "summary": {
+      "failRate": "50%",
+      "failing": 1,
+      "hostname": "https://ability-customer-9960-dev-ed.scratch.my.salesforce.com",
+      "orgId": "00DRt00000StnG5MAJ",
+      "outcome": "Failed",
+      "passRate": "50%",
+      "passing": 1,
+      "skipped": 0,
+      "testRunId": "707Rt00002AgpPG",
+      "testStartTime": "2026-08-05T20:06:16.000Z",
+      "testsRan": 2,
+      "userId": "005Rt00000XWSMLIA5",
+      "username": "test-gkqtw5asdwwq@example.com",
+      "commandTime": "966 ms",
+      "testExecutionTime": "4189 ms",
+      "testTotalTime": "4242 ms"
+    },
+    "tests": [
+      {
+        "Id": "07MRt00000bE8ZuMAK",
+        "QueueItemId": "709Rt00000l0N6QIAU",
+        "StackTrace": "Class.Auctifera.LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost: line 407, column 1",
+        "Message": "System.AssertException: Assertion Failed: Adding the expense after receipt must re-prorate the landed cost (8.00 + 20.00/10 = 10.00): Expected: 10, Actual: 0.00",
+        "AsyncApexJobId": "707Rt00002AgpPGIAZ",
+        "MethodName": "addingExpenseAfterReceiptReproratesLandedCost",
+        "Outcome": "Fail",
+        "ApexClass": {
+          "Id": "01pRt0000130jCdIAI",
+          "Name": "LandedCostOnReceiptTest",
+          "NamespacePrefix": "Auctifera"
+        },
+        "RunTime": 4189,
+        "FullName": "Auctifera.LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost"
+      }
+    ]
+  }
+}

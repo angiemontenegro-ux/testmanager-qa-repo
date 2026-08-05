@@ -1,0 +1,16 @@
+Regression plan — SH-1174 / TC-70 / TR-036, PR #2567 (Veevarts/AuctiferaDX, head f3b892c702a3189acedef26a3b9e108618c71abd)
+
+| Item | Type | Risk | Check method | Verdict |
+|---|---|---|---|---|
+| Shared cost pipeline (SH-818/868/1152) - ItemCostHistoryService feeds COGS/inventory snapshots/variant cost | Technical | Medium | Run ItemCostCalculationBusinessCasesTest (25 e2e, PR body claims 100%) independently in sh890 | DEFERRED - execution halted per Rule 6 after finding a deterministic FAIL in the PR's own added test (see regression-results.txt / TR-036 history). Resume once SH-1182 is fixed. |
+| Legacy Average_Item_Cost__c (by-quantity) must stay untouched | Technical | Low | Query an item's Average_Item_Cost__c after a landed-cost receipt in sandbox | DEFERRED |
+| No-PO / no-expense orders must remain on raw cost (backward compat) | Technical | Medium | Covered by LandedCostAllocatorTest.lineWithoutPurchaseOrderLandsOnRawCost (PASS, executed) + 2-arg delegate design | PASS (via existing unit test, executed independently) |
+| Governor limits: extra SOQL in trigger path for multi-PO bulk receipts | Technical | Low | Run ItemCostCalculationBusinessCasesTest bulk cases, check for LIMIT_EXCEEDED | DEFERRED |
+| Local repo (cwd) has unrelated uncommitted WIP on ItemCostHistoryService.cls for SH-1169 | Technical | Informational | Isolated via git worktree for this PR's validation; no cross-contamination with the cwd's WIP | PASS - isolation confirmed, no local checkout touched |
+| SOQL injection - all queries static/bind-variable only | Security | Low | grep on gh pr diff 2567 (authoritative 12-file scope, not local git diff which was polluted by a stale local `main` ref) | PASS - confirmed clean |
+| Secrets/credentials in diff | Security | Low | grep on gh pr diff 2567 | PASS - confirmed clean |
+| `with sharing` preserved on all new/modified classes | Security | Low | grep on gh pr diff 2567 | PASS - confirmed clean (LandedCostAllocator, LandedCostOnReceiptTest, LandedCostAllocatorTest, PurchaseOrderTriggerHandler, ICHCostCalculationService, ItemCostHistoryService all `with sharing`) |
+| New ICH currency fields (Unit_Cost__c/Allocated_Expense__c/Effective_Cost__c) ship with NO permission-set FLS grant in the PR diff itself | Security | Low | Queried FieldPermissions in sh890 - "Veevart" permission set already grants Read (not shipped in this PR's diff, likely granted manually during dev validation) | PASS (fail-safe, not exploitable) - flagged as a packaging gap: another org installing this PR would need the same manual FLS grant added separately, or shop staff won't see the landed-cost breakdown fields |
+| AccessLevel.SYSTEM_MODE DML write of ICH records in PurchaseOrderTriggerHandler.recalculateLandedCostForReceivedLines | Security | Low | Existing codebase pattern for trigger-context system writes to ICH; only affects write, not read exposure | PASS - established pattern, no new exposure |
+
+Note: an earlier `git diff main...HEAD` in the local worktree was polluted by a stale local `main` ref (24956+ file mismatch pulling in unrelated auth-broker/permission-set/profile changes from many other merged PRs). Corrected by diffing against the exact base SHA GitHub reports for PR #2567 and cross-checking against `gh pr diff 2567 --name-only` (12 files) as the authoritative scope.

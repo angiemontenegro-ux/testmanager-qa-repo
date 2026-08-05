@@ -1,0 +1,165 @@
+schemaVersion: "1.0"
+id: "87339977-18fe-4c40-9633-68762de86658"
+key: "TC-70"
+title: "Order expenses are prorated by value and folded into the item's average cost (landed cost)"
+description: "QA coverage for SH-1174 (Shop (Salesforce) — Include order expenses in the item's average cost (landed cost)). QA Sub-task: SH-1180. Implementation domain: Salesforce Shop 1.0 (Auctifera namespace), purchase-order receiving flow that computes the moving weighted average cost — replicates the Shop 2.0 PO Additional-Expenses landed-cost logic from SH-980 / SH-1110. At receipt, the order's total expense (freight, tax, handling, duties, insurance, other — everything entered in the expense module, no recoverable/non-recoverable split) is prorated by value across received lines and folded into each line's effective unit cost before the moving average recompute (6 internal decimals, 2 displayed). Quantity discrepancies are never handled on the purchase — a short/over receipt is corrected via a separate Inventory Adjustment. Open risk: Open decision #1 in the story (expense base on a short receipt) still needs confirmation against current Salesforce Shop receiving behavior — Scenario 5 here tests the assumed behavior (expense spreads over actually-received qty) but should be re-checked once that decision is formally closed. Historical-data recalculation for pre-existing receipts is explicitly out of scope (separate fast-follow), so no scenario covers backfill. Applies ONLY to Shop 1.0 — not Shop 2.0."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The landed-cost fix for SH-1174 is deployed to the target org/sandbox (purchase-order receiving flow + Item Cost History)."
+  - "At least one Shop Item / Item Variant with a known starting on-hand quantity and average cost (including 0/0 for a first-ever receipt) is available for testing."
+  - "A Purchase Order with 2+ lines and at least one expense entry (freight, tax, handling, duties, or insurance) can be created and received in the target org."
+scenarios:
+  - title: "Order expense is prorated by value into each line's effective unit cost"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "landed-cost"
+      - "proration"
+    given:
+      - "a receipt with line A valued at $800 and line B valued at $200, and a total order expense of $100"
+    when:
+      - "the order is received"
+    then:
+      - "$80 is allocated to line A and $20 is allocated to line B (proration by value)"
+      - "each line's effective unit cost = unit cost + (allocated expense ÷ received qty)"
+
+  - title: "The moving average cost is computed on the effective (landed) cost, not the raw unit cost"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "landed-cost"
+      - "moving-average"
+    given:
+      - "item \"Tote\" has 0 on hand and no average cost"
+    when:
+      - "10 units are received at $8.00 unit cost with $20.00 total expense on the order"
+    then:
+      - "the effective unit cost is $10.00 (8.00 + 20.00/10)"
+      - "the item's average cost becomes $10.00, not $8.00"
+
+  - title: "A later receipt averages the newly landed cost against the existing average"
+    tags:
+      - "ac-3"
+      - "happy-path"
+      - "landed-cost"
+      - "moving-average"
+    given:
+      - "item \"Tote\" has 10 on hand at average cost $10.00"
+    when:
+      - "10 more units are received at effective unit cost $6.00"
+    then:
+      - "the new average cost is $8.00 ((10×10 + 10×6) / 20)"
+      - "on hand is 20 after the receipt"
+
+  - title: "Item Cost History records the landed-cost breakdown linked to the order"
+    tags:
+      - "ac-4"
+      - "happy-path"
+      - "item-cost-history"
+      - "landed-cost"
+    given:
+      - "a receipt is posted with freight folded into cost"
+    when:
+      - "the Item Cost History record for that receipt is opened"
+    then:
+      - "it shows unit cost, allocated expense, and effective (landed) unit cost, linked to the originating order"
+      - "Current Item Cost and Cost of Value on Inventory reflect the landed average, not the raw unit cost"
+
+  - title: "A short receipt folds the expense into the units actually received; the shortfall is a separate Inventory Adjustment"
+    tags:
+      - "ac-5"
+      - "happy-path"
+      - "landed-cost"
+      - "short-receipt"
+      - "missing-doc"
+    given:
+      - "an order for 100 units carries a total expense"
+    when:
+      - "only 80 units arrive and are received"
+    then:
+      - "the order's total expense is folded into the cost of the 80 units actually received on the purchase"
+      - "the 20-unit discrepancy is corrected via a separate Inventory Adjustment — the purchase is never partially received or re-opened"
+
+  - title: "Every expense-module line (freight, tax, handling, duties, insurance) folds into cost with no exceptions"
+    tags:
+      - "ac-6"
+      - "happy-path"
+      - "landed-cost"
+      - "expense-module"
+    given:
+      - "a receipt has freight, tax, and handling entered as separate expense lines on the order"
+    when:
+      - "the order is received"
+    then:
+      - "all three expense lines are summed into total_expense and prorated into the effective unit cost"
+      - "none of the three expense types is excluded from the landed average, regardless of recoverable/non-recoverable classification"
+
+  - title: "Zero total expense leaves the effective unit cost unchanged"
+    tags:
+      - "ac-7"
+      - "negative"
+      - "no-op"
+      - "landed-cost"
+    given:
+      - "a receipt has a total order expense of $0"
+    when:
+      - "the order is received"
+    then:
+      - "no expense is allocated to any line"
+      - "the effective unit cost equals the raw unit cost for every line"
+
+  - title: "Per-line expense allocations reconcile exactly to the total expense despite rounding"
+    tags:
+      - "ac-8"
+      - "edge-case"
+      - "landed-cost"
+      - "rounding"
+    given:
+      - "any receipt with a total order expense that does not divide evenly across received line values"
+    when:
+      - "the order is received and per-line allocations are computed"
+    then:
+      - "the sum of all per-line allocated expense equals the total expense exactly, with no rounding loss"
+      - "any rounding remainder is assigned to the line with the largest allocated value"
+
+  - title: "Worked example — two-line receipt with $100 freight allocates $94.74 / $5.26 by value"
+    tags:
+      - "regression-evidence"
+      - "landed-cost"
+      - "worked-example"
+    given:
+      - "a receipt has line A \"Exhibition catalogue\" at $12.00 unit cost × 60 qty ($720.00 value) and line B \"Museum tote\" at $4.00 unit cost × 10 qty ($40.00 value), with a total order expense of $100.00"
+    when:
+      - "the order is received"
+    then:
+      - "line A is allocated $94.74 (100 × 720/760) and line B is allocated $5.26 (100 × 40/760), summing exactly to $100.00"
+      - "line A's effective unit cost is $13.58 (12.00 + 94.74/60) and line B's is $4.53 (4.00 + 5.26/10)"
+      - "both items start from 0 on hand, so their new average cost equals their effective unit cost: $13.58 for A (60 on hand) and $4.53 for B (10 on hand)"
+tags:
+  - "sh-1174"
+  - "sh-1180"
+  - "shop"
+  - "purchasing"
+  - "landed-cost"
+  - "item-cost-history"
+  - "salesforce"
+parameters: []
+links:
+  jira:
+    - key: "SH-1174"
+      url: "https://veevart.atlassian.net/browse/SH-1174"
+      type: "story"
+    - key: "SH-1180"
+      url: "https://veevart.atlassian.net/browse/SH-1180"
+      type: "qa-sub-task"
+  external: []
+estimatedDuration: 105
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-08-05T19:45:43Z"
+  updatedBy: "codex"
+  updatedAt: "2026-08-05T19:45:43Z"
+  version: 1

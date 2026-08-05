@@ -1,0 +1,15 @@
+QA-executed Apex test run against AuctiferaDX__sh890 (PR #2567 HEAD f3b892c7, deployed fresh with --ignore-conflicts to override stale org state).
+Classes: LandedCostAllocatorTest, LandedCostOnReceiptTest
+testRunId: 707Rt00002AgYie
+outcome: Failed | passing: 10 | failing: 1 | testsRan: 11
+
+Pass | LandedCostAllocatorTest.allocationsReconcileExactlyWithRoundingRemainder
+Pass | LandedCostAllocatorTest.fallsBackToQuantityWhenTotalValueIsZero
+Pass | LandedCostAllocatorTest.lineWithoutPurchaseOrderLandsOnRawCost
+Pass | LandedCostAllocatorTest.proratesByValueAcrossLines
+Pass | LandedCostAllocatorTest.zeroExpenseLeavesUnitCostUnchanged
+Fail | LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost | System.AssertException: Assertion Failed: Adding the expense after receipt must re-prorate the landed cost (8.00 + 20.00/10 = 10.00): Expected: 10, Actual: 0.00
+Pass | LandedCostOnReceiptTest.sequentialReceiptProratesExpenseAcrossAllReceivedLines
+Pass | LandedCostOnReceiptTest.singleLineReceiptFoldsExpenseIntoMovingAverage
+Pass | LandedCostOnReceiptTest.twoLineReceiptProratesExpenseByValue
+Pass | LandedCostOnReceiptTest.variantReceiptFoldsExpenseIntoVariantCost

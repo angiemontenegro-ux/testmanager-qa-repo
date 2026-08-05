@@ -1,0 +1,9 @@
+Regression results — SH-1174 / TC-70 / TR-036
+
+Security items: all executed, all PASS (see regression-plan.txt for detail + check method). No High/Critical security findings. No blockers of security origin.
+
+Technical items: 3 of 5 executed (backward-compat raw-cost path PASS via existing unit test; local-repo isolation PASS via worktree). 2 of 5 DEFERRED (shared cost pipeline e2e suite, governor-limit bulk check) — execution halted per Rule 6 after LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost failed deterministically on independent re-run against the PR's exact code (PR #2567, head f3b892c702a3189acedef26a3b9e108618c71abd) in AuctiferaDX__sh890. Filed as SH-1182 (High, blocks SH-1174).
+
+This is not a security regression — it is a functional correctness bug (moving average zeroed instead of re-prorated when a PO expense is added/edited after the goods are already received). No defect filed under the OWASP categories for this; see owasp-top10-scan.txt.
+
+Resume plan: once SH-1182 is fixed and the dev's own test suite is green (including addingExpenseAfterReceiptReproratesLandedCost), re-run this executor to (1) confirm the fix, (2) execute the 2 deferred Technical items, and (3) cover the 2 real coverage gaps identified in TC-70's coverage matrix (ac-3: second receipt into an item with existing average; ac-5: short/partial receipt -> Inventory Adjustment) via sandbox validation, since neither has dev unit-test coverage.

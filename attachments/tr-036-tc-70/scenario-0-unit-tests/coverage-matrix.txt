@@ -1,0 +1,19 @@
+AC <-> unit test coverage matrix for SH-1174 (TC-70), evaluated against PR #2567 (Veevarts/AuctiferaDX, head f3b892c702a3189acedef26a3b9e108618c71abd)
+
+| AC | Description | Test(s) | Status |
+|----|---|---|---|
+| ac-1 | Expense prorated by value into effective unit cost | LandedCostAllocatorTest.proratesByValueAcrossLines, LandedCostOnReceiptTest.twoLineReceiptProratesExpenseByValue | PASS |
+| ac-2 | Moving average computed on effective (landed) cost | LandedCostOnReceiptTest.singleLineReceiptFoldsExpenseIntoMovingAverage | PASS |
+| ac-3 | A later receipt averages the landed cost again (item already has on-hand stock + average from a PRIOR, separate receipt) | NONE - no test creates a second independent receipt into an item that already carries an average cost from an earlier PO. sequentialReceiptProratesExpenseAcrossAllReceivedLines is close but tests two DIFFERENT items each received once, not a second receipt of the SAME item. | GAP - not covered by dev unit tests, must be covered by QA (sandbox) |
+| ac-4 | ICH shows landed-cost breakdown, linked to order | LandedCostOnReceiptTest.twoLineReceiptProratesExpenseByValue (asserts Unit_Cost__c/Allocated_Expense__c/Effective_Cost__c values; does NOT assert an explicit link field to the order) | PASS (values) / PARTIAL (order link not explicitly asserted) |
+| ac-5 | Short receipt: expense folds into units actually received; shortfall corrected via separate Inventory Adjustment, not on the purchase | NONE - no test exercises a partial/short receipt or Inventory Adjustment creation | GAP - not covered by dev unit tests, must be covered by QA (sandbox) |
+| ac-6 | Every expense-module line (freight, tax, handling, duties, insurance) folds in, no exceptions | Architecturally satisfied - LandedCostAllocator sums ALL Auctifera__Purchase_Order_Expense__c child rows of a PO regardless of Name/type, so any expense line counts. No test combines 3+ concurrently-present expense line types in one receipt. | PASS (by design) / PARTIAL (no explicit multi-type test) |
+| ac-7 | Zero expense leaves effective unit cost unchanged (no-op) | LandedCostAllocatorTest.zeroExpenseLeavesUnitCostUnchanged, lineWithoutPurchaseOrderLandsOnRawCost (bonus) | PASS |
+| ac-8 | Per-line allocations reconcile exactly to total expense despite rounding | LandedCostAllocatorTest.allocationsReconcileExactlyWithRoundingRemainder, proratesByValueAcrossLines (partial assert) | PASS |
+| (extra, not an AC but real regression coverage) | Fallback to by-quantity when total value = 0 | LandedCostAllocatorTest.fallsBackToQuantityWhenTotalValueIsZero | PASS |
+| (extra) | Variant cost also folds in landed cost | LandedCostOnReceiptTest.variantReceiptFoldsExpenseIntoVariantCost | PASS |
+| (extra) | Sequential receipt of a PO's lines (separate transactions) still prorates correctly across all received lines | LandedCostOnReceiptTest.sequentialReceiptProratesExpenseAcrossAllReceivedLines | PASS |
+| (extra) | Adding/editing a PO expense AFTER receipt re-prorates the already-posted ICH | LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost | **FAIL** - Expected 10, Actual 0.00. Confirmed deterministic on isolated re-run. See test-run-log.txt. |
+
+Summary: 10/11 dev-authored tests PASS. 1 FAIL (addingExpenseAfterReceiptReproratesLandedCost) is deterministic and blocks QA per Rule 6 (tests fail on PR branch -> stop, raise defect, do not continue full execution).
+Gaps requiring QA-side coverage once the FAIL is resolved: ac-3 (repeat receipt into an item with existing average), ac-5 (short receipt -> Inventory Adjustment).

@@ -3,7 +3,7 @@ project:
   name: "QA Forms Workspace"
   prefix: "TC"
   counters:
-    testCase: 69
+    testCase: 70
     testSuite: 5
     testPlan: 16
     testRun: 35
