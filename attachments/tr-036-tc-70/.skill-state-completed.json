@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1174",
+  "tcKey": "TC-70",
+  "trKey": "TR-036",
+  "prNumber": 2567,
+  "startedAt": "2026-08-05T19:50:00Z",
+  "lastUpdated": "2026-08-05T20:05:00Z",
+  "status": "completed",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "currentStep": 12,
+  "data": {
+    "repo": "Veevarts/AuctiferaDX",
+    "prNote": "PR #2564 (feature/landed-cost-expenses-SH-1174) closed 2026-08-04, superseded same-day by PR #2567 (story/landed-cost-expenses-SH-1174), identical body -> using #2567 as the live PR.",
+    "tcPath": "test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml",
+    "qaSubTaskKey": "SH-1180",
+    "trPath": "test-runs/TR-036-sh-1174-landed-cost-expense-proration.testrun.yml (to be created)",
+    "worktreePath": "/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/c5e677f2-9310-4e33-a176-a1c7bbd8b38a/scratchpad/sh1174-pr-wt",
+    "prBaseSha": "0b58691f10b9e7b0038b0155aa6c7d30a3fad7d1",
+    "prHeadSha": "f3b892c702a3189acedef26a3b9e108618c71abd",
+    "classification": {
+      "category": "Salesforce-bound (Apex logic + schema, no ETL/CSV)",
+      "rationale": "Apex trigger/service change to PO receiving path (LandedCostAllocator, ICHCostCalculationService, ItemCostHistoryService, PurchaseOrderTriggerHandler) + 3 new Item_Cost_History__c currency fields. Effect observable in Lightning (ICH landed-cost breakdown, Current_Item_Cost__c). Validated primarily via Apex test classes (org-run), not CSV data loads."
+    },
+    "solutionSummary": "Shop 1.0 excluded PO expenses (freight/tax/handling/etc.) from the moving weighted average cost, understating Current_Item_Cost__c/COGS/margin. The fix adds LandedCostAllocator (prorates a PO's Total_Expenses__c by value across received lines, fallback by qty when total value=0, exact reconciliation with remainder to largest line, 6-decimal internal precision), a new 3-arg overload of ICHCostCalculationService.calculateWeightedAverageCost that accepts an effective-cost override (2-arg delegates with null = fully backward compatible raw-cost path), and wires it into ItemCostHistoryService's create (buildICHs) and recalc (recalculateICHsFromOrders) paths. PurchaseOrderTriggerHandler now also re-prorates already-received lines when a PO's expenses change AFTER receipt (edit/add expense post-receipt), clearing the allocator's transaction-scoped cache first. 3 new ICH fields (Unit_Cost__c, Allocated_Expense__c, Effective_Cost__c) persist the landed-cost breakdown per receipt.",
+    "unitTests": {
+      "filesFound": [
+        "force-app/main/shop/unitTests/LandedCostAllocatorTest.cls (5 tests)",
+        "force-app/main/shop/functionTests/LandedCostOnReceiptTest.cls (5 tests)"
+      ],
+      "coverageMatrix": {
+        "ac-1 (prorate by value)": [
+          "proratesByValueAcrossLines",
+          "twoLineReceiptProratesExpenseByValue"
+        ],
+        "ac-2 (average on effective cost)": [
+          "singleLineReceiptFoldsExpenseIntoMovingAverage"
+        ],
+        "ac-3 (later receipt averages landed cost again)": [],
+        "ac-4 (ICH breakdown, linked to order)": [
+          "twoLineReceiptProratesExpenseByValue (values only, no explicit order-link assertion)"
+        ],
+        "ac-5 (short receipt -> Inventory Adjustment, not partial purchase)": [],
+        "ac-6 (every expense type folds in, no exceptions)": [
+          "architecturally satisfied (generic Purchase_Order_Expense__c sum, no type filtering) but no test combines 3+ concurrent expense line types"
+        ],
+        "ac-7 (zero expense = no-op)": [
+          "zeroExpenseLeavesUnitCostUnchanged",
+          "lineWithoutPurchaseOrderLandsOnRawCost (bonus)"
+        ],
+        "ac-8 (allocations reconcile exactly)": [
+          "allocationsReconcileExactlyWithRoundingRemainder",
+          "proratesByValueAcrossLines (partial assert)"
+        ],
+        "bonus (not an AC but real regression coverage)": [
+          "fallsBackToQuantityWhenTotalValueIsZero",
+          "variantReceiptFoldsExpenseIntoVariantCost",
+          "sequentialReceiptProratesExpenseAcrossAllReceivedLines",
+          "addingExpenseAfterReceiptReproratesLandedCost"
+        ]
+      },
+      "gapsACs": [
+        "ac-3",
+        "ac-5",
+        "ac-6 (partial)"
+      ],
+      "runResult": "PENDING - deploying to AuctiferaDX__sh890 scratch org (matches PR's own stated validation org) to run tests independently; org's previously-deployed classes predated the PR's latest commit (2026-08-03 vs 2026-08-05), so redeploying before trusting results",
+      "runLog": "attachments/tr-036-tc-70/scenario-0-unit-tests/test-run-log.txt (pending)"
+    },
+    "regressionPlanDraft": [
+      {
+        "item": "Shared cost pipeline (SH-818/868/1152) - ItemCostHistoryService feeds COGS/inventory snapshots/variant cost",
+        "type": "Technical",
+        "risk": "Medium",
+        "checkMethod": "Run ItemCostCalculationBusinessCasesTest (25 e2e) in sh890 post-deploy",
+        "verdict": "TBD"
+      },
+      {
+        "item": "Legacy Average_Item_Cost__c (by-quantity) must stay untouched",
+        "type": "Technical",
+        "risk": "Low",
+        "checkMethod": "Query an item's Average_Item_Cost__c after a landed-cost receipt in sandbox",
+        "verdict": "TBD"
+      },
+      {
+        "item": "No-PO / no-expense orders must remain on raw cost (backward compat)",
+        "type": "Technical",
+        "risk": "Medium",
+        "checkMethod": "covered by LandedCostAllocatorTest.lineWithoutPurchaseOrderLandsOnRawCost + 2-arg delegate; verify in sandbox too",
+        "verdict": "TBD"
+      },
+      {
+        "item": "Governor limits: extra SOQL in trigger path for multi-PO bulk receipts",
+        "type": "Technical",
+        "risk": "Low",
+        "checkMethod": "Run ItemCostCalculationBusinessCasesTest bulk cases, check for LIMIT_EXCEEDED",
+        "verdict": "TBD"
+      },
+      {
+        "item": "SOQL injection - all queries static/bind-variable only",
+        "type": "Security",
+        "risk": "Low",
+        "checkMethod": "grep on gh pr diff 2567 (authoritative 12-file scope)",
+        "verdict": "PASS - confirmed clean"
+      },
+      {
+        "item": "Secrets/credentials in diff",
+        "type": "Security",
+        "risk": "Low",
+        "checkMethod": "grep on gh pr diff 2567",
+        "verdict": "PASS - confirmed clean"
+      },
+      {
+        "item": "with sharing preserved on all new/modified classes",
+        "type": "Security",
+        "risk": "Low",
+        "checkMethod": "grep on gh pr diff 2567",
+        "verdict": "PASS - confirmed clean"
+      },
+      {
+        "item": "New ICH currency fields (Unit_Cost__c/Allocated_Expense__c/Effective_Cost__c) ship with NO permission-set FLS grant in the PR diff itself",
+        "type": "Security",
+        "risk": "Low",
+        "checkMethod": "Queried FieldPermissions in sh890 - Veevart permission set already grants Read (not in PR diff, likely granted manually during dev validation)",
+        "verdict": "PASS (fail-safe, not exploitable) but flag as packaging gap - other orgs installing this PR would need the same manual grant"
+      },
+      {
+        "item": "AccessLevel.SYSTEM_MODE DML write of ICH records in PurchaseOrderTriggerHandler.recalculateLandedCostForReceivedLines",
+        "type": "Security",
+        "risk": "Low",
+        "checkMethod": "Existing codebase pattern for trigger-context system writes to ICH; not a new escalation, only affects write not read",
+        "verdict": "PASS - established pattern, no new exposure"
+      },
+      {
+        "item": "Local repo (cwd) has unrelated uncommitted WIP on ItemCostHistoryService.cls for SH-1169 - isolated via git worktree for this PR's validation, no cross-contamination",
+        "type": "Technical",
+        "risk": "Informational",
+        "checkMethod": "N/A - process note",
+        "verdict": "PASS - isolation confirmed via /tmp worktree, no local checkout touched"
+      }
+    ],
+    "verifiedAccess": {
+      "sf": [
+        "AuctiferaDX__sh890 (matches PR's own SH890-scratch validation org)"
+      ]
+    },
+    "deployStatus": "IN PROGRESS - large package recompile, running in background (bash task bdy2y7rak), >6min elapsed as of last check",
+    "owaspDraft": {
+      "A01": {
+        "applicable": true,
+        "verdict": "PASS",
+        "justification": "New fields default-restrictive (no FLS shipped in PR); manual grant already present in test org; no access-control WEAKENING introduced. Flagged as packaging gap, not a vulnerability."
+      },
+      "A02": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No credential/PII/encryption surface touched"
+      },
+      "A03": {
+        "applicable": true,
+        "verdict": "PASS",
+        "justification": "All SOQL static/bind-variable only, confirmed via grep on authoritative gh pr diff"
+      },
+      "A04": {
+        "applicable": true,
+        "verdict": "PASS",
+        "justification": "New business logic (cost proration) matches ticket's locked design rules; internal calculation only, no new endpoint/abuse surface"
+      },
+      "A05": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No infra/env/config files touched"
+      },
+      "A06": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No dependency/package.json changes in this PR's actual diff"
+      },
+      "A07": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No auth/session/login surface touched"
+      },
+      "A08": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No CI/CD or deserialization surface touched"
+      },
+      "A09": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No logging changes; no PII in scope"
+      },
+      "A10": {
+        "applicable": false,
+        "verdict": "N/A",
+        "justification": "No outbound HTTP calls introduced"
+      }
+    },
+    "defectsRaised": [
+      {
+        "jiraKey": "SH-1182",
+        "url": "https://veevart.atlassian.net/browse/SH-1182",
+        "severity": "High",
+        "blocks": "SH-1174"
+      }
+    ]
+  }
+}
