@@ -2,10 +2,20 @@ schemaVersion: "1.0"
 id: "3a4d80f0-2ef7-476a-b2d8-275840102555"
 key: "TC-46"
 title: "Derived Redemption Mode & Legacy Backward-Read"
-description: "QA coverage for SH-1095: validates that redemptionMode is computed (not authored) from whether any Rule carries a membershipProgramId, that legacy records without the unified model still read correctly, and flags as REOPENED/DISPUTED the question of which redemption path wins when a Rule has membershipProgramId AND a customer_facing_code is also set. Product (Martin Campo, Slack, 2026-07-27) said Automatic wins; the independent 'Taller de decisiones' architecture workshop (decision D3, later the same day) recommends the opposite (código gana) to avoid silent dead rule configuration. This is now an open conflict pending an explicit team decision — not something QA can silently resolve (SH-1125 Pending Decisions #2)."
+description: "PARTIALLY RETIRED 2026-08-11 — see the retirement record below. What remains: legacy backward-read tolerance, plus the still-open PE3 conflict over which redemption path wins when a Rule carries membershipProgramId AND a customer_facing_code is set. Product (Martin Campo, Slack, 2026-07-27) said Automatic wins; the independent 'Taller de decisiones' architecture workshop (decision D3, later the same day) recommends the opposite (codigo gana) to avoid silent dead rule configuration. QA does not pick a side (SH-1125 Pending Decisions #2).
+
+RETIREMENT RECORD — retired against discount-engine-v3 test-catalogue-v3.md section 6.1 'Retire and replace'. Two scenarios were removed because they certify a PROMOTION-LEVEL derived redemption mode, which decision D2 replaces with per-rule derivation (a sibling trigger-less rule stays CODE_REQUIRED, so a promotion-level scalar cannot express the model):
+  - REMOVED 'A rule with membershipProgramId derives AUTOMATIC mode' — successor DER-01.
+  - REMOVED 'No rule with membershipProgramId derives CODE_REQUIRED and requires a customer-facing code' — successors BUS-01 (checkout), DER-02 (authoring), BUS-19 (Shop/R5), R2A-07. Retired citing CCR consequence 2: CUSTOMER_FACING_CODE_REQUIRED_FOR_CODE_MODE is one of three SH-1095 error codes that must never be built. (Note: the earlier Q2A justification lapsed under I15 — the retirement stands on CCR, not on Q2A.)
+
+NOT RETIRED, AND WHY:
+  - The PE3 scenario is HELD, not retired. Section 6.1 routes it to DER-18, but DER-18 is itself blocked_by PE3, so retiring now would trade a compliant two-armed record for no coverage at all. It also already satisfies the catalogue's own rule ('a blocked case states its expected result for both candidate answers, do not pick one') — the catalogue reviewed the older SH-1119 revision that had picked a side; this file was already corrected on 2026-07-28. Retire only once PE3 closes and DER-18 unblocks.
+  - Section 6.1 also retires a 'the derived mode flips from AUTOMATIC to CODE_REQUIRED' scenario (its sc.8, successor DER-15). NO SUCH SCENARIO EXISTS IN THIS FILE — nothing to remove. The catalogue's scenario numbers are offset from this file throughout (it cites sc.2/sc.3/sc.7/sc.8 against a 5-scenario file) because it reviewed the SH-1119 revision. Match by assertion text, never by scenario number.
+
+BLOCKER ON EVERYTHING THAT REMAINS — verified against VeevartBackend origin/main @ 5032509c (2026-08-04): redemptionMode, redemption_mode, derivedRedemptionMode, derivedTrigger and derivedDateTimeSource have ZERO occurrences repo-wide (src, tests, migrations, JSON). Promotion.kind and the PromotionKind value object are still the live model, still guarded, and still carry the SH-992/993/994 Shop conformance rules. The contract this case asserts is not present on the shipped trunk, so no scenario here is executable today. Caveat: both local clones fetch only refs/heads/main, so an unmerged feature/discount-engine-v3-SH-1094 branch could not be inspected from here — confirm before concluding the work does not exist. Status moved to draft for that reason. The catalogue's policy prefers a 'blocked' status over 'draft'; this repo has no 'blocked' value in use, so draft is a deliberate tooling-safe placeholder pending that call."
 type: "functional"
 priority: "high"
-status: "active"
+status: "draft"
 format: "gherkin"
 preconditions:
   - "The Discount Engine unified promotion model (SH-1095) is deployed to the QA/staging environment."
@@ -23,31 +33,6 @@ scenarios:
     then:
       - "the engine accepts the payload"
       - "any legacy kind field present in the payload is ignored"
-
-  - title: "A rule with membershipProgramId derives AUTOMATIC mode"
-    tags:
-      - "happy-path"
-      - "derived-mode"
-      - "membership-program"
-    given:
-      - "a promotion has at least one Rule with a non-empty membershipProgramId"
-    when:
-      - "the engine computes the derived redemption mode"
-    then:
-      - "redemptionMode is set to AUTOMATIC"
-      - "the read response includes derivedRedemptionMode equal to AUTOMATIC"
-
-  - title: "No rule with membershipProgramId derives CODE_REQUIRED and requires a customer-facing code"
-    tags:
-      - "derived-mode"
-      - "validation"
-    given:
-      - "a promotion has no Rule with membershipProgramId"
-    when:
-      - "the engine computes the derived redemption mode"
-    then:
-      - "redemptionMode is set to CODE_REQUIRED"
-      - "a customer_facing_code is required on save"
 
   - title: "Reading a legacy record derives redemptionMode from its stored kind at read time"
     tags:
@@ -67,11 +52,13 @@ scenarios:
       - "edge-case"
       - "needs-clarification"
       - "derived-mode"
+      - "blocked-pe3"
     given:
       - "a Rule has membershipProgramId set and the promotion also has a customer_facing_code set"
     when:
       - "the engine computes the derived redemption mode"
     then:
+      - "HELD 2026-08-11 — blocked_by PE3. discount-engine-v3 test-catalogue-v3.md section 6.1 routes this scenario to DER-18, but DER-18 is itself blocked_by PE3, so retiring now would leave the contradiction with no coverage. Retire and replace with DER-18 (control: DER-17) only once PE3 closes."
       - "OPEN CONFLICT — two competing answers exist and neither is authoritative yet; do not assert a specific outcome until the team makes an explicit decision"
       - "Product (Martin Campo, Slack, 2026-07-27) said Automatic wins: a Rule carrying membershipProgramId forces AUTOMATIC mode and the customer_facing_code becomes inert metadata that does not fire anything on its own"
       - "The independent architecture workshop ('Taller de decisiones' decision D3, later the same day) recommends the opposite — código gana (code wins) — specifically to avoid silent, undetectable dead rule configuration: an admin who intentionally set up a code-required rule targeting non-members would otherwise see that rule NEVER fire, with no warning anywhere"
@@ -81,6 +68,8 @@ tags:
   - "sh-1095"
   - "discount-engine"
   - "derived-redemption"
+  - "partially-retired"
+  - "blocked-pe3"
 parameters: []
 links:
   jira:
@@ -92,6 +81,6 @@ estimatedDuration: 30
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
-  updatedBy: "codex"
-  updatedAt: "2026-07-28T10:00:00Z"
-  version: 3
+  updatedBy: "claude"
+  updatedAt: "2026-08-11T00:00:00Z"
+  version: 4
