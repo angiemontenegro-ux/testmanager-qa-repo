@@ -2,14 +2,30 @@ schemaVersion: "1.0"
 id: "32e90479-11e7-4a0b-8513-1fafe5e17f46"
 key: "TC-4"
 title: "Discount evaluation — selection, stacking & candidate filtering"
-description: "QA coverage for SH-844 POST /discounts/evaluate: single-discount application, additive stacking across eligible promotions, tie behavior, and candidate filtering by members-only, channel, mixed application_mode per-line constraint, date/time, email domain, POS reason gate, and usage limits. UPDATED 2026-07-28: stacking corrected from exclusive to additive — CONFIRMED by Product (Martin Campo, Slack, 2026-07-27): stacking is live and additive in V1 today, BR-074 is Closed, the engine emits a STACKED option in discountOptions[] and V1 consumers auto-apply isBest. This scenario previously contradicted SH-844-TC-8's confirmed-V1 additive-stacking scenario; now consistent."
+description: "DRAFTED 2026-08-11 — pending a Product ruling on BR-074. Do not execute or record a result until it lands.
+
+WHY THE WHOLE FILE IS PARKED: precondition 2 asserts additive stacking as an ENVIRONMENTAL FACT for every scenario in this file, so the dispute is not isolated to the one stacking scenario. Once BR-074 is ruled, the narrower fix is to correct precondition 2 and the stacking scenario, then return the file to active — the other 8 scenarios (single-discount evaluate, non-stackable tie, members-only, channel, mixed application_mode per-line, date/time, email domain, POS reason gate, usage limits) are unaffected by the ruling and are valid coverage today.
+
+THE DISPUTE: this file asserts, sourced to Product (Martin Campo, Slack, 2026-07-27), that stacking is live and additive in V1, that BR-074 is Closed, and that the engine emits a STACKED option in discountOptions[]. The shipped code contradicts all three. Verified against VeevartBackend origin/main @ 5032509c (2026-08-04 — AFTER that call):
+  - POST /discounts/evaluate, the endpoint this file targets, is documented 'Resolve the single best discount for a cart' / 'returns the ONE best promotion' and its response field is selectedPromotionId, a SCALAR. The route has no discountOptions[] field at all (discounts-engine.controller.ts:281-305).
+  - EvaluationEngine.quoteOptions() is runPipeline -> sort(compareDescending) -> a 1:1 map producing one promotionId per offer. No reduce, sum or combine across promotions anywhere (evaluation-engine.ts:496).
+  - The contract adapter hardcodes applied[] as a one-element array literal and triggerType as 'AUTOMATIC_BEST' as const, so 'STACKED' is unreachable; isBest is positional (index === 0), not a computed best-of-stack (discount-contract-adapter.controller.ts:176-200).
+  - The published type contract says \"'STACKED' is DECLARED for V2 forward-compat — NEVER produced in V1\" and \"stackable ... NEVER assigned in V1 ... (BR-072/BR-074 PENDING). Do not branch on it\". BR-074 appears 3x in the production tree and every one says PENDING, never Closed (contract-response.view.ts:24,37,56,93).
+  - The dev's own tests assert the absence: expect(...stackable).toBeUndefined() in both discount-contract-adapter.controller.apply-code.spec.ts:192 and discount-contract-adapter.controller.spec.ts:141.
+  - No discount-stacking commit landed after the 07-27 call (git log --since=2026-07-01 --all -i --grep=stack returns only CDK infrastructure stacks).
+Independent corroboration: discount-engine-v3 test-catalogue-v3.md reaches the same conclusion without seeing this file — 'Two independent pieces of evidence suggest V1 is best-of-one, not additive; the question is open with Martin + Angie.' It blocks none of its own 160 cases on BR-074.
+LIKELY ROOT CAUSE: discount-engine-v3/README.md says discounts WILL stack additively capped at 100%, but as a SEPARATE change sequenced AFTER SH-1094. An accurate roadmap statement appears to have been read as a statement about current behaviour.
+
+OPEN QUESTIONS FOR PRODUCT: (1) is additive stacking live in V1 today, or is it the post-SH-1094 change? (2) is BR-074 Closed or Pending? See also SH-844-TC-8, already draft, which carries the same claim.
+
+ORIGINAL SCOPE: QA coverage for SH-844 POST /discounts/evaluate — single-discount application, stacking across eligible promotions, tie behavior, and candidate filtering by members-only, channel, mixed application_mode per-line constraint, date/time, email domain, POS reason gate, and usage limits."
 type: "functional"
 priority: "high"
-status: "active"
+status: "draft"
 format: "gherkin"
 preconditions:
   - "The Discounts Engine is reachable and evaluation is synchronous via POST /discounts/evaluate."
-  - "Stacking policy is additive for eligible stackable promotions; the engine surfaces a STACKED option in discountOptions[] alongside single-discount options, and V1 consumers auto-apply isBest (CONFIRMED by Product, Martin Campo, 2026-07-27)."
+  - "DISPUTED, pending BR-074 — do not treat as an established precondition. This file was written on the premise that stacking policy is additive for eligible stackable promotions, that the engine surfaces a STACKED option in discountOptions[] alongside single-discount options, and that V1 consumers auto-apply isBest (attributed to Product, Martin Campo, 2026-07-27). The shipped code states V1 emits only AUTOMATIC_BEST and never produces STACKED — see the dispute record in the description. This premise applies to every scenario in this file, which is why the whole case is parked."
 scenarios:
   - title: "Evaluate a single percent discount at checkout"
     tags:
@@ -23,19 +39,20 @@ scenarios:
     then:
       - "the engine returns 200 with selected_promotion_id = SAVE20 and effective_discount = 20.00"
       - "the response includes a per-item breakdown showing 20.00 applied to the ticket line"
-  - title: "Two stackable promotions combine additively — CORRECTED 2026-07-28"
+  - title: "Two stackable promotions combine additively — DISPUTED, blocked on BR-074"
     tags:
-      - "happy-path"
       - "stacking"
-      - "confirmed-behavior"
+      - "needs-clarification"
+      - "blocked-br-074"
     given:
       - "two eligible stackable promotions A (item-level, $5 off item 1) and B (order-level, 10% of the $200 subtotal = $20)"
     when:
       - "the caller invokes evaluate"
     then:
-      - "the engine returns a STACKED option in discountOptions[] combining both A and B additively (not compounded)"
-      - "the engine also returns the single-discount options for A and B individually, ranked alongside STACKED"
-      - "CONFIRMED by Product (Martin Campo) 2026-07-27: BR-074 is Closed, stacking is live/additive in V1, consistent with SH-844-TC-8"
+      - "BLOCKED on BR-074 — two competing answers exist and neither is authoritative. Do not assert either outcome, and do not record a result, until Product rules."
+      - "Arm 1, as this scenario was originally written (attributed to Product, Martin Campo, 2026-07-27): the engine returns a STACKED option in discountOptions[] combining both A and B additively (not compounded), plus the single-discount options for A and B ranked alongside it."
+      - "Arm 2, what the shipped code states (VeevartBackend origin/main @ 5032509c, 2026-08-04): best-of-one. POST /discounts/evaluate returns ONE promotion in the scalar selectedPromotionId and has no discountOptions[] field; triggerType is hardcoded 'AUTOMATIC_BEST' and 'STACKED' is documented as never produced in V1; stackable is never assigned. Full evidence in the description."
+      - "Note the endpoint mismatch independent of the ruling: discountOptions[] does not exist on POST /discounts/evaluate. Any option-shape assertion belongs on POST /discounts/quote-options or POST /contract/discounts/resolve."
   - title: "Tie behavior among non-stackable promotions returns a single arbitrary selection"
     tags:
       - "edge-case"
@@ -135,6 +152,6 @@ estimatedDuration: 55
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-07T14:18:36Z"
-  updatedBy: "codex"
-  updatedAt: "2026-07-28T00:00:00Z"
-  version: 2
+  updatedBy: "claude"
+  updatedAt: "2026-08-11T00:00:00Z"
+  version: 3
