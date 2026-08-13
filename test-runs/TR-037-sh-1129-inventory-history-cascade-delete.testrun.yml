@@ -222,40 +222,50 @@ results:
     testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
     scenarioTitle: "Inventory History page layout no longer forces a value into Item per location"
     scenarioIndex: 5
-    status: not-run
+    status: failed
+    executedAt: "2026-08-13T16:10:00.000Z"
     stepResults:
       - order: 1
-        status: not-run
-        actual: ""
+        status: passed
+        actual: "UAT no tenia NINGUN Auctifera__Inventory_History__c (0 filas en todo el org, el batch nunca corrio ahi), asi que se creo uno temporal con Auctifera__Item_per_location__c = null — el estado post-delete que produce el fix. El insert por API con el lookup nulo tuvo exito, lo que reconfirma que el cambio de esquema esta bien desplegado. El registro y su Shop Item se borraron al terminar; verificado que el objeto volvio a 0 filas."
         phase: given
         text: an Inventory_History__c record exists whose Item_per_location__c is null (post-delete state)
         attachments: []
       - order: 2
-        status: not-run
-        actual: ""
+        status: passed
+        actual: "Registro a4nD7000002QgquIAC abierto en Lightning (app Giftshop, sandbox UAT) y puesto en modo edicion."
         phase: when
         text: a user opens that record's page layout in Lightning
         attachments: []
       - order: 3
-        status: not-run
-        actual: ""
+        status: failed
+        actual: "FAIL. El campo se muestra con asterisco rojo de campo obligatorio, junto a la leyenda '* = Required Information', exactamente igual que Date, Display/Storage Location y Shop Item — y esta vacio, asi que el usuario queda bloqueado para guardar. Confirmado tambien en metadata: el layout desplegado en UAT trae <behavior>Required</behavior> para Auctifera__Item_per_location__c, mientras que el repo en origin/main tiene <behavior>Edit</behavior>. Divergencia real entre lo mergeado y lo que corre en el org."
         phase: then
         text: "the Item_per_location__c field shows behavior Edit, not Required — the user is not blocked from saving or viewing the record because the lookup is empty"
-        attachments: []
-    notes: "NOT-RUN: es verificacion manual en la UI de Lightning y este run se ejecuto enteramente por API (sf CLI con token OAuth), sin sesion de navegador. Evidencia parcial a favor desde la capa de datos: el describe del campo devuelve nillable=true, y los Scenarios 1 y 2 dejan filas de Inventory_History__c con el lookup en null que se leen y consultan sin error. Lo que falta es exactamente lo visual — abrir uno de esos registros en Lightning y confirmar que el campo aparece con comportamiento Edit y no Required, es decir que el usuario no queda bloqueado para guardar. Trabajo de un par de minutos en UAT."
-    attachments:
-      - name: deploy-marker-field-nillable.log
-        path: attachments/SH-1129/TR-37/deploy-marker-field-nillable.log
-        mimeType: text/plain
+        attachments:
+          - name: comparison.txt
+            path: attachments/SH-1129/TR-37/scenario-6-layout/comparison.txt
+            mimeType: text/plain
+          - name: uat-deployed-layout.xml
+            path: attachments/SH-1129/TR-37/scenario-6-layout/uat-deployed-layout.xml
+            mimeType: text/xml
+          - name: repo-main-layout.xml
+            path: attachments/SH-1129/TR-37/scenario-6-layout/repo-main-layout.xml
+            mimeType: text/xml
+          - name: uat-layout-audit-fields.log
+            path: attachments/SH-1129/TR-37/scenario-6-layout/uat-layout-audit-fields.log
+            mimeType: text/plain
+    notes: "FAIL con causa raiz identificada, y NO es que el fix este mal: es que los page layouts de un paquete gestionado no se actualizan en orgs suscriptores ya existentes. Evidencia: el layout de UAT tiene ManageableState=installed, fue creado el 2025-09-23 y su LastModifiedDate es 2025-09-23T13:37:50Z — nunca se toco desde la instalacion, casi un año antes de que se mergeara PR #2541 (2026-07-30). Nadie lo personalizo localmente. En cambio el cambio de CAMPO del MISMO PR si llego (Item_per_location__c describe nillable=true en UAT), lo que descarta que el build instalado sea anterior al fix. O sea: el paquete subio, el campo se actualizo, el layout no. IMPACTO: el fix hace que el lookup quede legitimamente vacio tras borrar un IPL, pero cualquier usuario que abra ese registro en Lightning y trate de guardarlo queda bloqueado por el Required del layout. Esto aplica a TODO org suscriptor existente, no solo UAT — incluido Eiteljorg, que es donde nacio el incidente de SH-1115 y donde justamente hubo que manipular estos registros a mano. El Required del layout es una restriccion solo de UI: la insercion por API con el lookup nulo funciona, por eso los Scenarios 1, 2, 3 y 5 pasan y este falla. REMEDIACION probable: actualizar el layout manualmente por org, o incluirlo en un post-install/upgrade step. Pendiente de decidir con el equipo si se abre defecto propio."
+    attachments: []
     defects: []
 
 summary:
   total: 6
   passed: 4
-  failed: 0
+  failed: 1
   blocked: 0
   skipped: 0
-  notRun: 2
+  notRun: 1
   passRate: 67
 history:
   - action: created
@@ -269,9 +279,13 @@ history:
     timestamp: "2026-08-13T15:10:00.000Z"
     user: claude
     reason: "Scenario 3 EJECUTADO y PASS, pasa de not-run a passed (3/6 -> 4/6). Ya no queda solo la evidencia de metadata: se probo corriendo, bajo System.runAs con un usuario de perfil 'Standard User' al que se le asigno el permset Veevart y la licencia de paquete Auctifera. El insert de Inventory_History__c en AccessLevel.USER_MODE tuvo exito y el lookup Item_per_location__c quedo escrito y legible; ademas sobrevive a Security.stripInaccessible(CREATABLE), que es la comprobacion de FLS aislada de sharing. Se desplego a UAT una clase de test temporal (SH1129FlsProbeTest) porque System.runAs solo existe en contexto de test y en UAT no hay ningun usuario no-admin con el permset; la clase fue eliminada del org al terminar y se verifico que no queda (0 filas en ApexClass). Dos falsos negativos descartados en el proceso, documentados en las notas del escenario: sharing de registro sobre los padres creados por el admin, y un bind de expresion no soportado en SOQL dinamico. Siguen not-run los Scenarios 4 (dedup del batch) y 6 (layout en Lightning)."
+  - action: updated
+    timestamp: "2026-08-13T16:15:00.000Z"
+    user: claude
+    reason: "Scenario 6 EJECUTADO y FALLA. Primer hallazgo real de este run: el layout de Inventory History en UAT sigue marcando Auctifera__Item_per_location__c como Required, mientras que el repo en origin/main ya lo tiene como Edit. Confirmado por metadata (layout desplegado vs repo) y visualmente en Lightning, donde el campo aparece con asterisco rojo estando vacio, bloqueando el guardado. Causa raiz: los page layouts de un paquete gestionado no se actualizan en orgs suscriptores existentes — el layout de UAT tiene ManageableState=installed y no se modifica desde 2025-09-23, mientras que el cambio de campo del mismo PR si llego (nillable=true), lo que descarta un build viejo. Afecta a todo org suscriptor existente, incluido Eiteljorg. El run pasa de 4/6 con 2 not-run a 4 passed / 1 failed / 1 not-run. Queda not-run solo el Scenario 4 (dedup del batch). Pendiente decidir con el equipo si se abre defecto propio para el layout."
 metadata:
   createdBy: claude
   createdAt: "2026-08-13T13:45:00.000Z"
   updatedBy: claude
-  updatedAt: "2026-08-13T15:10:00.000Z"
-  version: 2
+  updatedAt: "2026-08-13T16:15:00.000Z"
+  version: 3

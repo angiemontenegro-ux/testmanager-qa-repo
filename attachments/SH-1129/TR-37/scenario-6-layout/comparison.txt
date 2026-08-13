@@ -1,0 +1,6 @@
+SH-1129 Scenario 6 - Inventory History page layout, Item per location behavior
+
+  repo origin/main : Item_per_location__c = Edit
+  UAT deployed     : Auctifera__Item_per_location__c = Required
+
+DIVERGENT.
