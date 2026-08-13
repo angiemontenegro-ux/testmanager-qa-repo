@@ -100,37 +100,44 @@ results:
     testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
     scenarioTitle: "FLS on Inventory_History__c.Item_per_location__c lets a standard user insert history rows now that the field is optional"
     scenarioIndex: 2
-    status: not-run
+    status: passed
+    executedAt: "2026-08-13T15:05:00.000Z"
     stepResults:
       - order: 1
-        status: not-run
-        actual: ""
+        status: passed
+        actual: "Confirmado por consulta directa a FieldPermissions en UAT: el campo tiene 24 grants, incluyendo el permission set 'Veevart' con PermissionsRead=true y PermissionsEdit=true (tambien 'Veevart_Admin' y el perfil POS User). ObjectPermissions confirma ademas create/read/edit sobre Auctifera__Inventory_History__c para ese mismo permset."
         phase: given
         text: the Veevart permission set is deployed with its new fieldPermissions entry (read/edit) for Inventory_History__c.Item_per_location__c
-        attachments: []
+        attachments:
+          - name: fls-fieldpermissions-veevart-permset.log
+            path: attachments/SH-1129/TR-37/fls-fieldpermissions-veevart-permset.log
+            mimeType: text/plain
       - order: 2
-        status: not-run
-        actual: ""
+        status: passed
+        actual: "UAT (veevartmuseumdemo--uat, org 00DD7000000OCIrMAO) es un sandbox de deploy completo con el paquete gestionado Auctifera 8.332.0.2 instalado, no el scratch org sh890."
         phase: given
         text: "the validating org is a full-org-shaped deploy — NOT the AuctiferaDX__sh890 scratch org, where the PR's own test plan notes a partial permission-set deploy fails on unrelated fields"
         attachments: []
       - order: 3
-        status: not-run
-        actual: ""
+        status: passed
+        actual: "DESVIACION DECLARADA sobre el vehiculo, no sobre la asercion: el insert se ejecuto directamente en AccessLevel.USER_MODE bajo System.runAs(usuario estandar), NO corriendo InventoryHistoryBatch. Correr el batch en UAT escribe Inventory_History__c reales en todo el org y no se puede revertir; el insert directo en USER_MODE ejerce exactamente el mismo control de CRUD+FLS que es lo que este escenario asiere. Detalle de la ejecucion: no existe en UAT ningun usuario no-admin con el permset Veevart (los 9 asignados son System Administrator), asi que la prueba crea su propio usuario con perfil 'Standard User', le asigna el permset Veevart y le otorga la licencia de paquete Auctifera (el paquete licencia por usuario, PackageLicense.UsedLicenses=6; sin la licencia el fallo habria parecido de FLS sin serlo). Como System.runAs solo existe en contexto de test, se desplego a UAT una clase de test temporal, SH1129FlsProbeTest, y se elimino del org al terminar (verificado: 0 filas en ApexClass)."
         phase: when
         text: a standard user assigned the Veevart permission set triggers InventoryHistoryBatch to insert a new Inventory_History__c record
-        attachments: []
+        attachments:
+          - name: SH1129FlsProbeTest.cls
+            path: attachments/SH-1129/TR-37/scenario-3-standard-user-fls/SH1129FlsProbeTest.cls
+            mimeType: text/plain
       - order: 4
-        status: not-run
-        actual: ""
+        status: passed
+        actual: "PASS, 7 aserciones verdes. Bajo System.runAs(usuario estandar): Inventory_History__c createable=true; Item_per_location__c createable=true y accessible=true; el campo SOBREVIVE a Security.stripInaccessible(AccessType.CREATABLE) — si faltara el grant, ahi seria removido; el insert en USER_MODE tuvo exito sin excepcion; y la relectura en USER_MODE confirma que el lookup quedo escrito con el Id correcto, no vaciado por FLS. Test run 707D700004X0eeY, Passed, 1/1."
         phase: then
         text: the insert succeeds with no FLS/insufficient-access error, even though the field is no longer implicitly required
-        attachments: []
-    notes: "NOT-RUN como escenario end-to-end, PERO el riesgo abierto que motivaba este escenario queda CERRADO con evidencia dura. El riesgo era: al quitar required=true, Salesforce deja de otorgar FLS automaticamente, y el PR tuvo que agregar un <fieldPermissions> explicito al permission set Veevart — que NO se pudo validar en el scratch org AuctiferaDX__sh890 porque alli el deploy parcial de un permission set falla por campos no relacionados. UAT si es un org de deploy completo, y una consulta directa a FieldPermissions sobre Auctifera__Inventory_History__c.Auctifera__Item_per_location__c devuelve 24 grants, incluyendo el permission set 'Veevart' con PermissionsRead=true y PermissionsEdit=true (tambien 'Veevart_Admin' y el perfil POS User). El grant existe y esta desplegado. Ver attachments/SH-1129/TR-37/fls-fieldpermissions-veevart-permset.log. LO QUE FALTA: ejecutar el insert real corriendo InventoryHistoryBatch con un usuario estandar (no admin) que tenga el permset Veevart asignado. Los inserts de Inventory_History__c de los Scenarios 1, 2 y 5 se hicieron con usuario administrador, asi que no prueban el camino del usuario estandar. Es trabajo corto y no esta bloqueado por ningun defecto."
-    attachments:
-      - name: fls-fieldpermissions-veevart-permset.log
-        path: attachments/SH-1129/TR-37/fls-fieldpermissions-veevart-permset.log
-        mimeType: text/plain
+        attachments:
+          - name: test-result.json
+            path: attachments/SH-1129/TR-37/scenario-3-standard-user-fls/test-result.json
+            mimeType: application/json
+    notes: "PASS. Cierra el riesgo abierto que este ticket arrastraba desde el PR: al quitar required=true, Salesforce deja de otorgar FLS implicitamente, y el PR tuvo que agregar un <fieldPermissions> explicito al permission set Veevart, que NO se pudo validar en el scratch org AuctiferaDX__sh890 porque alli el deploy parcial de un permission set falla por campos no relacionados. Ahora esta probado ejecutando, no solo por inspeccion de metadata. DOS FALSOS NEGATIVOS DESCARTADOS EN EL CAMINO, que vale documentar para quien repita esto: (1) el primer intento fallo con INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY sobre un Auctifera__CatalogItem__c — AccessLevel.USER_MODE valida sharing a nivel de registro ADEMAS de FLS, y los registros padre creados por el admin no son visibles para el usuario de prueba; se resolvio haciendo que el propio usuario de prueba cree sus padres, con lo cual un fallo en USER_MODE solo puede significar CRUD/FLS. (2) el segundo intento fallo en la relectura porque SOQL dinamico no acepta binds de expresion como :history.Id; se cambio por una variable simple. Ninguno de los dos era un defecto del producto."
+    attachments: []
     defects: []
 
   - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
@@ -244,12 +251,12 @@ results:
 
 summary:
   total: 6
-  passed: 3
+  passed: 4
   failed: 0
   blocked: 0
   skipped: 0
-  notRun: 3
-  passRate: 50
+  notRun: 2
+  passRate: 67
 history:
   - action: created
     timestamp: "2026-08-13T13:45:00.000Z"
@@ -258,9 +265,13 @@ history:
     timestamp: "2026-08-13T14:06:00.000Z"
     user: claude
     reason: "Primera ejecucion de TC-69 contra un org suscriptor real (UAT veevartmuseumdemo--uat, Auctifera 8.332.0.2) y no contra un scratch org. Scenarios 1, 2 y 5 PASS con tres scripts nuevos de anonymous Apex, todos con savepoint + rollback. Sin defectos. Scenario 3 queda not-run como end-to-end pero su riesgo abierto se cierra: el grant de FLS del permission set Veevart sobre Inventory_History__c.Item_per_location__c esta confirmado en UAT (read/edit true), que es justo lo que no se podia validar en el scratch org sh890. Scenarios 4 y 6 quedan not-run por alcance: el batch escribe datos reales en un sandbox compartido y el layout requiere verificacion manual en Lightning."
+  - action: updated
+    timestamp: "2026-08-13T15:10:00.000Z"
+    user: claude
+    reason: "Scenario 3 EJECUTADO y PASS, pasa de not-run a passed (3/6 -> 4/6). Ya no queda solo la evidencia de metadata: se probo corriendo, bajo System.runAs con un usuario de perfil 'Standard User' al que se le asigno el permset Veevart y la licencia de paquete Auctifera. El insert de Inventory_History__c en AccessLevel.USER_MODE tuvo exito y el lookup Item_per_location__c quedo escrito y legible; ademas sobrevive a Security.stripInaccessible(CREATABLE), que es la comprobacion de FLS aislada de sharing. Se desplego a UAT una clase de test temporal (SH1129FlsProbeTest) porque System.runAs solo existe en contexto de test y en UAT no hay ningun usuario no-admin con el permset; la clase fue eliminada del org al terminar y se verifico que no queda (0 filas en ApexClass). Dos falsos negativos descartados en el proceso, documentados en las notas del escenario: sharing de registro sobre los padres creados por el admin, y un bind de expresion no soportado en SOQL dinamico. Siguen not-run los Scenarios 4 (dedup del batch) y 6 (layout en Lightning)."
 metadata:
   createdBy: claude
   createdAt: "2026-08-13T13:45:00.000Z"
   updatedBy: claude
-  updatedAt: "2026-08-13T14:06:00.000Z"
-  version: 1
+  updatedAt: "2026-08-13T15:10:00.000Z"
+  version: 2
