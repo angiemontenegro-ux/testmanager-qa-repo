@@ -1,0 +1,1640 @@
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+Compiled successfully.
+Executed successfully.
+
+67.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO
+Execute Anonymous: // SH-1174 / TC-70 escenario idx 2 (AC-3): una recepcion posterior promedia el nuevo costo landed
+Execute Anonymous: // contra el promedio existente. Cubre la brecha de los tests del dev: los 10 tests funcionales
+Execute Anonymous: // insertan UNA sola Purchase Order, asi que nunca mezclan DOS costos efectivos distintos.
+Execute Anonymous: //
+Execute Anonymous: // PO-1: 10 u @ $10.00 + $20.00 de gasto -> efectivo $12.00/u -> promedio $12.00
+Execute Anonymous: // PO-2: 10 u @ $6.00  + $40.00 de gasto -> efectivo $10.00/u
+Execute Anonymous: // Promedio esperado = ((10 x 12.00) + (10 x 10.00)) / 20 = $11.00
+Execute Anonymous: 
+Execute Anonymous: String tag = 'QA-1174-S2-' + String.valueOf(Datetime.now().getTime());
+Execute Anonymous: 
+Execute Anonymous: // El pipeline de promedio ponderado esta detras de este custom setting.
+Execute Anonymous: List<Auctifera__POS_Settings__c> settings = [SELECT Id, Auctifera__Use_Weighted_Cost_Item_Calculation__c FROM Auctifera__POS_Settings__c LIMIT 1];
+Execute Anonymous: if (settings.isEmpty()) {
+Execute Anonymous:     insert new Auctifera__POS_Settings__c(Auctifera__Use_Weighted_Cost_Item_Calculation__c = true);
+Execute Anonymous: } else if (settings[0].Auctifera__Use_Weighted_Cost_Item_Calculation__c != true) {
+Execute Anonymous:     settings[0].Auctifera__Use_Weighted_Cost_Item_Calculation__c = true;
+Execute Anonymous:     update settings[0];
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: Auctifera__CatalogItem__c shopItem = new Auctifera__CatalogItem__c(
+Execute Anonymous:     Name = tag + ' Tote',
+Execute Anonymous:     Auctifera__Product_ID__c = tag,
+Execute Anonymous:     Auctifera__Price__c = 30
+Execute Anonymous: );
+Execute Anonymous: insert shopItem;
+Execute Anonymous: 
+Execute Anonymous: // ---------- PRIMERA PURCHASE ORDER ----------
+Execute Anonymous: Auctifera__Purchase_Order__c po1 = new Auctifera__Purchase_Order__c(Name = tag + ' PO-1');
+Execute Anonymous: insert po1;
+Execute Anonymous: insert new Auctifera__Purchase_Order_Expense__c(
+Execute Anonymous:     Name = 'Freight PO-1',
+Execute Anonymous:     Auctifera__Purchase_Order__c = po1.Id,
+Execute Anonymous:     Auctifera__Calculation_Type__c = 'Amount',
+Execute Anonymous:     Auctifera__Amount__c = 20
+Execute Anonymous: );
+Execute Anonymous: Auctifera__StockReplenishmentOrder__c line1 = new Auctifera__StockReplenishmentOrder__c(
+Execute Anonymous:     Auctifera__Catalog_Item__c = shopItem.Id,
+Execute Anonymous:     Auctifera__Purchase_Order__c = po1.Id,
+Execute Anonymous:     Auctifera__Order_Amount__c = 10,
+Execute Anonymous:     Auctifera__Order_Date__c = Date.newInstance(2026, 1, 1),
+Execute Anonymous:     Auctifera__Order_Status__c = 'Draft',
+Execute Anonymous:     Auctifera__Item_Cost__c = 10
+Execute Anonymous: );
+Execute Anonymous: insert line1;
+Execute Anonymous: line1.Auctifera__Order_Status__c = 'Received - Complete';
+Execute Anonymous: update line1;
+Execute Anonymous: 
+Execute Anonymous: Auctifera__CatalogItem__c afterFirst = [SELECT Auctifera__Current_Item_Cost__c, Auctifera__Total_Stock__c FROM Auctifera__CatalogItem__c WHERE Id = :shopItem.Id];
+Execute Anonymous: System.debug('=== SH-1174 S2 :: DESPUES DE PO-1 ===');
+Execute Anonymous: System.debug('Current_Item_Cost__c = ' + afterFirst.Auctifera__Current_Item_Cost__c + ' (esperado 12.00)');
+Execute Anonymous: System.debug('Total_Stock__c       = ' + afterFirst.Auctifera__Total_Stock__c + ' (esperado 10)');
+Execute Anonymous: 
+Execute Anonymous: // ---------- SEGUNDA PURCHASE ORDER, INDEPENDIENTE, OTRO COSTO EFECTIVO ----------
+Execute Anonymous: Auctifera__Purchase_Order__c po2 = new Auctifera__Purchase_Order__c(Name = tag + ' PO-2');
+Execute Anonymous: insert po2;
+Execute Anonymous: insert new Auctifera__Purchase_Order_Expense__c(
+Execute Anonymous:     Name = 'Freight PO-2',
+Execute Anonymous:     Auctifera__Purchase_Order__c = po2.Id,
+Execute Anonymous:     Auctifera__Calculation_Type__c = 'Amount',
+Execute Anonymous:     Auctifera__Amount__c = 40
+Execute Anonymous: );
+Execute Anonymous: Auctifera__StockReplenishmentOrder__c line2 = new Auctifera__StockReplenishmentOrder__c(
+Execute Anonymous:     Auctifera__Catalog_Item__c = shopItem.Id,
+Execute Anonymous:     Auctifera__Purchase_Order__c = po2.Id,
+Execute Anonymous:     Auctifera__Order_Amount__c = 10,
+Execute Anonymous:     Auctifera__Order_Date__c = Date.newInstance(2026, 2, 1),
+Execute Anonymous:     Auctifera__Order_Status__c = 'Draft',
+Execute Anonymous:     Auctifera__Item_Cost__c = 6
+Execute Anonymous: );
+Execute Anonymous: insert line2;
+Execute Anonymous: line2.Auctifera__Order_Status__c = 'Received - Complete';
+Execute Anonymous: update line2;
+Execute Anonymous: 
+Execute Anonymous: Auctifera__CatalogItem__c afterSecond = [SELECT Auctifera__Current_Item_Cost__c, Auctifera__Total_Stock__c FROM Auctifera__CatalogItem__c WHERE Id = :shopItem.Id];
+Execute Anonymous: 
+Execute Anonymous: List<Auctifera__Item_Cost_History__c> ichs = [
+Execute Anonymous:     SELECT Auctifera__Effective_At__c, Auctifera__Previous_Cost__c, Auctifera__Cost__c,
+Execute Anonymous:            Auctifera__Previous_Stock__c, Auctifera__Stock__c,
+Execute Anonymous:            Auctifera__Unit_Cost__c, Auctifera__Allocated_Expense__c, Auctifera__Effective_Cost__c,
+Execute Anonymous:            Auctifera__Stock_Replenishment_Order__r.Auctifera__Purchase_Order__r.Name
+Execute Anonymous:     FROM Auctifera__Item_Cost_History__c
+Execute Anonymous:     WHERE Auctifera__Shop_Item__c = :shopItem.Id
+Execute Anonymous:     ORDER BY Auctifera__Effective_At__c ASC, CreatedDate ASC
+Execute Anonymous: ];
+Execute Anonymous: 
+Execute Anonymous: System.debug('=== SH-1174 S2 :: DESPUES DE PO-2 ===');
+Execute Anonymous: System.debug('Current_Item_Cost__c = ' + afterSecond.Auctifera__Current_Item_Cost__c + ' (esperado 11.00)');
+Execute Anonymous: System.debug('Total_Stock__c       = ' + afterSecond.Auctifera__Total_Stock__c + ' (esperado 20)');
+Execute Anonymous: System.debug('=== CADENA DE ITEM COST HISTORY (' + ichs.size() + ' registros) ===');
+Execute Anonymous: for (Auctifera__Item_Cost_History__c ich : ichs) {
+Execute Anonymous:     System.debug(
+Execute Anonymous:         'PO=' + ich.Auctifera__Stock_Replenishment_Order__r.Auctifera__Purchase_Order__r.Name +
+Execute Anonymous:         ' | prevCost=' + ich.Auctifera__Previous_Cost__c +
+Execute Anonymous:         ' | cost=' + ich.Auctifera__Cost__c +
+Execute Anonymous:         ' | prevStock=' + ich.Auctifera__Previous_Stock__c +
+Execute Anonymous:         ' | stock=' + ich.Auctifera__Stock__c +
+Execute Anonymous:         ' | unitCost=' + ich.Auctifera__Unit_Cost__c +
+Execute Anonymous:         ' | allocExpense=' + ich.Auctifera__Allocated_Expense__c +
+Execute Anonymous:         ' | effectiveCost=' + ich.Auctifera__Effective_Cost__c
+Execute Anonymous:     );
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: Boolean pass = afterSecond.Auctifera__Current_Item_Cost__c == 11.00 && afterSecond.Auctifera__Total_Stock__c == 20;
+Execute Anonymous: System.debug('=== VEREDICTO S2: ' + (pass ? 'PASS' : 'FAIL') + ' ===');
+Execute Anonymous: System.debug('Shop Item Id (para inspeccion en Lightning): ' + shopItem.Id);
+15:38:01.42 (42261087)|EXECUTION_STARTED
+15:38:01.42 (42295033)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+15:38:01.42 (82999309)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeInsert|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:01.135 (135747038)|CUMULATIVE_LIMIT_USAGE
+15:38:01.135 (135747038)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.135 (135747038)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 3 out of 100
+  Number of query rows: 4 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 1 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 1 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.135 (135747038)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (136067926)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeInsert|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:01.42 (141259853)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:new
+15:38:01.42 (141440506)|CODE_UNIT_FINISHED|Validation:CatalogItem:new
+15:38:01.42 (160696822)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterInsert|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:01.42 (289746586)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzB|Auctifera.ItemVariant_Trg on Item_Variant trigger event BeforeInsert|__sfdc_trigger/Auctifera/ItemVariant_Trg
+15:38:01.330 (330402908)|CUMULATIVE_LIMIT_USAGE
+15:38:01.330 (330402908)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.330 (330402908)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 8 out of 100
+  Number of query rows: 5 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 2 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.330 (330402908)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (330574240)|CODE_UNIT_FINISHED|Auctifera.ItemVariant_Trg on Item_Variant trigger event BeforeInsert|__sfdc_trigger/Auctifera/ItemVariant_Trg
+15:38:01.42 (335057740)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:Item_Variant:new
+15:38:01.42 (335274043)|CODE_UNIT_FINISHED|Validation:Item_Variant:new
+15:38:01.42 (355373770)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzB|Auctifera.ItemVariant_Trg on Item_Variant trigger event AfterInsert|__sfdc_trigger/Auctifera/ItemVariant_Trg
+15:38:01.371 (371964469)|CUMULATIVE_LIMIT_USAGE
+15:38:01.371 (371964469)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.371 (371964469)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 9 out of 100
+  Number of query rows: 6 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 2 out of 10000
+  Maximum CPU time: 177 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.371 (371964469)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (372133141)|CODE_UNIT_FINISHED|Auctifera.ItemVariant_Trg on Item_Variant trigger event AfterInsert|__sfdc_trigger/Auctifera/ItemVariant_Trg
+15:38:01.399 (399482502)|CUMULATIVE_LIMIT_USAGE
+15:38:01.399 (399482502)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.399 (399482502)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 9 out of 100
+  Number of query rows: 6 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 2 out of 10000
+  Maximum CPU time: 177 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.399 (399482502)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (399698937)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterInsert|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:01.42 (401082923)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:01.42 (412834809)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:01.42 (452026411)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzP|Auctifera.PurchaseOrderExpense_Trg on Purchase_Order_Expense trigger event BeforeInsert|__sfdc_trigger/Auctifera/PurchaseOrderExpense_Trg
+15:38:01.460 (460233029)|CUMULATIVE_LIMIT_USAGE
+15:38:01.460 (460233029)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.460 (460233029)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 10 out of 100
+  Number of query rows: 6 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 4 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 4 out of 10000
+  Maximum CPU time: 177 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.460 (460233029)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (460416973)|CODE_UNIT_FINISHED|Auctifera.PurchaseOrderExpense_Trg on Purchase_Order_Expense trigger event BeforeInsert|__sfdc_trigger/Auctifera/PurchaseOrderExpense_Trg
+15:38:01.42 (467255763)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:Purchase_Order_Expense:new
+15:38:01.42 (467354360)|CODE_UNIT_FINISHED|Validation:Purchase_Order_Expense:new
+15:38:01.42 (494969002)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzQ|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:01.511 (511793199)|CUMULATIVE_LIMIT_USAGE
+15:38:01.511 (511793199)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.511 (511793199)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 11 out of 100
+  Number of query rows: 6 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 4 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 4 out of 10000
+  Maximum CPU time: 177 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.511 (511793199)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (511970278)|CODE_UNIT_FINISHED|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:01.42 (525960215)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.42 (595419528)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeInsert|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.623 (623385806)|CUMULATIVE_LIMIT_USAGE
+15:38:01.623 (623385806)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.623 (623385806)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 18 out of 100
+  Number of query rows: 10 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 6 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 296 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.623 (623385806)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (623817395)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeInsert|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.661 (661143930)|CUMULATIVE_LIMIT_USAGE
+15:38:01.661 (661143930)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.661 (661143930)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 18 out of 100
+  Number of query rows: 10 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 6 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 296 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.661 (661143930)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (661540033)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.42 (671582162)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:StockReplenishmentOrder:new
+15:38:01.42 (671690681)|CODE_UNIT_FINISHED|Validation:StockReplenishmentOrder:new
+15:38:01.42 (692431854)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.42 (735443956)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzQ|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:01.750 (750535221)|CUMULATIVE_LIMIT_USAGE
+15:38:01.750 (750535221)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.750 (750535221)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 21 out of 100
+  Number of query rows: 11 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 7 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 7 out of 10000
+  Maximum CPU time: 296 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.750 (750535221)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (750723720)|CODE_UNIT_FINISHED|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:01.42 (775327196)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.789 (789118804)|CUMULATIVE_LIMIT_USAGE
+15:38:01.789 (789118804)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.789 (789118804)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 23 out of 100
+  Number of query rows: 11 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 8 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 8 out of 10000
+  Maximum CPU time: 296 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.789 (789118804)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (789310623)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.42 (804023388)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.809 (809157388)|CUMULATIVE_LIMIT_USAGE
+15:38:01.809 (809157388)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.809 (809157388)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 23 out of 100
+  Number of query rows: 11 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 8 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 8 out of 10000
+  Maximum CPU time: 296 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.809 (809157388)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (809368448)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.913 (913339238)|CUMULATIVE_LIMIT_USAGE
+15:38:01.913 (913339238)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.913 (913339238)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 29 out of 100
+  Number of query rows: 13 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 8 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 8 out of 10000
+  Maximum CPU time: 296 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.913 (913339238)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (913503646)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.42 (930079074)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.936 (936425687)|CUMULATIVE_LIMIT_USAGE
+15:38:01.936 (936425687)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.936 (936425687)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 29 out of 100
+  Number of query rows: 13 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 9 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 9 out of 10000
+  Maximum CPU time: 436 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:01.936 (936425687)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (936607886)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.42 (938532231)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:StockReplenishmentOrder:a2EEi000002LNbZ
+15:38:01.42 (938586866)|CODE_UNIT_FINISHED|Validation:StockReplenishmentOrder:a2EEi000002LNbZ
+15:38:01.42 (950918901)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:01.42 (985478241)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.2 (1002743779)|CUMULATIVE_LIMIT_USAGE
+15:38:02.2 (1002743779)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.2 (1002743779)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 32 out of 100
+  Number of query rows: 14 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 10 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 10 out of 10000
+  Maximum CPU time: 436 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.2 (1002743779)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (1003238849)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:01.42 (1017997059)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.21 (1021169935)|CUMULATIVE_LIMIT_USAGE
+15:38:02.21 (1021169935)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.21 (1021169935)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 32 out of 100
+  Number of query rows: 14 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 10 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 10 out of 10000
+  Maximum CPU time: 436 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.21 (1021169935)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:01.42 (1021348068)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.117 (1117332599)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.133 (1133260494)|CUMULATIVE_LIMIT_USAGE
+15:38:02.133 (1133260494)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.133 (1133260494)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 34 out of 100
+  Number of query rows: 16 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 12 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 12 out of 10000
+  Maximum CPU time: 436 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.133 (1133260494)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1133484944)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1138310126)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1138600338)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1148876557)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.206 (1206967764)|CUMULATIVE_LIMIT_USAGE
+15:38:02.206 (1206967764)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.206 (1206967764)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 34 out of 100
+  Number of query rows: 16 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 12 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 12 out of 10000
+  Maximum CPU time: 586 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 3 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.206 (1206967764)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1207161098)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1207276822)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:02.117 (1215158931)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:02.117 (1262512677)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.278 (1278475614)|CUMULATIVE_LIMIT_USAGE
+15:38:02.278 (1278475614)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.278 (1278475614)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 38 out of 100
+  Number of query rows: 20 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 13 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 13 out of 10000
+  Maximum CPU time: 586 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 3 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.278 (1278475614)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1278718470)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1279665842)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1279809815)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1287906671)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.337 (1337293937)|CUMULATIVE_LIMIT_USAGE
+15:38:02.337 (1337293937)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.337 (1337293937)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 38 out of 100
+  Number of query rows: 20 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 13 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 13 out of 10000
+  Maximum CPU time: 586 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 5 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.337 (1337293937)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1337449115)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1337556728)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:02.117 (1344616154)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:02.348 (1348431745)|CUMULATIVE_LIMIT_USAGE
+15:38:02.348 (1348431745)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.348 (1348431745)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 38 out of 100
+  Number of query rows: 20 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 13 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 13 out of 10000
+  Maximum CPU time: 586 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 5 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.348 (1348431745)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1348591506)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.117 (1357475992)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.375 (1375683317)|CUMULATIVE_LIMIT_USAGE
+15:38:02.375 (1375683317)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.375 (1375683317)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 38 out of 100
+  Number of query rows: 20 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 13 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 13 out of 10000
+  Maximum CPU time: 586 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 5 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.375 (1375683317)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1375908035)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1377225541)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1377497381)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1386268192)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.440 (1440911501)|CUMULATIVE_LIMIT_USAGE
+15:38:02.440 (1440911501)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.440 (1440911501)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 38 out of 100
+  Number of query rows: 20 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 13 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 13 out of 10000
+  Maximum CPU time: 586 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.440 (1440911501)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1441088064)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1441200895)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:02.117 (1447941582)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:02.117 (1459479558)|USER_DEBUG|[49]|DEBUG|=== SH-1174 S2 :: DESPUES DE PO-1 ===
+15:38:02.117 (1459590811)|USER_DEBUG|[50]|DEBUG|Current_Item_Cost__c = 12.00 (esperado 12.00)
+15:38:02.117 (1459627153)|USER_DEBUG|[51]|DEBUG|Total_Stock__c       = 10 (esperado 10)
+15:38:02.117 (1480010183)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzP|Auctifera.PurchaseOrderExpense_Trg on Purchase_Order_Expense trigger event BeforeInsert|__sfdc_trigger/Auctifera/PurchaseOrderExpense_Trg
+15:38:02.486 (1486220746)|CUMULATIVE_LIMIT_USAGE
+15:38:02.486 (1486220746)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.486 (1486220746)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 40 out of 100
+  Number of query rows: 21 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 15 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 15 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.486 (1486220746)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1486416346)|CODE_UNIT_FINISHED|Auctifera.PurchaseOrderExpense_Trg on Purchase_Order_Expense trigger event BeforeInsert|__sfdc_trigger/Auctifera/PurchaseOrderExpense_Trg
+15:38:02.117 (1490326970)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:Purchase_Order_Expense:new
+15:38:02.117 (1490403125)|CODE_UNIT_FINISHED|Validation:Purchase_Order_Expense:new
+15:38:02.117 (1512562582)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzQ|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:02.523 (1523910515)|CUMULATIVE_LIMIT_USAGE
+15:38:02.523 (1523910515)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.523 (1523910515)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 41 out of 100
+  Number of query rows: 21 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 15 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 15 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.523 (1523910515)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1524067399)|CODE_UNIT_FINISHED|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:02.117 (1531953608)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.555 (1555257131)|CUMULATIVE_LIMIT_USAGE
+15:38:02.555 (1555257131)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.555 (1555257131)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 43 out of 100
+  Number of query rows: 24 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 16 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 16 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.555 (1555257131)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1555549550)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.117 (1564618470)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:StockReplenishmentOrder:new
+15:38:02.117 (1564703885)|CODE_UNIT_FINISHED|Validation:StockReplenishmentOrder:new
+15:38:02.117 (1582176551)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.117 (1607165882)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzQ|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:02.620 (1620241334)|CUMULATIVE_LIMIT_USAGE
+15:38:02.620 (1620241334)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.620 (1620241334)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 46 out of 100
+  Number of query rows: 25 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 17 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 17 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.620 (1620241334)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1620410338)|CODE_UNIT_FINISHED|Auctifera.PurchaseOrder_Trg on Purchase_Order trigger event AfterUpdate|__sfdc_trigger/Auctifera/PurchaseOrder_Trg
+15:38:02.117 (1636999694)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.648 (1648033192)|CUMULATIVE_LIMIT_USAGE
+15:38:02.648 (1648033192)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.648 (1648033192)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 48 out of 100
+  Number of query rows: 26 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 18 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 18 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.648 (1648033192)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1648221155)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.117 (1662828376)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.666 (1666312779)|CUMULATIVE_LIMIT_USAGE
+15:38:02.666 (1666312779)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.666 (1666312779)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 48 out of 100
+  Number of query rows: 26 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 18 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 18 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.666 (1666312779)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1666474992)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.117 (1719305181)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.732 (1732926326)|CUMULATIVE_LIMIT_USAGE
+15:38:02.732 (1732926326)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.732 (1732926326)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 54 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 32 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 19 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 19 out of 10000
+  Maximum CPU time: 734 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 7 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.732 (1732926326)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1733103875)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1734038808)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1734225931)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (1741645937)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.790 (1790574932)|CUMULATIVE_LIMIT_USAGE
+15:38:02.790 (1790574932)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.790 (1790574932)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 54 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 32 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 19 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 19 out of 10000
+  Maximum CPU time: 887 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 9 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.790 (1790574932)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1790744801)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (1790851201)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:02.117 (1797969149)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:02.851 (1851717867)|CUMULATIVE_LIMIT_USAGE
+15:38:02.851 (1851717867)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.851 (1851717867)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 54 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 32 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 19 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 19 out of 10000
+  Maximum CPU time: 887 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 9 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.851 (1851717867)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1851871824)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterInsert|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.117 (1866543977)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.871 (1871603859)|CUMULATIVE_LIMIT_USAGE
+15:38:02.871 (1871603859)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.871 (1871603859)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 54 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 32 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 20 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 20 out of 10000
+  Maximum CPU time: 887 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 9 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.871 (1871603859)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1871785676)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event BeforeUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.117 (1873733214)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:StockReplenishmentOrder:a2EEi000002LNba
+15:38:02.117 (1873791254)|CODE_UNIT_FINISHED|Validation:StockReplenishmentOrder:a2EEi000002LNba
+15:38:02.117 (1887562593)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzk|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:02.117 (1915922635)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.925 (1925457144)|CUMULATIVE_LIMIT_USAGE
+15:38:02.925 (1925457144)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.925 (1925457144)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 57 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 34 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 21 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 21 out of 10000
+  Maximum CPU time: 887 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 9 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.925 (1925457144)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1925734007)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event BeforeUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.117 (1942119416)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVzA|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.945 (1945386134)|CUMULATIVE_LIMIT_USAGE
+15:38:02.945 (1945386134)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.945 (1945386134)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 57 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 34 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 21 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 21 out of 10000
+  Maximum CPU time: 887 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 9 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:02.945 (1945386134)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (1945567964)|CODE_UNIT_FINISHED|Auctifera.ItemPerLocation_Trg on Item_per_location trigger event AfterUpdate|__sfdc_trigger/Auctifera/ItemPerLocation_Trg
+15:38:02.117 (2000322674)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.19 (2019743882)|CUMULATIVE_LIMIT_USAGE
+15:38:03.19 (2019743882)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.19 (2019743882)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 59 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 36 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 23 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 23 out of 10000
+  Maximum CPU time: 1002 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 9 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.19 (2019743882)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (2019923230)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (2024512923)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (2024753896)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:02.117 (2036091162)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.89 (2089681050)|CUMULATIVE_LIMIT_USAGE
+15:38:03.89 (2089681050)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.89 (2089681050)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 59 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 36 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 23 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 23 out of 10000
+  Maximum CPU time: 1002 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 11 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.89 (2089681050)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:02.117 (2089875019)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:02.117 (2090005652)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:02.117 (2097502219)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:03.149 (2149304525)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.185 (2185869307)|CUMULATIVE_LIMIT_USAGE
+15:38:03.185 (2185869307)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.185 (2185869307)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 63 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 44 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 24 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 24 out of 10000
+  Maximum CPU time: 1002 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 11 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.185 (2185869307)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:03.149 (2186307429)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.149 (2188341844)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:03.149 (2188653839)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:03.149 (2198638810)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.257 (2257580488)|CUMULATIVE_LIMIT_USAGE
+15:38:03.257 (2257580488)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.257 (2257580488)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 63 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 44 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 24 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 24 out of 10000
+  Maximum CPU time: 1161 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 13 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.257 (2257580488)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:03.149 (2257781442)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.149 (2257908435)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:03.149 (2266554109)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:03.270 (2270968692)|CUMULATIVE_LIMIT_USAGE
+15:38:03.270 (2270968692)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.270 (2270968692)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 63 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 44 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 24 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 24 out of 10000
+  Maximum CPU time: 1161 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 13 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.270 (2270968692)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:03.149 (2271189130)|CODE_UNIT_FINISHED|Auctifera.StockReplenishmentOrder on StockReplenishmentOrder trigger event AfterUpdate|__sfdc_trigger/Auctifera/StockReplenishmentOrder
+15:38:03.149 (2281589957)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.299 (2299805135)|CUMULATIVE_LIMIT_USAGE
+15:38:03.299 (2299805135)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.299 (2299805135)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 63 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 44 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 24 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 24 out of 10000
+  Maximum CPU time: 1161 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 13 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.299 (2299805135)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:03.149 (2300053485)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event BeforeUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.149 (2301212297)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:03.149 (2301414305)|CODE_UNIT_FINISHED|Validation:CatalogItem:a0SEi00000BwXbZ
+15:38:03.149 (2311573353)|CODE_UNIT_STARTED|[EXTERNAL]|01qEi00000BAVyq|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.366 (2366449890)|CUMULATIVE_LIMIT_USAGE
+15:38:03.366 (2366449890)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.366 (2366449890)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 63 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 44 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 24 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 24 out of 10000
+  Maximum CPU time: 1161 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 15 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.366 (2366449890)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:03.149 (2366628271)|CODE_UNIT_FINISHED|Auctifera.CatalogItem_Trg on CatalogItem trigger event AfterUpdate|__sfdc_trigger/Auctifera/CatalogItem_Trg
+15:38:03.149 (2366757512)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01IEi000009lHvD
+15:38:03.149 (2374753907)|CODE_UNIT_FINISHED|Workflow:01IEi000009lHvD
+15:38:03.149 (2409120784)|USER_DEBUG|[86]|DEBUG|=== SH-1174 S2 :: DESPUES DE PO-2 ===
+15:38:03.149 (2409235503)|USER_DEBUG|[87]|DEBUG|Current_Item_Cost__c = 11.00 (esperado 11.00)
+15:38:03.149 (2409265789)|USER_DEBUG|[88]|DEBUG|Total_Stock__c       = 20 (esperado 20)
+15:38:03.149 (2409307915)|USER_DEBUG|[89]|DEBUG|=== CADENA DE ITEM COST HISTORY (2 registros) ===
+15:38:03.149 (2409818013)|USER_DEBUG|[91]|DEBUG|PO=QA-1174-S2-1786660681493 PO-1 &#124; prevCost=0.000000 &#124; cost=12.000000 &#124; prevStock=0 &#124; stock=10 &#124; unitCost=10.000000 &#124; allocExpense=20.000000 &#124; effectiveCost=12.000000
+15:38:03.149 (2409949541)|USER_DEBUG|[91]|DEBUG|PO=QA-1174-S2-1786660681493 PO-2 &#124; prevCost=12.000000 &#124; cost=11.000000 &#124; prevStock=10 &#124; stock=20 &#124; unitCost=6.000000 &#124; allocExpense=40.000000 &#124; effectiveCost=10.000000
+15:38:03.149 (2410023796)|USER_DEBUG|[104]|DEBUG|=== VEREDICTO S2: PASS ===
+15:38:03.149 (2410058836)|USER_DEBUG|[105]|DEBUG|Shop Item Id (para inspeccion en Lightning): a0SEi00000BwXbZMAV
+15:38:03.464 (2464473095)|CUMULATIVE_LIMIT_USAGE
+15:38:03.464 (2464473095)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.464 (2464473095)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 65 out of 100 ******* CLOSE TO LIMIT
+  Number of query rows: 47 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 24 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 24 out of 10000
+  Maximum CPU time: 1161 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 15 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+15:38:03.464 (2464473095)|CUMULATIVE_LIMIT_USAGE_END
+
+15:38:03.149 (2464558326)|CODE_UNIT_FINISHED|execute_anonymous_apex
+15:38:03.149 (2464584291)|EXECUTION_FINISHED
+

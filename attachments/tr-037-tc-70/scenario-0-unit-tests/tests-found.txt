@@ -1,0 +1,41 @@
+PRUEBAS DEL DEV EN LA PR #2585 (head 6f0cff23c8) — SH-1174
+Ejecutado: 2026-08-13
+
+Archivos de prueba tocados por la PR:
+  1. force-app/main/shop/unitTests/LandedCostAllocatorTest.cls        — 5 tests (unitarios, sin DML de negocio)
+  2. force-app/main/shop/functionTests/LandedCostOnReceiptTest.cls    — 10 tests (funcionales, end-to-end sobre triggers)
+  Total: 15 tests.
+
+LandedCostAllocatorTest (5)
+  - proratesByValueAcrossLines
+  - fallsBackToQuantityWhenTotalValueIsZero
+  - allocationsReconcileExactlyWithRoundingRemainder
+  - zeroExpenseLeavesUnitCostUnchanged
+  - lineWithoutPurchaseOrderLandsOnRawCost
+
+LandedCostOnReceiptTest (10)
+  - singleLineReceiptFoldsExpenseIntoMovingAverage
+  - twoLineReceiptProratesExpenseByValue
+  - variantReceiptFoldsExpenseIntoVariantCost
+  - sequentialReceiptProratesExpenseAcrossAllReceivedLines
+  - addingExpenseAfterReceiptReproratesLandedCost
+  - sameItemSequentialReceiptsRebuildTheMovingAverageChain
+  - editingOneReceivedOrderDoesNotRebuildTheWholeChain          <- NUEVO en #2585
+  - addingExpenseRebuildsMultiReceiptChain
+  - bulkReceiptStaysWithinGovernorLimits                        <- NUEVO en #2585
+  - storedAverageKeepsFullPrecisionWhileDisplayRoundsToTwo      <- NUEVO en #2585
+
+DELTA vs la corrida anterior (TR-036 sobre la PR #2567, head f3b892c7):
+  +3 tests funcionales nuevos, +407 lineas en LandedCostOnReceiptTest.
+  La PR #2567 quedo CERRADA y superseded; #2585 es la PR viva (abierta en draft el 2026-08-13).
+
+MANEJO DEL CAMINO ASINCRONO:
+  Los 10 tests funcionales envuelven la accion en Test.startTest()/Test.stopTest(),
+  asi que el LandedCostExpenseRecalcQueueable nuevo se drena dentro del test y sus
+  asserts corren sobre el estado post-queueable. No hay assert huerfano antes del flush.
+
+ESTADO DE CI EN LA PR #2585 (gh pr checks):
+  lint  SUCCESS
+  build SUCCESS
+  test  SUCCESS
+  => la suite de Apex pasa en un org real de CI sobre el head 6f0cff23c8.

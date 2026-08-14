@@ -1,0 +1,12 @@
+=== T2 :: ANTES DE LA EDICION ===
+Current_Item_Cost__c = 15.00 (esperado 15.00)
+LINEA A cost=15.000000 unitCost=10.000000 allocExpense=50.000000 effectiveCost=15.000000
+LINEA B cost=15.000000 unitCost=10.000000 allocExpense=50.000000 effectiveCost=15.000000
+=== T2 :: DESPUES DE EDITAR Item_Cost__c DE LA LINEA A A $20 ===
+Current_Item_Cost__c = 15.00 (esperado por AC-2: 20.00)
+LINEA A cost=20.000000 unitCost=20.000000 allocExpense=0.000000 effectiveCost=20.000000
+LINEA B cost=15.000000 unitCost=10.000000 allocExpense=50.000000 effectiveCost=15.000000
+Total_Expenses__c de la PO = 100.00
+Gasto TODAVIA asignado en la cadena de ICH = 50.000000
+Gasto HUERFANO (en la PO pero no asignado) = 50.000000
+Shop Item Id: a0SEi00000BwXlFMAV

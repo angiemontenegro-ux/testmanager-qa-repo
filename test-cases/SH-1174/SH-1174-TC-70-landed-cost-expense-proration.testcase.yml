@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "87339977-18fe-4c40-9633-68762de86658"
 key: "TC-70"
 title: "Order expenses are prorated by value and folded into the item's average cost (landed cost)"
-description: "QA coverage for SH-1174 (Shop (Salesforce) — Include order expenses in the item's average cost (landed cost)). QA Sub-task: SH-1180. Implementation domain: Salesforce Shop 1.0 (Auctifera namespace), purchase-order receiving flow that computes the moving weighted average cost — replicates the Shop 2.0 PO Additional-Expenses landed-cost logic from SH-980 / SH-1110. At receipt, the order's total expense (freight, tax, handling, duties, insurance, other — everything entered in the expense module, no recoverable/non-recoverable split) is prorated by value across received lines and folded into each line's effective unit cost before the moving average recompute (6 internal decimals, 2 displayed). Quantity discrepancies are never handled on the purchase — a short/over receipt is corrected via a separate Inventory Adjustment. Open risk: Open decision #1 in the story (expense base on a short receipt) still needs confirmation against current Salesforce Shop receiving behavior — Scenario 5 here tests the assumed behavior (expense spreads over actually-received qty) but should be re-checked once that decision is formally closed. Historical-data recalculation for pre-existing receipts is explicitly out of scope (separate fast-follow), so no scenario covers backfill. Applies ONLY to Shop 1.0 — not Shop 2.0."
+description: "QA coverage for SH-1174 (Shop (Salesforce) — Include order expenses in the item's average cost (landed cost)). QA Sub-task: SH-1180. Implementation domain: Salesforce Shop 1.0 (Auctifera namespace), purchase-order receiving flow that computes the moving weighted average cost — replicates the Shop 2.0 PO Additional-Expenses landed-cost logic from SH-980 / SH-1110. At receipt, the order's total expense (freight, tax, handling, duties, insurance, other — everything entered in the expense module, no recoverable/non-recoverable split) is prorated by value across received lines and folded into each line's effective unit cost before the moving average recompute (6 internal decimals, 2 displayed). Quantity discrepancies are never handled on the purchase — a short/over receipt is corrected via a separate Inventory Adjustment. Open decision #1 in the story (expense base on a short receipt) is RESOLVED by the Shop 1.0 data model, not by a behavioral test: Auctifera__StockReplenishmentOrder__c exposes a single quantity field (Order_Amount__c) with no separate received-quantity field, and Order_Status__c is limited to Draft / Ordered / Received - Complete with no partial-receipt value. A short receipt therefore cannot be recorded on the purchase at all. The original Scenario 5 ('only 80 of 100 units arrive and are received') was not executable against this model and was split in v2 into two testable scenarios: proration over the full ordered quantity, and the regression risk that a later Inventory Adjustment must not corrupt the landed average. Inventory_Adjustment__c is a separate object with its own services (AdjustmentFactory, OversellAdjustmentService) and is untouched by PR #2567, so that second scenario is a real coverage gap rather than a re-check. Historical-data recalculation for pre-existing receipts is explicitly out of scope (separate fast-follow), so no scenario covers backfill. Applies ONLY to Shop 1.0 — not Shop 2.0."
 type: "functional"
 priority: "medium"
 status: "active"
@@ -68,20 +68,37 @@ scenarios:
       - "it shows unit cost, allocated expense, and effective (landed) unit cost, linked to the originating order"
       - "Current Item Cost and Cost of Value on Inventory reflect the landed average, not the raw unit cost"
 
-  - title: "A short receipt folds the expense into the units actually received; the shortfall is a separate Inventory Adjustment"
+  - title: "Shop 1.0 cannot record a short receipt — the expense prorates over the full ordered quantity"
     tags:
       - "ac-5"
       - "happy-path"
       - "landed-cost"
       - "short-receipt"
-      - "missing-doc"
+      - "data-model-constraint"
     given:
-      - "an order for 100 units carries a total expense"
+      - "a Stock Replenishment Order for 100 units carries a total order expense"
+      - "Shop 1.0 models quantity with the single field Order_Amount__c — there is no separate received-quantity field — and Order_Status__c offers only Draft, Ordered and Received - Complete, with no partial-receipt value"
     when:
-      - "only 80 units arrive and are received"
+      - "the order is moved to \"Received - Complete\""
     then:
-      - "the order's total expense is folded into the cost of the 80 units actually received on the purchase"
-      - "the 20-unit discrepancy is corrected via a separate Inventory Adjustment — the purchase is never partially received or re-opened"
+      - "the total expense is prorated over the full ordered quantity of 100 units, because a short receipt cannot be entered on the purchase"
+      - "the purchase is never partially received or re-opened"
+
+  - title: "A later Inventory Adjustment does not corrupt the landed average cost"
+    tags:
+      - "ac-5"
+      - "regression"
+      - "landed-cost"
+      - "inventory-adjustment"
+      - "coverage-gap"
+    given:
+      - "an item was received with an order expense already folded into its landed average cost"
+    when:
+      - "a separate Inventory_Adjustment__c is posted to correct the on-hand quantity for units that never physically arrived"
+    then:
+      - "the item's on-hand quantity is corrected by the adjustment"
+      - "the landed average cost derived from the receipt is not recomputed, distorted or reset by the adjustment"
+      - "no Item Cost History record created by the original receipt is rewritten by the adjustment"
 
   - title: "Every expense-module line (freight, tax, handling, duties, insurance) folds into cost with no exceptions"
     tags:
@@ -156,10 +173,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1180"
       type: "qa-sub-task"
   external: []
-estimatedDuration: 105
+estimatedDuration: 120
 metadata:
   createdBy: "codex"
   createdAt: "2026-08-05T19:45:43Z"
-  updatedBy: "codex"
-  updatedAt: "2026-08-05T19:45:43Z"
-  version: 1
+  updatedBy: "claude"
+  updatedAt: "2026-08-11T14:20:00Z"
+  version: 2

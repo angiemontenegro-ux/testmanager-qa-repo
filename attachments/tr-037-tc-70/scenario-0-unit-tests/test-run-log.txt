@@ -1,0 +1,59 @@
+PRUEBAS APEX DEL DEV EJECUTADAS EN ORG REAL — TR-037 / SH-1174 / PR #2585
+Org: sh1174qa (test-8aabbfvugh6n@example.com, 00DEi00000OX8H7MAL)
+Deploy: 12426 componentes, 0 errores, head 6f0cff23c8. Permsets auctifera + Veevart asignados.
+Test Run Id: 707Ei00002ALBHc. Fecha: 2026-08-13.
+
+=== CLASES DE SH-1174: 15/15 PASS ===
+
+LandedCostAllocatorTest (5/5 PASS)
+  PASS  allocationsReconcileExactlyWithRoundingRemainder
+  PASS  fallsBackToQuantityWhenTotalValueIsZero
+  PASS  lineWithoutPurchaseOrderLandsOnRawCost
+  PASS  proratesByValueAcrossLines
+  PASS  zeroExpenseLeavesUnitCostUnchanged
+
+LandedCostOnReceiptTest (10/10 PASS)
+  PASS  addingExpenseAfterReceiptReproratesLandedCost
+  PASS  addingExpenseRebuildsMultiReceiptChain
+  PASS  bulkReceiptStaysWithinGovernorLimits
+  PASS  editingOneReceivedOrderDoesNotRebuildTheWholeChain
+  PASS  sameItemSequentialReceiptsRebuildTheMovingAverageChain
+  PASS  sequentialReceiptProratesExpenseAcrossAllReceivedLines
+  PASS  singleLineReceiptFoldsExpenseIntoMovingAverage
+  PASS  storedAverageKeepsFullPrecisionWhileDisplayRoundsToTwo
+  PASS  twoLineReceiptProratesExpenseByValue
+  PASS  variantReceiptFoldsExpenseIntoVariantCost
+
+ICHCostCalculationServiceTest (2/2 PASS) — compatibilidad hacia atras de la sobrecarga
+  PASS  calculateWACWithPreviousICHReturnsWAC
+  PASS  calculateWACWithoutPreviousSnapshotUsesIncomingUnitCost
+
+COBERTURA DE CODIGO DE LAS CLASES DE LA PR:
+  LandedCostAllocator                90%
+  ICHCostCalculationService          88%
+  PurchaseOrderTriggerHandler        74%
+  LandedCostExpenseRecalcQueueable   69%
+  ItemCostHistoryService             67%
+  StockReplenishmentOrderTriggerHandler 60%
+
+=== 24 FALLAS EN ItemCostHistoryServiceTest: ARTEFACTO DEL ORG, NO DEFECTO DE LA PR ===
+
+Las 24 fallas estan TODAS en ItemCostHistoryServiceTest, clase que esta PR NO toca
+(no aparece en los 17 archivos de gh pr diff 2585 --name-only).
+
+Todas fallan con EL MISMO error, y en el primer insert del setup, no en un assert:
+  System.DmlException: Insert failed. First exception on row 0; first error:
+  CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY, Auctifera.CatalogItem_Trg: execution of AfterInsert
+
+Es decir: no logran ni crear el CatalogItem de partida. Es configuracion faltante del org
+(el flujo de CI corre config_apextest -> assign_permission_sets y siembra datos que un
+'sf project deploy start' plano no provisiona), no un fallo de logica de landed cost.
+
+PRUEBA CRUZADA que confirma que es artefacto del org:
+  1. El check 'test' de CI en la PR #2585 esta en SUCCESS sobre este mismo head.
+  2. Los 15 tests de SH-1174 pasan en ESTE mismo org, en la misma corrida.
+  3. Los tests que fallan tocan seeding de variantes/activacion, no el pipeline de gasto.
+
+Precedente registrado: el defecto SH-1182 levantado en TR-036 resulto ser exactamente
+esta misma clase de falso positivo (baseline de scratch org viejo) y fue retractado.
+Por eso NO se levanta defecto por estas 24 fallas.

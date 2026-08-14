@@ -1,0 +1,24 @@
+Execute Anonymous: Auctifera__CatalogItem__c afterFirst = [SELECT Auctifera__Current_Item_Cost__c, Auctifera__Total_Stock__c FROM Auctifera__CatalogItem__c WHERE Id = :shopItem.Id];
+Execute Anonymous: System.debug('=== SH-1174 S2 :: DESPUES DE PO-1 ===');
+Execute Anonymous: System.debug('Current_Item_Cost__c = ' + afterFirst.Auctifera__Current_Item_Cost__c + ' (esperado 12.00)');
+Execute Anonymous: System.debug('Total_Stock__c       = ' + afterFirst.Auctifera__Total_Stock__c + ' (esperado 10)');
+Execute Anonymous: Auctifera__CatalogItem__c afterSecond = [SELECT Auctifera__Current_Item_Cost__c, Auctifera__Total_Stock__c FROM Auctifera__CatalogItem__c WHERE Id = :shopItem.Id];
+Execute Anonymous: System.debug('=== SH-1174 S2 :: DESPUES DE PO-2 ===');
+Execute Anonymous: System.debug('Current_Item_Cost__c = ' + afterSecond.Auctifera__Current_Item_Cost__c + ' (esperado 11.00)');
+Execute Anonymous: System.debug('Total_Stock__c       = ' + afterSecond.Auctifera__Total_Stock__c + ' (esperado 20)');
+Execute Anonymous: System.debug('=== CADENA DE ITEM COST HISTORY (' + ichs.size() + ' registros) ===');
+Execute Anonymous:         'PO=' + ich.Auctifera__Stock_Replenishment_Order__r.Auctifera__Purchase_Order__r.Name +
+Execute Anonymous: Boolean pass = afterSecond.Auctifera__Current_Item_Cost__c == 11.00 && afterSecond.Auctifera__Total_Stock__c == 20;
+Execute Anonymous: System.debug('=== VEREDICTO S2: ' + (pass ? 'PASS' : 'FAIL') + ' ===');
+Execute Anonymous: System.debug('Shop Item Id (para inspeccion en Lightning): ' + shopItem.Id);
+=== SH-1174 S2 :: DESPUES DE PO-1 ===
+Current_Item_Cost__c = 12.00 (esperado 12.00)
+Total_Stock__c       = 10 (esperado 10)
+=== SH-1174 S2 :: DESPUES DE PO-2 ===
+Current_Item_Cost__c = 11.00 (esperado 11.00)
+Total_Stock__c       = 20 (esperado 20)
+=== CADENA DE ITEM COST HISTORY (2 registros) ===
+PO=QA-1174-S2-1786660681493 PO-1 &#124; prevCost=0.000000 &#124; cost=12.000000 &#124; prevStock=0 &#124; stock=10 &#124; unitCost=10.000000 &#124; allocExpense=20.000000 &#124; effectiveCost=12.000000
+PO=QA-1174-S2-1786660681493 PO-2 &#124; prevCost=12.000000 &#124; cost=11.000000 &#124; prevStock=10 &#124; stock=20 &#124; unitCost=6.000000 &#124; allocExpense=40.000000 &#124; effectiveCost=10.000000
+=== VEREDICTO S2: PASS ===
+Shop Item Id (para inspeccion en Lightning): a0SEi00000BwXbZMAV
