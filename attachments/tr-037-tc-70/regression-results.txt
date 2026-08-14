@@ -31,8 +31,10 @@ HALLAZGO-1 (T2) — FAIL: editar el costo de una linea YA RECIBIDA descarta el g
 asignado y deja el promedio landed inconsistente
 ===============================================================================
 
-SEVERIDAD PROPUESTA: Media. No es de seguridad. No rompe CI.
-NO se levanto defecto en Jira todavia: pendiente de decision de QA (regla 7b del skill).
+SEVERIDAD: Media. No es de seguridad. No rompe CI.
+DEFECTO LEVANTADO: SH-1200 — https://veevart.atlassian.net/browse/SH-1200
+  Ligado a SH-1174 con link tipo Defect (SH-1174 created SH-1200) y a la QA sub-task SH-1180 con Relates.
+  Levantado el 2026-08-14 tras decision de QA, con la PR #2585 todavia en draft.
 
 QUE PASA
 StockReplenishmentOrderTriggerHandler ahora llama recalculateEditedICHsFromOrders, que recomputa el

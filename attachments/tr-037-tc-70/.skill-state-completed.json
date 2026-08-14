@@ -6,7 +6,7 @@
   "trKey": "TR-037",
   "prNumber": 2585,
   "startedAt": "2026-08-13T19:00:00Z",
-  "lastUpdated": "2026-08-13T21:50:00Z",
+  "lastUpdated": "2026-08-14T08:40:00Z",
   "status": "completed",
   "completedSteps": [
     1,
@@ -123,12 +123,20 @@
         "id": "HALLAZGO-1",
         "item": "T2",
         "severity": "Media",
-        "filed": false,
+        "filed": true,
         "summary": "Editar el costo de una linea ya recibida descarta el gasto asignado; $50 de $100 quedan huerfanos y el promedio queda en 15.00 donde AC-2 pide 20.00",
-        "status": "pendiente de decision de QA sobre si se levanta defecto"
+        "status": "defecto levantado 2026-08-14, ligado a SH-1174 (Defect) y SH-1180 (Relates)",
+        "jiraKey": "SH-1200"
       }
     ],
-    "defectsRaised": [],
+    "defectsRaised": [
+      {
+        "jiraKey": "SH-1200",
+        "url": "https://veevart.atlassian.net/browse/SH-1200",
+        "severity": "Medium",
+        "regressionItem": "T2 / HALLAZGO-1"
+      }
+    ],
     "commit": "ab761d0",
     "pushedTo": "main"
   }

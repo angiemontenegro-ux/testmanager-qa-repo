@@ -504,3 +504,11 @@ metadata:
   supersedes: 'TR-036 (validaba la PR #2567, cerrada y superseded)'
   org: sh1174qa / test-8aabbfvugh6n@example.com
   attachmentsPath: attachments/tr-037-tc-70
+  defects:
+  - jiraKey: SH-1200
+    url: https://veevart.atlassian.net/browse/SH-1200
+    severity: Medium
+    summary: Editing the unit cost of an already-received line discards its allocated expense, leaving the landed average
+      understated and part of the order expense unallocated
+    regressionItem: T2 / HALLAZGO-1
+    linkedTo: SH-1174 (Defect), SH-1180 (Relates)
