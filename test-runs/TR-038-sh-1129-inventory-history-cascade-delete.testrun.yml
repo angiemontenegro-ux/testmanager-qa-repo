@@ -146,33 +146,37 @@ results:
     testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
     scenarioTitle: "InventoryHistoryBatch does not create a duplicate same-day snapshot for a history row orphaned by an earlier IPL delete"
     scenarioIndex: 3
-    status: not-run
+    status: blocked
+    executedAt: "2026-08-14T14:40:00.000Z"
     stepResults:
       - order: 1
-        status: not-run
-        actual: ""
+        status: blocked
+        actual: "No se llego a montar la precondicion: el paso 'when' es imposible en este entorno, asi que sembrar la fila huerfana no habria probado nada. Dato de contexto: UAT tiene 0 filas de Auctifera__Inventory_History__c en todo el org, justamente porque el batch nunca corrio ahi."
         phase: given
         text: "today's Inventory_History__c already exists for a given Shop Item + Item Variant + Location combination, with Item_per_location__c already null (orphaned earlier the same day by an IPL delete)"
         attachments: []
       - order: 2
-        status: not-run
-        actual: ""
+        status: blocked
+        actual: "BLOQUEO DURO, verificado ejecutando y no por inspeccion: Database.executeBatch(new Auctifera.InventoryHistoryBatch()) falla al compilar con 'Type is not visible: Auctifera.InventoryHistoryBatch'. La clase esta declarada 'public with sharing' y no 'global', asi que el paquete gestionado NO la expone a orgs suscriptores. InventoryHistoryScheduler tiene el mismo modificador, o sea tampoco sirve como puerta de entrada. Y no hay job programado que lo dispare: de 75 CronTriggers activos en UAT, ninguno corresponde a Inventory/History/Stock."
         phase: when
         text: InventoryHistoryBatch runs again for the IPL currently representing that same Shop Item + Item Variant + Location
-        attachments: []
+        attachments:
+          - name: evidence.txt
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/evidence.txt
+            mimeType: text/plain
       - order: 3
-        status: not-run
-        actual: ""
+        status: blocked
+        actual: "No evaluable: el batch no se puede disparar."
         phase: then
         text: no second Inventory_History__c row is created for that date
         attachments: []
       - order: 4
-        status: not-run
-        actual: ""
+        status: blocked
+        actual: "No evaluable: el batch no se puede disparar."
         phase: then
         text: "exactly one Inventory_History__c record remains for that Shop Item + Item Variant + Location + Date"
         attachments: []
-    notes: "NOT-RUN EN ESTE RUN, pero NO es un hueco de cobertura: TR-034 ya ejecuto este mismo escenario y lo dejo en passed contra su baseline. Aqui no se repitio por decision explicita de alcance: ejecutar InventoryHistoryBatch en UAT no es una operacion aislable, porque el batch recorre el inventario del org e inserta Inventory_History__c reales para todos los items, y a diferencia de los tres scripts de este run no se puede envolver en un savepoint con rollback. UAT es un sandbox compartido, asi que no se corrio sin visto bueno previo. Ademas UAT tiene 0 filas de Inventory_History__c, con lo cual habria que sembrar datos primero. Recordatorio de contexto: este escenario cubre el cambio de dedup-key de InventoryHistoryBatch.cls (ahora por Shop Item + Item Variant + Location, ya no por el ahora-nullable Item_per_location__c), que es el fix de SH-1142 viajando en el mismo PR #2541; es regresion, no reemplaza el QA propio de SH-1142. SALVEDAD IMPORTANTE: el passed de TR-034 en el Scenario 6 resulto ser incorrecto al contrastarlo contra un org real, asi que su passed aqui tampoco deberia tomarse como definitivo para un org suscriptor sin volver a ejecutarlo."
+    notes: "BLOCKED, no not-run: se intento ejecutar y NO se puede en este tipo de org. Correccion de lo que yo mismo habia anotado antes en este run, que decia que no se corria por decision de alcance para no escribir datos en un sandbox compartido. Esa razon era secundaria y, sobre todo, no era la verdadera. La razon real es que Auctifera.InventoryHistoryBatch esta declarada 'public', no 'global', asi que el paquete gestionado no la expone a orgs suscriptores: el intento de invocarla falla al compilar con 'Type is not visible'. InventoryHistoryScheduler es igual de inaccesible y no hay job programado que lo dispare. CONSECUENCIA PARA EL TEST CASE, que vale mas que este run puntual: el Scenario 4, tal como esta redactado ('when InventoryHistoryBatch runs again'), NO es ejecutable en NINGUN org suscriptor — ni UAT ni produccion — sino unicamente donde esta desplegado el codigo fuente del paquete (org de desarrollo del paquete o scratch org), que es exactamente donde TR-034 lo valido. Conviene anotarlo en TC-69 como escenario solo-scratch-org, o reformularlo en terminos observables desde un suscriptor. Contexto: este escenario cubre el cambio de dedup-key de InventoryHistoryBatch.cls (ahora por Shop Item + Item Variant + Location, ya no por el ahora-nullable Item_per_location__c), que es el fix de SH-1142 viajando en el mismo PR #2541; es regresion, no reemplaza el QA propio de SH-1142. La cobertura vigente sigue siendo el passed de TR-034, con la salvedad de que el passed de TR-034 en el Scenario 6 resulto incorrecto al contrastarlo contra un org real, asi que su evidencia por unit test tampoco deberia leerse como garantia de comportamiento en un suscriptor."
     attachments: []
     defects: []
 
@@ -270,9 +274,9 @@ summary:
   total: 6
   passed: 4
   failed: 1
-  blocked: 0
+  blocked: 1
   skipped: 0
-  notRun: 1
+  notRun: 0
   passRate: 67
 history:
   - action: created
@@ -294,9 +298,13 @@ history:
     timestamp: "2026-08-14T14:00:00.000Z"
     user: claude
     reason: "Correccion de numeracion y de dos afirmaciones incorrectas, detectadas al revisar el historial del repo antes de registrar el defecto. (1) RENUMERADO de TR-037 a TR-038: mientras este run estaba en curso se mergeo a main TR-037 para SH-1174 (commits ab761d0..c7e8589, 2026-08-14), asi que la clave colisionaba. El run hermano de SH-1169 paso de TR-038 a TR-039 y el contador testRun subio a 39. Se habia elegido TR-037 mirando solo origin/main en el momento de ramificar; la leccion es verificar la numeracion contra main ACTUALIZADO justo antes de publicar, no al empezar. (2) Se retiro la afirmacion de que este era 'la primera ejecucion de TC-69': TR-034 ya lo habia ejecutado (5 passed, 1 not-run). Lo correcto es que este es el primer run contra un org SUSCRIPTOR. (3) El Scenario 4 deja de presentarse como hueco de cobertura: TR-034 ya lo tenia en passed. (4) Registrado el defecto SH-1201 contra el Scenario 6, con el detalle de que este FAIL contradice el passed de TR-034, que se habia validado leyendo el XML del repo en vez del org desplegado."
+  - action: updated
+    timestamp: "2026-08-14T14:45:00.000Z"
+    user: claude
+    reason: "Scenario 4 intentado y marcado BLOCKED, con lo cual ya no queda ningun escenario sin atender: 4 passed / 1 failed / 1 blocked. Se corrige ademas la razon que yo mismo habia dado antes. No es que se haya evitado correr el batch por prudencia en un sandbox compartido: es que Auctifera.InventoryHistoryBatch esta declarada 'public' y no 'global', asi que el paquete gestionado no la expone a orgs suscriptores y el intento de invocarla falla al compilar con 'Type is not visible'. El scheduler es igual de inaccesible y no hay ningun job programado que lo dispare, de ahi que UAT tenga 0 filas de Inventory_History__c. Implicacion para TC-69: el Scenario 4 no es ejecutable en NINGUN org suscriptor, solo donde esta el codigo fuente del paquete; conviene anotarlo como escenario solo-scratch-org o reformularlo."
 metadata:
   createdBy: claude
   createdAt: "2026-08-13T13:45:00.000Z"
   updatedBy: claude
-  updatedAt: "2026-08-14T14:00:00.000Z"
-  version: 4
+  updatedAt: "2026-08-14T14:45:00.000Z"
+  version: 5
