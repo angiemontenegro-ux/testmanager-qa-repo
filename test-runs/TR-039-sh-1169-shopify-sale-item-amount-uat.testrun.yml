@@ -1,6 +1,6 @@
 schemaVersion: "1.0"
 id: tr-240fff5f-e7c4-4bcd-aa56-90f9d3bf83b9
-key: TR-038
+key: TR-039
 title: "Run: Shopify Sale Item Amount recalculated on bypassed V2-sync writes (UAT)"
 status: in-progress
 environment:
@@ -24,7 +24,7 @@ results:
         text: "an existing Sale_Item__c under a Client Purchase, tax-free catalog item"
         attachments:
           - name: validateShopifySaleItemAmountSH1169-A-basic.log
-            path: attachments/SH-1169/TR-38/validateShopifySaleItemAmountSH1169-A-basic.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-A-basic.log
             mimeType: text/plain
       - order: 2
         status: passed
@@ -64,7 +64,7 @@ results:
         text: an existing Sale_Item__c under a Client Purchase
         attachments:
           - name: validateShopifySaleItemAmountSH1169-B-nonShopifyScope.log
-            path: attachments/SH-1169/TR-38/validateShopifySaleItemAmountSH1169-B-nonShopifyScope.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-B-nonShopifyScope.log
             mimeType: text/plain
       - order: 2
         status: passed
@@ -128,7 +128,7 @@ results:
         text: "a Shopify V2-sync Sale_Item__c write with Technical_Bypass_Triggers__c = true and Source__c = 'Shopify'"
         attachments:
           - name: validateShopifySaleItemAmountSH1169-E-nullGuard.log
-            path: attachments/SH-1169/TR-38/validateShopifySaleItemAmountSH1169-E-nullGuard.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-E-nullGuard.log
             mimeType: text/plain
       - order: 2
         status: passed
@@ -192,7 +192,7 @@ results:
         text: "a fresh Sale_Item__c inserted under a Client Purchase as a Shopify V2-sync write with Technical_Bypass_Triggers__c = true"
         attachments:
           - name: validateShopifySaleItemAmountSH1169-F-insertSelfHeals.log
-            path: attachments/SH-1169/TR-38/validateShopifySaleItemAmountSH1169-F-insertSelfHeals.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-F-insertSelfHeals.log
             mimeType: text/plain
       - order: 2
         status: passed
@@ -220,7 +220,7 @@ results:
         text: "an existing Sale_Item__c under a Client Purchase, tax-free catalog item"
         attachments:
           - name: validateShopifySaleItemAmountSH1169-C-discount.log
-            path: attachments/SH-1169/TR-38/validateShopifySaleItemAmountSH1169-C-discount.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-C-discount.log
             mimeType: text/plain
       - order: 2
         status: passed
@@ -260,7 +260,7 @@ results:
         text: "an existing Sale_Item__c under a Client Purchase, catalog item taxed at 10% ('Tax not included in the price')"
         attachments:
           - name: validateShopifySaleItemAmountSH1169-D-tax.log
-            path: attachments/SH-1169/TR-38/validateShopifySaleItemAmountSH1169-D-tax.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-D-tax.log
             mimeType: text/plain
       - order: 2
         status: passed
