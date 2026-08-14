@@ -1,0 +1,10 @@
+=== UAT org: Auctifera__StockReplenishmentOrder__c ===
+Fields matching quantity/amount/received:
+   Auctifera__Order_Amount__c | double | label: Order Quantity
+   Auctifera__Disabled_for_Total_Stock__c | boolean | label: Disabled for Total Stock
+   Auctifera__Is_Initial_Stock_Order__c | boolean | label: Is Initial Stock Order
+
+Auctifera__Order_Status__c picklist values:
+   - 'Draft' active= True
+   - 'Ordered' active= True
+   - 'Received - Complete' active= True

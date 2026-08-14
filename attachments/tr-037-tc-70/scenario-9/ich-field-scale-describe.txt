@@ -1,0 +1,20 @@
+=== T1 :: escala de campos Currency en Item_Cost_History__c ===
+Org sh1174qa (test-8aabbfvugh6n@example.com), PR #2585 head 6f0cff23c8 desplegada, 12426 componentes, 0 errores.
+Fecha: 2026-08-13
+
+  Auctifera__Allocated_Expense__c        type=currency  precision=18 scale=6 nillable=True
+  Auctifera__Cost__c                     type=currency  precision=18 scale=6 nillable=False
+  Auctifera__Effective_Cost__c           type=currency  precision=18 scale=6 nillable=True
+  Auctifera__Previous_Cost__c            type=currency  precision=18 scale=6 nillable=False
+  Auctifera__Previous_Stock__c           type=double    precision=18 scale=0 nillable=False
+  Auctifera__Stock__c                    type=double    precision=18 scale=0 nillable=False
+  Auctifera__Unit_Cost__c                type=currency  precision=18 scale=6 nillable=True
+
+Cost__c y Previous_Cost__c: scale 2 -> 6 ACEPTADO por la plataforma en el deploy.
+Unit_Cost__c, Allocated_Expense__c y Effective_Cost__c: campos NUEVOS, creados con scale 6.
+
+=== Current_Item_Cost__c (formula de display en CatalogItem__c) ===
+  type=currency precision=18 scale=2 calculated=True
+  formula: IF(Number_of_variants2__c > 0, Item_Cost__c, Item_Cost_History__r.Cost__c)
+  => el almacenamiento guarda 6 decimales y el display redondea a 2. Coincide con el diseno del dev
+     y con el test storedAverageKeepsFullPrecisionWhileDisplayRoundsToTwo.

@@ -1,0 +1,12 @@
+=== SH-1174 S5 :: ANTES DEL AJUSTE ===
+Current_Item_Cost__c = 12.00 (esperado 12.00)
+Total_Stock__c       = 10 (esperado 10)
+ICH cost=12.000000 stock=10 unitCost=10.000000 allocExpense=20.000000 effectiveCost=12.000000
+=== SH-1174 S5 :: DESPUES DEL AJUSTE ===
+Current_Item_Cost__c = 12.00 (esperado 12.00, SIN cambio)
+Total_Stock__c       = 7 (esperado 7)
+Ajuste: qty=3 snapshotCost=12.00 ICH=a1CEi00001ekRdZMAU merchandiseCost=36.00
+=== CADENA ICH DESPUES (1) ===
+ICH prevCost=0.000000 cost=12.000000 prevStock=0 stock=10 unitCost=10.000000 allocExpense=20.000000 effectiveCost=12.000000
+=== VEREDICTO S5: promedio intacto=true &#124; desglose intacto=true ===
+Shop Item Id: a0SEi00000BwXjdMAF

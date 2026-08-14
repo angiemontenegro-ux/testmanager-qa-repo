@@ -1,0 +1,29 @@
+PLAN DE REGRESION — TR-037 / TC-70 / SH-1174 / PR #2585 (head 6f0cff23c8)
+Elaborado: 2026-08-13, ANTES de ejecutar. Los veredictos se llenan en regression-results.txt.
+
+Alcance de la PR: 17 archivos, +1970/-17. Superseder de la PR #2567 (cerrada), que fue lo que valido TR-036.
+Delta contra lo ya validado en TR-036 (f3b892c7 -> 6f0cff23): 9 archivos, +998/-95.
+
+=========================== REGRESION TECNICA ===========================
+
+| # | Item | Riesgo | Metodo de verificacion |
+|---|------|--------|------------------------|
+| T1 | Cost__c y Previous_Cost__c pasan de scale 2 a scale 6 en un objeto del paquete GESTIONADO. Precision se queda en 18, asi que la parte entera baja de 16 a 12 digitos. | ALTO | Describe del campo en el org desplegado + verificar que Current_Item_Cost__c (formula, scale 2) sigue mostrando 2 decimales. Verificar que el deploy del paquete no rechaza el cambio de escala. |
+| T2 | StockReplenishmentOrderTriggerHandler ahora llama recalculateEditedICHsFromOrders (metodo NUEVO) en vez de recalculateICHsFromOrders. Cambia el alcance de la edicion de un SRO recibido: de reconstruir toda la cadena a recomputar solo su propio ICH. | ALTO | Leer el test editingOneReceivedOrderDoesNotRebuildTheWholeChain + revisar que hace con Allocated_Expense__c y Effective_Cost__c. |
+| T3 | PurchaseOrderTriggerHandler encola LandedCostExpenseRecalcQueueable (asincrono) en vez de recalcular en linea. Un fallo del job es silencioso salvo por el Log__c. | MEDIO | Revisar el guard cannotEnqueue (isBatch/isFuture/isQueueable/headroom) y el fallback sincrono. Confirmar que los tests envuelven en Test.startTest/stopTest para drenar el job. |
+| T4 | La recalculacion de hermanos en buildICHs ahora esta condicionada a anyExpenseAllocated(). Antes corria siempre. | MEDIO | Razonar el caso borde: PO con gasto donde la linea nueva recibe $0 asignado. Contrastar con el fallback por cantidad cuando el valor total es 0. |
+| T5 | Se ELIMINO el cache estatico transaccional de LandedCostAllocator (totalExpenseCacheByPurchaseOrderId) junto con su metodo publico clearCache(). Si algun otro llamador lo usaba, rompe la compilacion. | MEDIO | grep de clearCache en todo force-app. Debe dar 0 referencias. |
+| T6 | Se agrego un memo estatico nuevo en ItemCostHistoryService (scopeICHsByShopItemMemo) reutilizado solo por el camino de cambio de gasto, con invalidacion en los inserts. Riesgo de servir una cadena desactualizada. | MEDIO | Revisar que invalidateScopeMemo se llame en los dos inserts (buildICHs y el seed de variantes) y que el memo solo se reuse cuando reuseScopeMemo = true. |
+| T7 | recalculateICHsFromOrders (sobrecarga de 1 argumento) cambio de semantica: antes recomputaba desde el Previous_Cost congelado de cada ICH, ahora reconstruye la cadena completa por scope. Hay un test preexistente escrito contra la semantica vieja (ItemCostHistoryServiceTest, NO tocado por la PR). | MEDIO | Confirmar el estado del check "test" de CI en la PR, que corre esa clase. |
+| T8 | ICHCostCalculationService.calculateWeightedAverageCost: la sobrecarga de 2 argumentos debe seguir delegando con override nulo (compatibilidad hacia atras con los llamadores que no son de SH-1174). | BAJO | grep de llamadores + revisar que la de 2 argumentos delega en la de 3 con null. |
+
+=========================== REGRESION DE SEGURIDAD ===========================
+
+| # | Item | Riesgo | Metodo de verificacion |
+|---|------|--------|------------------------|
+| S1 | SOQL nuevo en 3 clases (queueable, trigger handler, servicio). Inyeccion si alguna consulta se arma por concatenacion. | ALTO si aplica | grep de Database.query / 'SELECT literal en el diff de la PR. |
+| S2 | Database.update(..., AccessLevel.SYSTEM_MODE) en el queueable: escribe saltando FLS/CRUD del usuario. | MEDIO | Confirmar que es el patron ya establecido en ItemCostHistoryService (no una escalacion nueva) y que el objeto escrito es solo Item_Cost_History__c. |
+| S3 | Utils.createLog serializa el payload del job en un registro Log__c legible. Riesgo de PII en logs. | MEDIO | Revisar QUE se serializa: JSON.serialize(purchaseOrderIds). |
+| S4 | Campos nuevos en Item_Cost_History__c (Unit_Cost, Allocated_Expense, Effective_Cost): exponen el desglose de costo/margen a quien pueda leer el objeto. | BAJO | Confirmar que no se toco ningun perfil ni permission set en la PR (la visibilidad hereda la del objeto). |
+| S5 | Dependencias nuevas. | BAJO | La PR no toca package.json ni ningun lockfile. |
+| S6 | Clases nuevas sin declaracion de sharing. | BAJO | grep de 'with sharing' en las clases nuevas. |

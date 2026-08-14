@@ -1,0 +1,19 @@
+=== Scenario idx 4 :: Shop 1.0 NO puede registrar una recepcion corta ===
+Org sh1174qa con la PR #2585 desplegada. Fecha 2026-08-13.
+
+Campos de CANTIDAD en Auctifera__StockReplenishmentOrder__c:
+  Auctifera__Order_Amount__c                    type=double    label=Order Amount
+  -> 1 campo(s). Existe UNO solo de cantidad: Order_Amount__c (label Order Quantity).
+     NO existe un campo de cantidad RECIBIDA separado de la ORDENADA.
+
+Valores activos del picklist Auctifera__Order_Status__c:
+   - 'Draft'
+   - 'Ordered'
+   - 'Received - Complete'
+  -> 3 valores. No existe ningun valor de recepcion PARCIAL.
+
+CONCLUSION: una recepcion corta no es registrable en la compra. El modelo lo impide por
+construccion, no por logica. Esto CIERRA el Open decision #1 de SH-1174. El gasto solo puede
+prorratearse sobre el Order_Amount__c completo porque no hay otra cantidad que usar.
+
+Evidencia cruzada en UAT (paquete gestionado instalado): mismo resultado, ver sro-schema-uat.txt.

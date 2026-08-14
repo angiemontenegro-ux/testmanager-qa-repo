@@ -1,0 +1,31 @@
+MATRIZ DE COBERTURA AC <-> PRUEBAS DEL DEV — PR #2585, SH-1174
+Ejecutado: 2026-08-13
+
+| AC  | Descripcion                                          | Tests que lo cubren                                                      | Estado |
+|-----|------------------------------------------------------|--------------------------------------------------------------------------|--------|
+| AC-1| El gasto se prorratea por valor entre las lineas      | proratesByValueAcrossLines, twoLineReceiptProratesExpenseByValue          | CUBIERTO |
+| AC-2| El promedio movil se calcula sobre el costo efectivo  | singleLineReceiptFoldsExpenseIntoMovingAverage,                          | CUBIERTO en recepcion |
+|     | (landed), no sobre el costo crudo                    | addingExpenseRebuildsMultiReceiptChain                                   | DESVIACION en edicion post-recepcion (ver HALLAZGO-1) |
+| AC-3| Una recepcion posterior promedia el nuevo costo       | sameItemSequentialReceiptsRebuildTheMovingAverageChain (parcial: las dos  | BRECHA |
+|     | landed contra el promedio existente                  | recepciones comparten la MISMA PO y el MISMO costo efectivo)             | |
+| AC-4| Item Cost History guarda el desglose del landed cost  | twoLineReceiptProratesExpenseByValue (valores), campos Unit_Cost,        | CUBIERTO |
+|     | ligado a la orden                                    | Allocated_Expense, Effective_Cost persistidos por buildICHs              | |
+| AC-5| Recepcion corta                                       | (ninguno)                                                                | NO APLICA — el modelo de Shop 1.0 no permite recepcion parcial (ver scenario-4) |
+| AC-6| Todo tipo de gasto (flete, impuesto, manejo, aduana,  | Ninguno combina 3+ tipos a la vez. Satisfecho por arquitectura: la suma  | PARCIAL |
+|     | seguro) entra al costo sin excepcion                 | es Total_Expenses__c generico, sin filtro por Calculation_Type__c        | |
+| AC-7| Gasto total cero deja el costo unitario intacto       | zeroExpenseLeavesUnitCostUnchanged, lineWithoutPurchaseOrderLandsOnRawCost| CUBIERTO |
+| AC-8| Las asignaciones por linea reconcilian exacto con el  | allocationsReconcileExactlyWithRoundingRemainder,                        | CUBIERTO |
+|     | gasto total pese al redondeo                         | proratesByValueAcrossLines (assert parcial)                              | |
+
+COBERTURA NUEVA APORTADA POR #2585 (no habia en #2567):
+  - editingOneReceivedOrderDoesNotRebuildTheWholeChain -> alcance angosto del path de edicion de SRO.
+  - bulkReceiptStaysWithinGovernorLimits              -> limites de gobernador en recepcion masiva.
+  - storedAverageKeepsFullPrecisionWhileDisplayRoundsToTwo -> precision 6 decimales en Cost__c.
+
+BRECHAS QUE SIGUEN ABIERTAS (QA las compensa con los escenarios 2 y 5 del TC-70):
+  1. AC-3: los 10 tests funcionales insertan UNA sola Purchase Order cada uno (verificado por grep
+     sobre las inserciones de Auctifera__Purchase_Order__c). Nunca se mezclan DOS costos efectivos
+     distintos provenientes de POs separadas con gastos distintos. Ese es el escenario idx 2 del TC-70.
+  2. Inventory Adjustment: CERO referencias en los 17 archivos de la PR (grep sobre codigo y tests).
+     Auctifera__Inventory_Adjustment__c es un objeto aparte con sus propios servicios
+     (AdjustmentFactory, OversellAdjustmentService) que esta PR no toca. Ese es el escenario idx 5.

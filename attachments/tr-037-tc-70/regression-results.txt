@@ -1,0 +1,125 @@
+RESULTADOS DE REGRESION — TR-037 / TC-70 / SH-1174 / PR #2585 (head 6f0cff23c8)
+Ejecutado: 2026-08-13. Org: sh1174qa (test-8aabbfvugh6n@example.com, 00DEi00000OX8H7MAL),
+deploy de la rama completo (12426 componentes, 0 errores) + permsets auctifera y Veevart asignados.
+
+=========================== REGRESION TECNICA: 7/8 PASS, 1 FAIL ===========================
+
+| # | Item | Riesgo | Veredicto | Evidencia |
+|---|------|--------|-----------|-----------|
+| T1 | Cost__c y Previous_Cost__c de scale 2 a scale 6 en objeto del paquete gestionado | ALTO | PASS | El deploy de los 12426 componentes termino con 0 errores: la plataforma ACEPTA subir la escala. Describe del org confirma precision=18 scale=6 en los 5 campos Currency. Current_Item_Cost__c sigue siendo formula con scale=2, asi que el almacenamiento guarda 6 decimales y el display redondea a 2 — el test storedAverageKeepsFullPrecisionWhileDisplayRoundsToTwo pasa y lo confirma. Ver scenario-9/ich-field-scale-describe.txt. |
+| T2 | StockReplenishmentOrderTriggerHandler pasa a recalculateEditedICHsFromOrders (alcance angosto en la edicion de un SRO recibido) | ALTO | **FAIL** | Ver HALLAZGO-1 abajo. Reproducido en org real. |
+| T3 | PurchaseOrderTriggerHandler encola LandedCostExpenseRecalcQueueable en vez de recalcular en linea | MEDIO | PASS | El guard cannotEnqueue cubre los 4 casos donde System.enqueueJob no es valido o no hay cupo (isBatch, isFuture, isQueueable, headroom de queueable jobs <= 0) y cae al recalculo SINCRONO en vez de descartar la actualizacion. El set estatico enqueuedLandedRecalcPurchaseOrderIds deduplica: una rafaga de N ediciones de gasto encola UN job por purchase order, no N. El catch persiste un Auctifera__Log__c para que un recalculo perdido sea detectable. Los 10 tests funcionales envuelven la accion en Test.startTest()/stopTest(), asi que el job se drena y los asserts corren post-queueable: addingExpenseAfterReceiptReproratesLandedCost y addingExpenseRebuildsMultiReceiptChain PASAN en el org. |
+| T4 | Recalculo de hermanos condicionado a anyExpenseAllocated() (antes corria siempre) | MEDIO | PASS | Si no se asigno gasto a la tanda no hay nada que redistribuir, asi que saltarlo es correcto y ademas le quita el SOQL de hermanos al camino comun sin gasto. Caso borde revisado: una linea de valor 0 en una PO con gasto recibe 0 por prorrateo por valor, y las demas lineas no cambian de cuota — correcto. Y cuando el valor total de la PO es 0 el allocator cae al reparto por CANTIDAD, con lo cual esa linea si recibe cuota positiva y la compuerta se abre. Confirmado por fallsBackToQuantityWhenTotalValueIsZero (PASS) y sequentialReceiptProratesExpenseAcrossAllReceivedLines (PASS). |
+| T5 | Se elimino el cache estatico transaccional de LandedCostAllocator y su metodo publico clearCache() | MEDIO | PASS | grep de 'clearCache' sobre todo force-app: 0 referencias. No quedo ningun llamador huerfano. Quitar el cache elimina de raiz la clase de bug de "total de gasto rancio dentro de la misma transaccion" que el clearCache() manual tenia que parchear. |
+| T6 | Memo estatico nuevo scopeICHsByShopItemMemo en ItemCostHistoryService | MEDIO | PASS | invalidateScopeMemo() se llama en los DOS inserts que agregan ICH (buildICHs y el seed de variantes), asi que un ICH fresco nunca queda fuera de una cadena memoizada. El memo solo se reusa cuando reuseScopeMemo es true, es decir unicamente en el camino de cambio de gasto (el que pre-carga los totales); los caminos de recepcion y de hermanos siempre leen fresco. Los estaticos de Apex son de alcance transaccional, asi que no hay fuga entre transacciones. |
+| T7 | recalculateICHsFromOrders (1 argumento) cambio de semantica: de recomputar desde el Previous_Cost congelado a reconstruir la cadena completa por scope. Hay un test PREEXISTENTE escrito contra la semantica vieja en ItemCostHistoryServiceTest, clase que la PR NO toca. | MEDIO | PASS | El check 'test' de CI en la PR #2585 esta en SUCCESS sobre este mismo head, y esa clase entra en la corrida de CI. En el org sh1174qa esa clase falla, pero por artefacto de configuracion del org (CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY en CatalogItem_Trg, revienta en el primer insert del setup, no en un assert) — ver el analisis en scenario-0-unit-tests/test-run-log.txt. |
+| T8 | ICHCostCalculationService: la sobrecarga de 2 argumentos debe seguir siendo compatible hacia atras | BAJO | PASS | Linea 16: `return calculateWeightedAverageCost(previousSnapshot, stockOrder, null);` y en la de 3 argumentos el override nulo cae al Item_Cost__c crudo (comportamiento pre-SH-1174). Los 2 tests de ICHCostCalculationServiceTest PASAN en el org. |
+
+=========================== REGRESION DE SEGURIDAD: 6/6 PASS, 0 BLOQUEADORES ===========================
+
+| # | Item | Riesgo | Veredicto | Evidencia |
+|---|------|--------|-----------|-----------|
+| S1 | Inyeccion SOQL en el SOQL nuevo de 3 clases | ALTO si aplica | PASS | CERO consultas dinamicas. Todo el SOQL agregado es estatico con bind de variables. Sin concatenacion en ninguna clausula WHERE. Ver security-scan.txt seccion [1]. |
+| S2 | Database.update(..., AccessLevel.SYSTEM_MODE) en el queueable salta FLS/CRUD del usuario | MEDIO | PASS | Es el patron YA establecido en ItemCostHistoryService antes de esta PR (el insert de ICH corre en modo sistema a proposito, para no romper a usuarios sin el permset Veevart) — no es una escalacion nueva. El unico objeto escrito es Item_Cost_History__c. Ningun perfil ni permission set fue tocado por la PR. |
+| S3 | PII en el Log__c del catch del queueable | MEDIO | PASS | El payload serializado es unicamente JSON.serialize(purchaseOrderIds): un Set de Ids de Purchase Order. Sin PII, sin datos de cliente, sin credenciales. |
+| S4 | Los 3 campos nuevos exponen el desglose de costo y margen | BAJO | PASS | La PR no toca ningun perfil, permission set ni sharing rule, asi que la visibilidad hereda la del objeto Item_Cost_History__c. NOTA OPERATIVA (no defecto): en un deploy plano sin asignar los permsets, los campos nuevos quedan sin FLS y ni el admin los ve por SOQL/describe — fue justo lo que paso al montar este org y se resolvio con `sf org assign permset --name auctifera --name Veevart`. El flujo de CI ya lo hace via config_apextest. |
+| S5 | Dependencias nuevas | BAJO | PASS | La PR no modifica package.json, package-lock.json ni ningun manifiesto. Cero dependencias nuevas. |
+| S6 | Clases nuevas sin declaracion de sharing | BAJO | PASS | LandedCostAllocator, LandedCostExpenseRecalcQueueable y las dos clases de test declaran todas `with sharing`. |
+
+===============================================================================
+HALLAZGO-1 (T2) — FAIL: editar el costo de una linea YA RECIBIDA descarta el gasto
+asignado y deja el promedio landed inconsistente
+===============================================================================
+
+SEVERIDAD: Media. No es de seguridad. No rompe CI.
+DEFECTO LEVANTADO: SH-1200 — https://veevart.atlassian.net/browse/SH-1200
+  Ligado a SH-1174 con link tipo Defect (SH-1174 created SH-1200) y a la QA sub-task SH-1180 con Relates.
+  Levantado el 2026-08-14 tras decision de QA, con la PR #2585 todavia en draft.
+
+QUE PASA
+StockReplenishmentOrderTriggerHandler ahora llama recalculateEditedICHsFromOrders, que recomputa el
+ICH de la linea editada desde su costo CRUDO y ademas fuerza Allocated_Expense__c = 0 y
+Effective_Cost__c = costo crudo. El gasto que esa linea ya tenia prorrateado se descarta. El codigo lo
+hace a proposito (viene del feedback de review MED #4, para no reescribir toda la cadena) y el
+comentario dice que el ICH "re-fold its landed cost when the PO's Total_Expenses next changes" — pero
+si nadie vuelve a tocar los gastos de la PO, eso no ocurre nunca.
+
+REPRODUCCION EN ORG REAL (scripts/apex/validateLandedCostSH1174-T2-editDropsExpense.apex,
+salida completa en t2-edit-drops-expense.txt):
+
+  Montaje: PO con $100 de flete. Linea A y linea B, 10 u @ $10 cada una (valor $100 c/u, total $200).
+  Prorrateo por valor -> $50 por linea -> $5/u -> costo efectivo $15/u.
+
+  ANTES DE LA EDICION                                    Current_Item_Cost__c = 15.00
+    LINEA A  cost=15.000000  unitCost=10.000000  allocExpense=50.000000  effectiveCost=15.000000
+    LINEA B  cost=15.000000  unitCost=10.000000  allocExpense=50.000000  effectiveCost=15.000000
+
+  ACCION: se corrige Item_Cost__c de la linea A de $10 a $20 (ya recibida).
+
+  DESPUES DE LA EDICION                                  Current_Item_Cost__c = 15.00
+    LINEA A  cost=20.000000  unitCost=20.000000  allocExpense=0.000000   effectiveCost=20.000000
+    LINEA B  cost=15.000000  unitCost=10.000000  allocExpense=50.000000  effectiveCost=15.000000
+
+    Total_Expenses__c de la PO            = 100.00
+    Gasto todavia asignado en la cadena   =  50.000000
+    Gasto HUERFANO (en la PO, sin asignar)=  50.000000
+
+QUE SE ESPERARIA POR AC-1 Y AC-2
+AC-1 dice que el gasto se prorratea por valor entre las lineas recibidas y AC-2 que el promedio movil
+se calcula sobre el costo efectivo (landed), no sobre el crudo. Con los valores nuevos
+(A = $200, B = $100, total $300) el flete de $100 deberia repartirse A $66.67 ($6.667/u -> efectivo
+$26.667) y B $33.33 ($3.333/u -> efectivo $13.333), dejando el promedio final en $20.00.
+
+IMPACTO
+1. $50 de los $100 de flete quedan sin asignar a ninguna linea. El costo de acarreo del item
+   subestima el real — exactamente la clase de defecto que SH-1174 existe para arreglar, reintroducida
+   en el camino de edicion.
+2. Current_Item_Cost__c se queda en $15.00 y no en $20.00, porque lo maneja el ICH mas reciente
+   (linea B) y la cadena no se reconstruye. Queda internamente inconsistente: el ICH de la linea B
+   sigue con el Previous_Cost de antes de la edicion.
+3. No hay ningun disparador que lo auto-corrija. Solo se sana si alguien vuelve a editar los gastos
+   de la PO, que es un evento no relacionado con la correccion que el usuario hizo.
+
+CONFIRMACION DE QUE ES INTENCIONAL, NO UN DESCUIDO
+El propio test del dev lo fija como comportamiento esperado — editingOneReceivedOrderDoesNotRebuildTheWholeChain
+asserta `Assert.areEqual(20, editedCost, 'The edited order ICH is recomputed from its raw unit cost
+($20), not re-prorated with expense')`. Pasa en el org. Es una decision de diseno con una consecuencia
+que vale la pena que el equipo decida explicitamente, no un bug accidental.
+
+TENSION DE DISENO A RESOLVER POR EL EQUIPO
+El alcance angosto es correcto para lo que pedia el review MED #4 (una edicion no debe reescribir
+recibos hermanos, baselines de activacion ni ajustes manuales). Pero "alcance angosto" y "conservar el
+gasto prorrateado de la linea editada" no son incompatibles: se podria recomputar solo el ICH de la
+linea editada CONSERVANDO su Allocated_Expense__c, o re-prorratear la PO sin reconstruir la cadena
+completa. Hoy se eligio descartar el gasto, que es la unica de las tres opciones que contradice AC-2.
+
+===============================================================================
+HALLAZGO-2 — FAIL de AC-4: los 3 campos del desglose de landed cost no estan en
+el page layout de Item Cost History
+===============================================================================
+
+SEVERIDAD PROPUESTA: Media. No es de seguridad. No rompe CI. Fix mecanico (metadato).
+Detectado 2026-08-14 a partir de un registro ICH real abierto en Lightning, DESPUES de haber
+cerrado la primera version de este TR. Ver scenario-3/layout-missing-fields.txt para la evidencia.
+
+QUE PASA
+Los 3 campos nuevos (Unit_Cost__c, Allocated_Expense__c, Effective_Cost__c) se crean bien, se
+poblan bien y el ICH resuelve hasta la orden originaria — pero NO estan en el page layout, asi que
+la persona que abre el registro en Lightning no ve el desglose. La PR no toca ningun layout.
+
+POR QUE ES UN FAIL Y NO UNA OBSERVACION
+El AC-4 esta redactado sobre la UI: "when the Item Cost History record is OPENED / then it SHOWS
+unit cost, allocated expense, and effective (landed) unit cost". La Definition of Done del ticket
+repite "ICH SHOWS unit + expense + effective cost and links to the order". El dato existe; lo que
+falta es exponerlo. Sin el layout, el valor de negocio de la historia queda invisible al usuario.
+
+CORRECCION DE MI PROPIO VEREDICTO
+En la primera version de TR-037 marque el escenario idx 3 como PASSED con evidencia de datos por
+SOQL. Estaba mal: valide el dato, no la UI, y el AC pide la UI. Corregido a FAILED. El TR pasa de
+10/10 a 9/10.
+
+AGRAVANTE CON PRECEDENTE
+Agregar los campos al layout sirve para orgs NUEVOS, pero los page layouts de un paquete gestionado
+NO se actualizan en orgs suscriptores existentes — es el hallazgo del Scenario 6 de SH-1129 (TC-69),
+donde el layout de Inventory History en UAT quedo con la config vieja tras actualizar el paquete.
+Hace falta ademas nota de release o post-install script para los clientes que ya tienen el paquete.

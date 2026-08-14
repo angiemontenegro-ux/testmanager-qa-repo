@@ -1,0 +1,63 @@
+SECURITY SCAN — PR #2585 (head 6f0cff23c8), diff autoritativo de GitHub (gh pr diff 2585)
+Ejecutado: 2026-08-13 | 17 archivos, +1970/-17
+NOTA: 'git merge-base origin/main <rama>' devuelve vacio en este checkout (la rama fue rebasada),
+      por eso el scope se toma del diff de tres puntos de GitHub, no de un diff local.
+
+--- [1] Inyeccion SOQL: consultas dinamicas / concatenacion ---
+  NINGUNA. Todo el SOQL agregado es estatico con bind (:purchaseOrderIds, :shopItemIdsToQuery, :stockOrdersById.keySet()).
+
+--- [2] Secretos / credenciales ---
+  NINGUNO.
+
+--- [3] PII en logs ---
++            Auctifera__Log__c log = Utils.createLog(
++            Utils.insertLogs(new List<Auctifera__Log__c>{ log });
+  ^ Utils.createLog en LandedCostExpenseRecalcQueueable serializa SOLO un Set<Id> de purchase orders (JSON.serialize(purchaseOrderIds)). Sin PII.
+
+--- [4] Sharing / FLS / AccessLevel ---
++        Database.update(recalculated, true, AccessLevel.SYSTEM_MODE);
++        Database.update(recalculated, true, AccessLevel.SYSTEM_MODE);
++public with sharing class LandedCostAllocator {
++public with sharing class LandedCostExpenseRecalcQueueable implements Queueable {
++            Database.update(recalculated, true, AccessLevel.SYSTEM_MODE);
++public with sharing class LandedCostOnReceiptTest {
++public with sharing class LandedCostAllocatorTest {
+
+--- [5] Perfiles / permission sets / sharing rules ---
+  NINGUNO tocado.
+
+--- [6] Dependencias ---
+  NINGUNA dependencia modificada por esta PR.
+
+--- [7] Callouts HTTP / SSRF ---
+  NINGUNO.
+
+--- [8] Deserializacion insegura / ejecucion dinamica ---
+  NINGUNA. Solo JSON.serialize (salida), nunca deserialize de entrada de usuario.
+
+--- [9] Campos nuevos/modificados y su visibilidad ---
+  * Allocated_Expense__c:
+          <precision>18</precision>
+          <required>false</required>
+          <scale>6</scale>
+          <type>Currency</type>
+  * Effective_Cost__c:
+          <precision>18</precision>
+          <required>false</required>
+          <scale>6</scale>
+          <type>Currency</type>
+  * Unit_Cost__c:
+          <precision>18</precision>
+          <required>false</required>
+          <scale>6</scale>
+          <type>Currency</type>
+  * Cost__c:
+          <precision>18</precision>
+          <required>true</required>
+          <scale>6</scale>
+          <type>Currency</type>
+  * Previous_Cost__c:
+          <precision>18</precision>
+          <required>true</required>
+          <scale>6</scale>
+          <type>Currency</type>

@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1174",
+  "tcKey": "TC-70",
+  "trKey": "TR-037",
+  "prNumber": 2585,
+  "startedAt": "2026-08-13T19:00:00Z",
+  "lastUpdated": "2026-08-14T08:40:00Z",
+  "status": "completed",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "currentStep": 12,
+  "data": {
+    "priorRun": {
+      "trKey": "TR-036",
+      "prNumber": 2567,
+      "prState": "CLOSED (superseded)",
+      "note": "SH-1182 retractado como artefacto de org"
+    },
+    "livePr": {
+      "number": 2585,
+      "state": "OPEN (draft)",
+      "headSha": "6f0cff23c8d11d4194c985e81f09cb3b824f76eb",
+      "ci": "lint/build/test SUCCESS"
+    },
+    "org": {
+      "alias": "sh1174qa",
+      "username": "test-8aabbfvugh6n@example.com",
+      "orgId": "00DEi00000OX8H7MAL",
+      "expires": "2026-08-16",
+      "deploy": "12426 componentes, 0 errores",
+      "permsets": [
+        "auctifera",
+        "Veevart"
+      ]
+    },
+    "classification": {
+      "category": "Salesforce-bound (Apex + esquema)",
+      "rationale": "17 archivos: trigger handlers, servicios, Queueable nuevo, 5 campos Currency en ICH"
+    },
+    "unitTests": {
+      "total": 15,
+      "passed": 15,
+      "orgFailures": {
+        "count": 24,
+        "class": "ItemCostHistoryServiceTest",
+        "verdict": "artefacto de org, no defecto"
+      }
+    },
+    "scenarioResults": [
+      {
+        "scenarioIndex": 0,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 1,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 2,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 3,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 4,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 5,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 6,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 7,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 8,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 9,
+        "status": "passed"
+      }
+    ],
+    "regression": {
+      "technical": {
+        "pass": 7,
+        "fail": 1
+      },
+      "security": {
+        "pass": 6,
+        "fail": 0
+      }
+    },
+    "owasp": {
+      "applicable": 5,
+      "pass": 5,
+      "fail": 0,
+      "na": 5
+    },
+    "findings": [
+      {
+        "id": "HALLAZGO-1",
+        "item": "T2",
+        "severity": "Media",
+        "filed": true,
+        "summary": "Editar el costo de una linea ya recibida descarta el gasto asignado; $50 de $100 quedan huerfanos y el promedio queda en 15.00 donde AC-2 pide 20.00",
+        "status": "defecto levantado 2026-08-14, ligado a SH-1174 (Defect) y SH-1180 (Relates)",
+        "jiraKey": "SH-1200"
+      }
+    ],
+    "defectsRaised": [
+      {
+        "jiraKey": "SH-1200",
+        "url": "https://veevart.atlassian.net/browse/SH-1200",
+        "severity": "Medium",
+        "regressionItem": "T2 / HALLAZGO-1"
+      }
+    ],
+    "commit": "ab761d0",
+    "pushedTo": "main"
+  }
+}
