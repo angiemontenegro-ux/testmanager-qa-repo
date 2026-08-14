@@ -57,3 +57,31 @@ Es exactamente el hallazgo del Scenario 6 de SH-1129 (TC-69), donde el layout de
 en UAT siguio con la configuracion vieja despues de actualizar el paquete.
 Consecuencia: ademas del fix del layout hace falta una nota de release que le diga a los clientes
 existentes que agreguen los 3 campos a mano, o un post-install script que lo haga.
+
+=== DEFECTO LEVANTADO ===
+SH-1202 — https://veevart.atlassian.net/browse/SH-1202  (severidad Media, 2026-08-14)
+Ligado a SH-1174 (Defect), SH-1180 (Relates) y SH-1200 (Relates, hallazgo hermano).
+
+Levantado APARTE de SH-1200 porque son dos entregables distintos: SH-1200 es una decision de
+producto sobre que debe pasar con el gasto, y este es un fix de metadato mas un mecanismo de
+entrega para los orgs que ya tienen el paquete instalado.
+
+FIX PROPUESTO EN EL TICKET, EN DOS PARTES (verificado contra el codebase, no supuesto):
+
+Parte 1 (va en SH-1174, antes del merge): agregar los 3 campos al layout. Un cambio de metadato,
+arregla todos los orgs nuevos de inmediato. Sin esto el AC-4 queda incumplido de origen.
+
+Parte 2 (fast-follow, para orgs existentes): accion de admin de un clic en la UI de Shop Settings
+que ya existe, siguiendo el patron que el paquete ya usa para picklists.
+  - MetadataService.cls (apex-mdapi) YA existe y YA se usa en produccion desde Picklist_MDT,
+    invocado por PicklistMDTController y ContactUpdateFavouriteArtistsMDTBatch.
+    MetadataService.Layout con layoutSections existe, asi que manipular layouts esta soportado.
+  - NO se puede desde el post-install: InstallScript_Controller implementa InstallHandler, pero el
+    callout a Metadata API necesita sesion valida. Se ve en la firma existente
+    Picklist_MDT.clearPicklistValuesV1(sObjectDescribe, picklistFieldName, theme, sessionId),
+    donde el sessionId se inyecta desde contexto de UI. Por eso InstallScript_Controller hoy no
+    toca MetadataService.
+  - El update debe ser ADITIVO, nunca reemplazo del layout completo: leer, verificar si el campo ya
+    esta, agregar solo lo que falta. Un cliente que customizo el layout no puede perder su trabajo.
+  - Revisar los Remote Site Settings por instancia que trae el paquete (SF_NA40, SF_NA2, SF_NA11...):
+    los nombres de instancia cambian, el callout deberia resolver contra URL.getSalesforceBaseUrl().

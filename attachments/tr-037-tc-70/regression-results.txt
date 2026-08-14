@@ -98,7 +98,10 @@ HALLAZGO-2 — FAIL de AC-4: los 3 campos del desglose de landed cost no estan e
 el page layout de Item Cost History
 ===============================================================================
 
-SEVERIDAD PROPUESTA: Media. No es de seguridad. No rompe CI. Fix mecanico (metadato).
+SEVERIDAD: Media. No es de seguridad. No rompe CI. Fix mecanico (metadato) + mecanismo para orgs existentes.
+DEFECTO LEVANTADO: SH-1202 — https://veevart.atlassian.net/browse/SH-1202
+  Ligado a SH-1174 con link tipo Defect, a la QA sub-task SH-1180 y a SH-1200 (hallazgo hermano) con Relates.
+  Levantado el 2026-08-14, aparte de SH-1200 porque son dos entregables distintos.
 Detectado 2026-08-14 a partir de un registro ICH real abierto en Lightning, DESPUES de haber
 cerrado la primera version de este TR. Ver scenario-3/layout-missing-fields.txt para la evidencia.
 

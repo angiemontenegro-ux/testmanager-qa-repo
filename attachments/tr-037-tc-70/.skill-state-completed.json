@@ -6,7 +6,7 @@
   "trKey": "TR-037",
   "prNumber": 2585,
   "startedAt": "2026-08-13T19:00:00Z",
-  "lastUpdated": "2026-08-14T08:40:00Z",
+  "lastUpdated": "2026-08-14T09:00:00Z",
   "status": "completed",
   "completedSteps": [
     1,
@@ -75,7 +75,7 @@
       },
       {
         "scenarioIndex": 3,
-        "status": "passed"
+        "status": "failed"
       },
       {
         "scenarioIndex": 4,
@@ -127,6 +127,15 @@
         "summary": "Editar el costo de una linea ya recibida descarta el gasto asignado; $50 de $100 quedan huerfanos y el promedio queda en 15.00 donde AC-2 pide 20.00",
         "status": "defecto levantado 2026-08-14, ligado a SH-1174 (Defect) y SH-1180 (Relates)",
         "jiraKey": "SH-1200"
+      },
+      {
+        "id": "HALLAZGO-2",
+        "item": "scenario idx 3 / AC-4",
+        "severity": "Media",
+        "filed": true,
+        "jiraKey": "SH-1202",
+        "summary": "Los 3 campos del desglose de landed cost no estan en el page layout de Item Cost History; el AC-4 pide que el registro los MUESTRE",
+        "status": "defecto levantado 2026-08-14, aparte de SH-1200"
       }
     ],
     "defectsRaised": [
@@ -135,9 +144,20 @@
         "url": "https://veevart.atlassian.net/browse/SH-1200",
         "severity": "Medium",
         "regressionItem": "T2 / HALLAZGO-1"
+      },
+      {
+        "jiraKey": "SH-1202",
+        "url": "https://veevart.atlassian.net/browse/SH-1202",
+        "severity": "Medium",
+        "regressionItem": "HALLAZGO-2"
       }
     ],
     "commit": "ab761d0",
-    "pushedTo": "main"
+    "pushedTo": "main",
+    "summary": {
+      "total": 10,
+      "passed": 9,
+      "failed": 1
+    }
   }
 }

@@ -211,6 +211,12 @@ results:
     El dato es correcto; lo que falta es exponerlo. Agravante con precedente en este codebase: los page layouts de un paquete gestionado NO se actualizan en orgs suscriptores existentes (hallazgo del Scenario 6 de SH-1129 / TC-69), asi que ademas del fix hace falta nota de release o post-install script para los clientes que ya tienen el paquete.
 
     Los otros 3 pasos quedan en passed: el desglose se persiste bien, el vinculo a la orden funciona y Current_Item_Cost__c si refleja el promedio landed.
+  defects:
+  - jiraKey: SH-1202
+    url: https://veevart.atlassian.net/browse/SH-1202
+    severity: Medium
+    summary: Landed-cost breakdown fields absent from the Item Cost History page layout — AC-4 requires the record to show
+      them
 - testCaseId: 87339977-18fe-4c40-9633-68762de86658
   testCaseKey: TC-70
   testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
@@ -533,3 +539,10 @@ metadata:
       understated and part of the order expense unallocated
     regressionItem: T2 / HALLAZGO-1
     linkedTo: SH-1174 (Defect), SH-1180 (Relates)
+  - jiraKey: SH-1202
+    url: https://veevart.atlassian.net/browse/SH-1202
+    severity: Medium
+    summary: The landed-cost breakdown fields are not on the Item Cost History page layout, so the record never shows unit
+      cost, allocated expense or effective cost
+    regressionItem: HALLAZGO-2 / scenario idx 3
+    linkedTo: SH-1174 (Defect), SH-1180 (Relates), SH-1200 (Relates)
