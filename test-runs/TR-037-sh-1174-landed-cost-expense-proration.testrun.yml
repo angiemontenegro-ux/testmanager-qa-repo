@@ -160,7 +160,7 @@ results:
   testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
   scenarioTitle: Item Cost History records the landed-cost breakdown linked to the order
   scenarioIndex: 3
-  status: passed
+  status: failed
   executedAt: '2026-08-13T21:40:00.000Z'
   stepResults:
   - order: 1
@@ -180,13 +180,18 @@ results:
       path: attachments/tr-037-tc-70/scenario-9/ich-field-scale-describe.txt
       mimeType: text/plain
   - order: 3
-    status: passed
-    actual: 'El ICH muestra los 3 valores y resuelve hasta la orden originaria: la consulta del escenario idx 2 navega Stock_Replenishment_Order__r.Purchase_Order__r.Name
-      y devuelve el nombre correcto de PO-1 y PO-2 por registro. Ejemplo: unitCost=10.000000 allocExpense=20.000000 effectiveCost=12.000000
-      ligado a la PO-1.'
+    status: failed
+    actual: 'FAIL. Los 3 campos (Unit_Cost__c, Allocated_Expense__c, Effective_Cost__c) existen y se poblan correctamente
+      — verificado por SOQL en los escenarios idx 2, 5 y 6 — y el ICH resuelve hasta la orden originaria via Stock_Replenishment_Order__r.Purchase_Order__r.
+      PERO NO estan en el page layout, asi que al ABRIR el registro el usuario no los ve, y el AC pide explicitamente que
+      el registro los MUESTRE. Layout desplegado (retraido del org sh1174qa): Cost__c, CreatedById, Effective_At__c, LastModifiedById,
+      Name, Previous_Cost__c, Previous_Stock__c, Shop_Item__c, Stock_Replenishment_Order__c, Stock__c. Ver layout-missing-fields.txt.'
     phase: then
     text: it shows unit cost, allocated expense, and effective (landed) unit cost, linked to the originating order
-    attachments: *id002
+    attachments:
+    - name: layout-missing-fields.txt
+      path: attachments/tr-037-tc-70/scenario-3/layout-missing-fields.txt
+      mimeType: text/plain
   - order: 4
     status: passed
     actual: 'Current_Item_Cost__c refleja el promedio LANDED y no el costo crudo: 12.00 en vez de 10.00 tras PO-1, y 20.00
@@ -198,10 +203,14 @@ results:
     - name: s5-result.txt
       path: attachments/tr-037-tc-70/scenario-5/s5-result.txt
       mimeType: text/plain
-  notes: 'AC-4 verificado en org real. Los 3 campos nuevos del desglose existen y se persisten por recibo, y el ICH se resuelve
-    hasta la orden originaria por la relacion Stock_Replenishment_Order__r.Purchase_Order__r. Ejecutado en el org sh1174qa
-    (test-8aabbfvugh6n@example.com), deploy completo de la rama de la PR #2585 head 6f0cff23c8 (12426 componentes, 0 errores)
-    mas permsets auctifera y Veevart.'
+  notes: |-
+    CORREGIDO 2026-08-14. En la primera version marque este escenario PASSED apoyandome solo en evidencia de DATOS por SOQL: los 3 campos nuevos existen con scale 6, se poblan correctamente y el ICH resuelve hasta la orden originaria. Ese veredicto estaba MAL, porque el AC-4 esta redactado sobre la UI ('when the Item Cost History record is OPENED / then it SHOWS unit cost, allocated expense and effective cost') y la Definition of Done del ticket repite 'ICH SHOWS unit + expense + effective cost'. Nunca verifique la UI.
+
+    HALLAZGO-2: los 3 campos NO estan en el page layout de Item Cost History, asi que el usuario no los ve al abrir el registro. La PR no toca ningun layout (gh pr diff 2585 --name-only: 0 layouts). El layout en el head de la PR tiene 10 campos y ninguno de los 3 nuevos, confirmado ademas retrayendolo DEL org con la PR desplegada, y visible en un registro ICH real abierto en Lightning (ICH-0010, org enterprise-page-6240): la pagina muestra solo Cost, Effective At, Previous Cost, Previous Stock, Stock, Shop Item, Stock Replenishment Order y los campos de sistema.
+
+    El dato es correcto; lo que falta es exponerlo. Agravante con precedente en este codebase: los page layouts de un paquete gestionado NO se actualizan en orgs suscriptores existentes (hallazgo del Scenario 6 de SH-1129 / TC-69), asi que ademas del fix hace falta nota de release o post-install script para los clientes que ya tienen el paquete.
+
+    Los otros 3 pasos quedan en passed: el desglose se persiste bien, el vinculo a la orden funciona y Current_Item_Cost__c si refleja el promedio landed.
 - testCaseId: 87339977-18fe-4c40-9633-68762de86658
   testCaseKey: TC-70
   testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
@@ -477,8 +486,8 @@ results:
     deploy completo de la rama de la PR #2585 head 6f0cff23c8 (12426 componentes, 0 errores) mas permsets auctifera y Veevart.'
 summary:
   total: 10
-  passed: 10
-  failed: 0
+  passed: 9
+  failed: 1
   blocked: 0
   skipped: 0
   notRun: 0
@@ -497,6 +506,18 @@ history:
   user: angie.montenegro@veevart.com
   from: in-progress
   to: completed
+- action: status-changed
+  timestamp: '2026-08-14T09:20:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: completed
+  to: in-progress
+  reason: 'Escenario idx 3 reabierto: el veredicto PASSED se apoyaba solo en datos por SOQL y el AC-4 exige la UI'
+- action: status-changed
+  timestamp: '2026-08-14T09:25:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: in-progress
+  to: completed
+  reason: idx 3 corregido a failed con evidencia de layout (HALLAZGO-2)
 metadata:
   parentTicket: SH-1174
   qaSubTask: SH-1180

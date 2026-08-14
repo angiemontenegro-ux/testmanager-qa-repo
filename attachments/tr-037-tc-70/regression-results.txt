@@ -92,3 +92,34 @@ recibos hermanos, baselines de activacion ni ajustes manuales). Pero "alcance an
 gasto prorrateado de la linea editada" no son incompatibles: se podria recomputar solo el ICH de la
 linea editada CONSERVANDO su Allocated_Expense__c, o re-prorratear la PO sin reconstruir la cadena
 completa. Hoy se eligio descartar el gasto, que es la unica de las tres opciones que contradice AC-2.
+
+===============================================================================
+HALLAZGO-2 — FAIL de AC-4: los 3 campos del desglose de landed cost no estan en
+el page layout de Item Cost History
+===============================================================================
+
+SEVERIDAD PROPUESTA: Media. No es de seguridad. No rompe CI. Fix mecanico (metadato).
+Detectado 2026-08-14 a partir de un registro ICH real abierto en Lightning, DESPUES de haber
+cerrado la primera version de este TR. Ver scenario-3/layout-missing-fields.txt para la evidencia.
+
+QUE PASA
+Los 3 campos nuevos (Unit_Cost__c, Allocated_Expense__c, Effective_Cost__c) se crean bien, se
+poblan bien y el ICH resuelve hasta la orden originaria — pero NO estan en el page layout, asi que
+la persona que abre el registro en Lightning no ve el desglose. La PR no toca ningun layout.
+
+POR QUE ES UN FAIL Y NO UNA OBSERVACION
+El AC-4 esta redactado sobre la UI: "when the Item Cost History record is OPENED / then it SHOWS
+unit cost, allocated expense, and effective (landed) unit cost". La Definition of Done del ticket
+repite "ICH SHOWS unit + expense + effective cost and links to the order". El dato existe; lo que
+falta es exponerlo. Sin el layout, el valor de negocio de la historia queda invisible al usuario.
+
+CORRECCION DE MI PROPIO VEREDICTO
+En la primera version de TR-037 marque el escenario idx 3 como PASSED con evidencia de datos por
+SOQL. Estaba mal: valide el dato, no la UI, y el AC pide la UI. Corregido a FAILED. El TR pasa de
+10/10 a 9/10.
+
+AGRAVANTE CON PRECEDENTE
+Agregar los campos al layout sirve para orgs NUEVOS, pero los page layouts de un paquete gestionado
+NO se actualizan en orgs suscriptores existentes — es el hallazgo del Scenario 6 de SH-1129 (TC-69),
+donde el layout de Inventory History en UAT quedo con la config vieja tras actualizar el paquete.
+Hace falta ademas nota de release o post-install script para los clientes que ya tienen el paquete.

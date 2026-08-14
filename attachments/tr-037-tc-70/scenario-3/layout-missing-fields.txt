@@ -1,0 +1,59 @@
+HALLAZGO-2 — Los 3 campos nuevos del desglose de landed cost NO estan en el page layout
+de Item Cost History, asi que el usuario no los ve al abrir el registro.
+Detectado: 2026-08-14, a partir de un registro ICH real abierto en Lightning.
+
+=== EVIDENCIA 1: la PR no toca ningun layout ===
+$ gh pr diff 2585 --name-only | grep -i layout
+  (sin resultados — ninguno de los 17 archivos de la PR es un layout)
+
+=== EVIDENCIA 2: campos del layout en el head de la PR (6f0cff23c8) ===
+  Cost__c
+  CreatedById
+  Effective_At__c
+  LastModifiedById
+  Name
+  Previous_Cost__c
+  Previous_Stock__c
+  Shop_Item__c
+  Stock_Replenishment_Order__c
+  Stock__c
+
+  -> 10 campos. NO aparecen Unit_Cost__c, Allocated_Expense__c ni Effective_Cost__c.
+
+=== EVIDENCIA 3: mismo resultado traido DEL ORG con la PR desplegada ===
+$ sf project retrieve start --metadata "Layout:...Item Cost History Layout" --target-org sh1174qa
+  Cost__c, CreatedById, Effective_At__c, LastModifiedById, Name, Previous_Cost__c,
+  Previous_Stock__c, Shop_Item__c, Stock_Replenishment_Order__c, Stock__c
+  -> identico al repo. Los 3 campos nuevos no estan en el layout desplegado.
+
+=== EVIDENCIA 4: registro ICH real abierto en Lightning (org enterprise-page-6240) ===
+  ICH-0010, https://enterprise-page-6240-dev-ed.scratch.lightning.force.com/lightning/r/Auctifera__Item_Cost_History__c/a1CWL00000jCLwQ2AW/view
+  La pagina de detalle muestra unicamente: Stock Replenishment Order, Shop Item, Cost ($120.000000),
+  Effective At, Previous Cost ($120.000000), Previous Stock (20), Stock (30), Name, Created By, Last Modified By.
+  Ni Unit Cost, ni Allocated Expense, ni Effective Cost. Coincide exacto con los 10 campos del layout.
+  (Nota: el Cost se muestra con 6 decimales, asi que la parte de precision del cambio SI llego a ese org.)
+
+=== POR QUE ES UN FAIL DE AC-4 ===
+El AC-4 del TC-70 (y del ticket) esta redactado sobre la UI, no sobre el dato:
+  when: the Item Cost History record is OPENED
+  then: it SHOWS unit cost, allocated expense, and effective (landed) unit cost, linked to the originating order
+Y la Definition of Done del ticket dice: 'ICH SHOWS unit + expense + effective cost and links to the order'.
+
+El dato existe y es correcto — los 3 campos estan creados con scale 6 y se poblan bien
+(verificado por SOQL en los escenarios idx 2, 5 y 6). Lo que falta es exponerlos en el layout.
+Sin eso, la persona de tienda que abre el ICH no puede ver el desglose, que es literalmente
+lo que pide el AC. El valor de negocio de la historia queda invisible.
+
+=== CORRECCION AL VEREDICTO DE TR-037 ===
+En la primera version de TR-037 marque el escenario idx 3 como PASSED apoyandome solo en
+evidencia de DATOS por SOQL. Fue un veredicto equivocado: nunca verifique la UI, y el AC habla
+de la UI. Queda corregido a FAILED, con el paso 3 ('it shows...') en failed y los otros pasos
+en passed, porque el dato y el vinculo a la orden si estan correctos.
+
+=== AGRAVANTE CON PRECEDENTE EN ESTE MISMO CODEBASE ===
+Agregar los campos al layout arregla los orgs NUEVOS, pero NO los orgs suscriptores existentes:
+los page layouts de un paquete gestionado no se actualizan en un org que ya lo tiene instalado.
+Es exactamente el hallazgo del Scenario 6 de SH-1129 (TC-69), donde el layout de Inventory History
+en UAT siguio con la configuracion vieja despues de actualizar el paquete.
+Consecuencia: ademas del fix del layout hace falta una nota de release que le diga a los clientes
+existentes que agreguen los 3 campos a mano, o un post-install script que lo haga.
