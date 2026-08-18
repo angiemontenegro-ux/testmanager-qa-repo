@@ -1,0 +1,314 @@
+schemaVersion: "1.0"
+id: tr-240fff5f-e7c4-4bcd-aa56-90f9d3bf83b9
+key: TR-039
+title: "Run: Shopify Sale Item Amount recalculated on bypassed V2-sync writes (UAT)"
+status: in-progress
+environment:
+  name: qa
+  buildVersion: "UAT sandbox veevartmuseumdemo--uat (org 00DD7000000OCIrMAO), managed package Auctifera 8.332.0.2. Second execution of TC-67: TR-035 validated the fix in the scratch org AuctiferaDX__sh1169 against the PR branch; this run validates the SAME test case against a real subscriber org running the released build, after PR #2569 (bug/shopify-sale-item-amount-calc-SH-1169) merged to main on 2026-08-05. Six of the eight scenarios were executed with the standalone anonymous-Apex scripts in AuctiferaDX branch test/uat-validation-apex-SH-1129-SH-1169 (scripts/apex/validateShopifySaleItemAmountSH1169-{A..F}.apex), one scenario per execution so each gets its own SOQL governor budget; all six wrap their DML in a savepoint and roll back, so UAT was left byte-identical to how it was found. QA FINDING ON THE HARNESS, NOT ON THE FIX: those six scripts did not run in UAT at all on first attempt — every one failed with System.SObjectException: Invalid field Technical_Bypass_Triggers__c for Auctifera__Sale_Item__c, because they wrote that one field name hardcoded without the ns prefix while namespace-qualifying everything else. That resolves fine in a scratch org, where the package code is deployed unmanaged, but in a subscriber org the field is Auctifera__Technical_Bypass_Triggers__c. The scripts were corrected to use ns + 'Technical_Bypass_Triggers__c' in put/get and in the SOQL projection, and only then produced the results below. The takeaway for future runs: a validation script that passes in a scratch org proves nothing about UAT or production until it actually runs there."
+startedAt: "2026-08-13T13:45:00.000Z"
+results:
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Shopify bypassed update recomputes Amount as Price x Quantity (S-3094)"
+    scenarioIndex: 0
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Se creo un CatalogItem__c libre de impuesto (Tax__c=0, 'Tax not included in the price') bajo un ClientPurchase__c, con un Sale_Item__c insertado normalmente primero (Amount = 10 x 2 = 20)."
+        phase: given
+        text: "an existing Sale_Item__c under a Client Purchase, tax-free catalog item"
+        attachments:
+          - name: validateShopifySaleItemAmountSH1169-A-basic.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-A-basic.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Update ejecutado exactamente con esos valores contra veevart-uat, replicando el payload equivocado de la sync externa (el mismo patron del Sale Item S-3094 del caso 00176210)."
+        phase: when
+        text: "it is updated as a Shopify V2-sync write: Item_Price__c = 40, Number_of_Items_bought__c = 3, Amount__c = 40 (wrong value from the external payload), Price_Without_Tax__c = 120, Source__c = 'Shopify', Technical_Bypass_Triggers__c = true"
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Amount__c = 120.00 (want 120). Antes del fix quedaba en 40.00, que es el sintoma reportado en produccion."
+        phase: then
+        text: "Amount__c is recomputed to 120 (Item_Price__c * Number_of_Items_bought__c), not left at 40"
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Price_Without_Tax__c = 120.00 (want 120)."
+        phase: then
+        text: Price_Without_Tax__c equals 120
+        attachments: []
+    notes: "RESULT: PASS. Reproduce el caso original 00176210 (Sale Item S-3094, $40 x 3 guardado como $40) contra el build ya desplegado en UAT."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Non-Shopify bypassed write is left untouched (scope guard)"
+    scenarioIndex: 1
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Sale_Item__c bajo un Client Purchase, mismo setup que el Scenario 1 pero sin Source__c = 'Shopify'."
+        phase: given
+        text: an existing Sale_Item__c under a Client Purchase
+        attachments:
+          - name: validateShopifySaleItemAmountSH1169-B-nonShopifyScope.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-B-nonShopifyScope.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Update con bypass activo y Source__c no-Shopify."
+        phase: when
+        text: "it is updated with Item_Price__c = 40, Number_of_Items_bought__c = 3, Amount__c = 40, Technical_Bypass_Triggers__c = true and Source__c set to any non-Shopify value (e.g. 'POS Mobile')"
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Amount__c = 40.00 (want 40, untouched). El hook no disparo. Este es el guard de alcance que pidio el review: Technical_Bypass_Triggers__c es un mecanismo compartido por otros objetos, el fix no puede ampliarse mas alla de Sale_Item + Shopify."
+        phase: then
+        text: "Amount__c is left exactly as written (40) — the recompute hook does not fire for non-Shopify sources"
+        attachments: []
+    notes: "RESULT: PASS."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Normal Salesforce write (no bypass) still calculates Amount correctly"
+    scenarioIndex: 2
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: "a Sale_Item__c created directly in Salesforce (e.g. POS Mobile) without Technical_Bypass_Triggers__c"
+        attachments: []
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: it is inserted/updated with an Item_Price__c and Number_of_Items_bought__c
+        attachments: []
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: "SaleItemTriggerHandler.calculateAmount() runs normally and Amount__c reflects Price x Quantity plus the existing tax/discount formula — unaffected by the fix"
+        attachments: []
+    notes: "NOT-RUN en UAT por limitacion del entorno, no por un defecto ni por falta de cobertura. Este escenario es una regresion que se valida con las suites de unit tests del paquete (SaleItemTriggerTest, 63/63) — y los tests Apex de un paquete gestionado no se pueden ejecutar desde el org suscriptor. Ya quedo cubierto en TR-035 contra el scratch org AuctiferaDX__sh1169 con el codigo del fix. Evidencia parcial indirecta en este mismo run: los seis scripts insertan primero un Sale_Item__c por la via normal (sin bypass) como setup, y en todos los casos el Amount inicial se calculo correctamente antes del update con bypass — si el camino normal se hubiera roto, ningun escenario habria llegado a su assert."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Shopify bypassed write with null Item_Price or null Quantity is skipped safely"
+    scenarioIndex: 3
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Sale_Item__c con Technical_Bypass_Triggers__c = true y Source__c = 'Shopify'."
+        phase: given
+        text: "a Shopify V2-sync Sale_Item__c write with Technical_Bypass_Triggers__c = true and Source__c = 'Shopify'"
+        attachments:
+          - name: validateShopifySaleItemAmountSH1169-E-nullGuard.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-E-nullGuard.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Se escribio el registro con Item_Price__c nulo y un Amount__c preexistente de 999."
+        phase: when
+        text: either Item_Price__c or Number_of_Items_bought__c is null on the record
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Amount__c = 999.00 (want 999, untouched, no exception). El hook salta el registro en vez de multiplicar contra null; no se lanzo NullPointerException ni ninguna otra excepcion."
+        phase: then
+        text: "the record is skipped by the recompute hook (no Amount__c change) and no exception (NullPointerException) is thrown"
+        attachments: []
+    notes: "RESULT: PASS."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "General technical-bypass mechanism is unaffected for other objects"
+    scenarioIndex: 4
+    status: not-run
+    stepResults:
+      - order: 1
+        status: not-run
+        actual: ""
+        phase: given
+        text: "a bypassed before-write on any object other than Sale_Item__c (Technical_Bypass_Triggers__c = true)"
+        attachments: []
+      - order: 2
+        status: not-run
+        actual: ""
+        phase: when
+        text: the record is written
+        attachments: []
+      - order: 3
+        status: not-run
+        actual: ""
+        phase: then
+        text: "the before-pass is still skipped for that write and the flag is cleared afterwards, so a later manual edit runs triggers normally — the new hook adds no side effect for other objects"
+        attachments: []
+    notes: "NOT-RUN en UAT por la misma limitacion que el Scenario 3: se valida con TriggerHandlerBypassTest (10/10), unit tests del paquete gestionado que no corren desde el org suscriptor. Cubierto en TR-035 contra el scratch org. El riesgo que este escenario protege sigue siendo real y vale mantenerlo en el test case: Technical_Bypass_Triggers__c es un mecanismo compartido por varios objetos, y el fix solo debe tocar Sale_Item con Source__c = 'Shopify'. La mitad complementaria de ese riesgo SI quedo probada en UAT por el Scenario 2 (guard de alcance por Source__c), que paso."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Bypassed Shopify INSERT self-heals via the Client Purchase cascade (documented nuance)"
+    scenarioIndex: 5
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Sale_Item__c nuevo insertado bajo un Client Purchase con Technical_Bypass_Triggers__c = true y Source__c = 'Shopify', con el Amount equivocado del payload externo."
+        phase: given
+        text: "a fresh Sale_Item__c inserted under a Client Purchase as a Shopify V2-sync write with Technical_Bypass_Triggers__c = true"
+        attachments:
+          - name: validateShopifySaleItemAmountSH1169-F-insertSelfHeals.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-F-insertSelfHeals.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Amount__c = 120.00 (want 120, self-healed by the Client Purchase cascade). Confirma en UAT el matiz documentado: el insert se autocorrige por la recalculacion del Client Purchase en la misma transaccion, que reguarda el hijo sin la bandera. Por eso la reproduccion del bug se modela como UPDATE y no como insert — un test de insert habria dado verde y escondido el defecto."
+        phase: then
+        text: "inserting the child triggers a same-transaction Client Purchase recalculation that re-saves the child unflagged, so Amount__c ends up correct even on insert — which is why the SH-1169 reproduction is modeled as an UPDATE, not an insert"
+        attachments: []
+    notes: "RESULT: PASS."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Shopify bypassed update recomputes Amount net of discount (César's review)"
+    scenarioIndex: 6
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "CatalogItem__c libre de impuesto bajo un Client Purchase."
+        phase: given
+        text: "an existing Sale_Item__c under a Client Purchase, tax-free catalog item"
+        attachments:
+          - name: validateShopifySaleItemAmountSH1169-C-discount.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-C-discount.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Update con descuento aplicado, guardado en negativo como exige la validacion del org."
+        phase: when
+        text: "it is updated as a Shopify V2-sync write: Item_Price__c = 40, Number_of_Items_bought__c = 3, Additional_Discount_Amount__c = -20 (org validation requires discounts stored negative), Amount__c = 40 (wrong value from the external payload), Price_Without_Tax__c = 120 (wrong: equals the gross, ignores the discount), Source__c = 'Shopify', Technical_Bypass_Triggers__c = true"
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Subtotal_before_discount__c = 120.00 (want 120, the gross)."
+        phase: then
+        text: "Subtotal_before_discount__c equals 120 (the gross, Item_Price__c * Number_of_Items_bought__c, untouched by the discount)"
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Price_Without_Tax__c = 100.00 y Amount__c = 100.00 (want 100, net of discount). Este es exactamente el escenario que la primera version del fix rompia: recomputaba el precio bruto e ignoraba el descuento. Verde contra el build de UAT."
+        phase: then
+        text: "Price_Without_Tax__c and Amount__c both equal 100 (net of the 20 discount) — not 120"
+        attachments: []
+    notes: "RESULT: PASS. Escenario nacido del review de César (ctapascov) sobre el PR #2569; confirma en un org real que el fix delega en calculateAmount() en vez de reimplementar la aritmetica."
+    attachments: []
+    defects: []
+
+  - testCaseId: "9aa3d257-8b52-4036-9eb9-c294b3b506b7"
+    testCaseKey: TC-67
+    testCaseTitle: "Shopify Sale Item Amount recalculated on bypassed V2-sync writes"
+    testCaseFilePath: test-cases/SH-1169/SH-1169-TC-67-shopify-sale-item-amount.testcase.yml
+    scenarioTitle: "Shopify bypassed update adds item-level tax on top of Amount (César's review)"
+    scenarioIndex: 7
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "CatalogItem__c con Tax__c = 10% y Tax_Model__c = 'Tax not included in the price'."
+        phase: given
+        text: "an existing Sale_Item__c under a Client Purchase, catalog item taxed at 10% ('Tax not included in the price')"
+        attachments:
+          - name: validateShopifySaleItemAmountSH1169-D-tax.log
+            path: attachments/SH-1169/TR-39/validateShopifySaleItemAmountSH1169-D-tax.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Update con bypass sobre el item gravado."
+        phase: when
+        text: "it is updated as a Shopify V2-sync write: Item_Price__c = 50, Number_of_Items_bought__c = 2, Amount__c = 50 (wrong value from the external payload), Source__c = 'Shopify', Technical_Bypass_Triggers__c = true"
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "Price_Without_Tax__c = 100.00 (want 100)."
+        phase: then
+        text: "Price_Without_Tax__c equals 100 (Item_Price__c * Number_of_Items_bought__c, no discount on this line)"
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Tax_Amount__c = 10.00 (want 10), no quedo obsoleto."
+        phase: then
+        text: "Tax_Amount__c equals 10 (10% of the 100 subtotal) — not left stale/untouched"
+        attachments: []
+      - order: 5
+        status: passed
+        actual: "Amount__c = 110.00 (want 110, subtotal + tax). Desmiente en un org real la suposicion vieja de que 'los impuestos de Shopify se aplican a nivel de Client Purchase y no por Sale Item': calculateAmount() si suma el impuesto del item por linea."
+        phase: then
+        text: "Amount__c equals 110 (subtotal plus tax) — not just Price x Quantity (100)"
+        attachments: []
+    notes: "RESULT: PASS. Segundo escenario nacido del review de César."
+    attachments: []
+    defects: []
+
+summary:
+  total: 8
+  passed: 6
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 2
+  passRate: 75
+history:
+  - action: created
+    timestamp: "2026-08-13T13:45:00.000Z"
+    user: claude
+  - action: updated
+    timestamp: "2026-08-13T14:06:00.000Z"
+    user: claude
+    reason: "Ejecucion de TC-67 contra UAT (veevartmuseumdemo--uat, Auctifera 8.332.0.2), con el build ya liberado tras el merge de PR #2569 a main el 2026-08-05 — complementa a TR-035, que valido el mismo test case en el scratch org contra la rama del PR. 6/8 escenarios PASS incluyendo descuento e impuesto; 0 defectos. Los 2 not-run (Scenarios 3 y 5) son regresiones que dependen de unit tests del paquete gestionado y no se pueden ejecutar desde un org suscriptor; ya estaban cubiertos en TR-035. Hallazgo del run, sobre el harness y no sobre el fix: los seis scripts de validacion fallaban en UAT con 'Invalid field Technical_Bypass_Triggers__c' por escribir ese campo sin el prefijo de namespace; pasaban en scratch org (codigo unmanaged) pero no en un org suscriptor, donde es Auctifera__Technical_Bypass_Triggers__c. Corregidos en la rama test/uat-validation-apex-SH-1129-SH-1169 de AuctiferaDX."
+metadata:
+  createdBy: claude
+  createdAt: "2026-08-13T13:45:00.000Z"
+  updatedBy: claude
+  updatedAt: "2026-08-13T14:06:00.000Z"
+  version: 1

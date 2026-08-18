@@ -1,0 +1,427 @@
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+Compiled successfully.
+Executed successfully.
+
+67.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO
+Execute Anonymous: /*
+Execute Anonymous:  * SH-1129 / PR #2541 — Scenario B: bulk-deleting Item per locations preserves history across every date.
+Execute Anonymous:  * Mirrors the real SH-1115 Eiteljorg consolidation, where 146 IPLs were deleted in one pass and silently
+Execute Anonymous:  * destroyed historical snapshots that predated the consolidation.
+Execute Anonymous:  * Run standalone (own transaction / own SOQL budget).
+Execute Anonymous:  *
+Execute Anonymous:  *     sf apex run -o <ORG_ALIAS> -f scripts/apex/validateInventoryHistorySH1129-B-bulkDelete.apex
+Execute Anonymous:  *
+Execute Anonymous:  * Before the SH-1129 fix: every snapshot is destroyed (FAIL). After the fix: all survive (PASS).
+Execute Anonymous:  * All DML is rolled back at the end — the org is left exactly as it was found.
+Execute Anonymous:  */
+Execute Anonymous: 
+Execute Anonymous: final String ns = Schema.getGlobalDescribe().containsKey('Auctifera__CatalogItem__c') ? 'Auctifera__' : '';
+Execute Anonymous: final Schema.SObjectType ciType = Schema.getGlobalDescribe().get(ns + 'CatalogItem__c');
+Execute Anonymous: final Schema.SObjectType iplType = Schema.getGlobalDescribe().get(ns + 'Item_per_location__c');
+Execute Anonymous: final Schema.SObjectType ihType = Schema.getGlobalDescribe().get(ns + 'Inventory_History__c');
+Execute Anonymous: final Integer IPL_COUNT = 3;
+Execute Anonymous: 
+Execute Anonymous: System.Savepoint sp = Database.setSavepoint();
+Execute Anonymous: try {
+Execute Anonymous:     // Reuse an existing Store location: the lookup filter demands Type__c = 'Store' and orgs without the
+Execute Anonymous:     // "enhanced locations" feature block new Store locations. Nothing is written to this record.
+Execute Anonymous:     List<SObject> stores = Database.query(
+Execute Anonymous:         'SELECT Id FROM ' + ns + 'Display_Storage_Location__c WHERE ' + ns + 'Type__c = \'Store\' LIMIT 1'
+Execute Anonymous:     );
+Execute Anonymous:     if (stores.isEmpty()) {
+Execute Anonymous:         throw new IllegalArgumentException('No Display_Storage_Location__c of Type__c = Store exists in this org.');
+Execute Anonymous:     }
+Execute Anonymous:     Id locId = stores[0].Id;
+Execute Anonymous: 
+Execute Anonymous:     List<SObject> items = new List<SObject>();
+Execute Anonymous:     for (Integer i = 0; i < IPL_COUNT; i++) {
+Execute Anonymous:         SObject item = ciType.newSObject();
+Execute Anonymous:         item.put('Name', 'SH-1129 Validation Item B' + i);
+Execute Anonymous:         item.put(ns + 'Price__c', 25);
+Execute Anonymous:         item.put(ns + 'Product_ID__c', 'SH1129-B' + i + '-' + String.valueOf(Datetime.now().getTime()));
+Execute Anonymous:         item.put(ns + 'Bypass_Stock__c', true);
+Execute Anonymous:         items.add(item);
+Execute Anonymous:     }
+Execute Anonymous:     insert items;
+Execute Anonymous: 
+Execute Anonymous:     List<SObject> ipls = new List<SObject>();
+Execute Anonymous:     for (SObject item : items) {
+Execute Anonymous:         SObject ipl = iplType.newSObject();
+Execute Anonymous:         ipl.put(ns + 'Shop_Item__c', item.Id);
+Execute Anonymous:         ipl.put(ns + 'Display_Storage_Location__c', locId);
+Execute Anonymous:         ipls.add(ipl);
+Execute Anonymous:     }
+Execute Anonymous:     insert ipls;
+Execute Anonymous: 
+Execute Anonymous:     // Staggered snapshot dates, all predating the deletion — the exact case the cascade used to wipe.
+Execute Anonymous:     List<SObject> histories = new List<SObject>();
+Execute Anonymous:     Map<Id, Date> expectedDateByHistoryIndex = new Map<Id, Date>();
+Execute Anonymous:     for (Integer i = 0; i < IPL_COUNT; i++) {
+Execute Anonymous:         SObject h = ihType.newSObject();
+Execute Anonymous:         h.put(ns + 'Shop_Item__c', items[i].Id);
+Execute Anonymous:         h.put(ns + 'Location__c', locId);
+Execute Anonymous:         h.put(ns + 'Item_per_location__c', ipls[i].Id);
+Execute Anonymous:         h.put(ns + 'Date__c', Date.today().addDays(-30 * (i + 1)));
+Execute Anonymous:         h.put(ns + 'Total_Stock__c', 5 + i);
+Execute Anonymous:         h.put(ns + 'Item_Cost__c', 25);
+Execute Anonymous:         histories.add(h);
+Execute Anonymous:     }
+Execute Anonymous:     insert histories;
+Execute Anonymous: 
+Execute Anonymous:     Set<Id> historyIds = new Set<Id>();
+Execute Anonymous:     for (SObject h : histories) {
+Execute Anonymous:         historyIds.add(h.Id);
+Execute Anonymous:         expectedDateByHistoryIndex.put(h.Id, (Date) h.get(ns + 'Date__c'));
+Execute Anonymous:     }
+Execute Anonymous: 
+Execute Anonymous:     delete ipls; // single bulk DML, exactly like the consolidation script did
+Execute Anonymous: 
+Execute Anonymous:     List<SObject> survivors = Database.query(
+Execute Anonymous:         'SELECT Id, ' + ns + 'Item_per_location__c, ' + ns + 'Date__c, ' + ns + 'Total_Stock__c, ' +
+Execute Anonymous:         ns + 'Inventory_Value__c FROM ' + ns + 'Inventory_History__c WHERE Id IN :historyIds'
+Execute Anonymous:     );
+Execute Anonymous: 
+Execute Anonymous:     Boolean allSurvived = (survivors.size() == IPL_COUNT);
+Execute Anonymous:     Boolean allCleared = true, allDatesIntact = true;
+Execute Anonymous:     for (SObject s : survivors) {
+Execute Anonymous:         if (s.get(ns + 'Item_per_location__c') != null) { allCleared = false; }
+Execute Anonymous:         if (s.get(ns + 'Date__c') != expectedDateByHistoryIndex.get((Id) s.get('Id'))) { allDatesIntact = false; }
+Execute Anonymous:     }
+Execute Anonymous:     Boolean pass = allSurvived && allCleared && allDatesIntact;
+Execute Anonymous: 
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '======================================================');
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '  SCENARIO B - bulk IPL delete preserves history (SH-1115 replay)');
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '  surviving rows = ' + survivors.size() + ' of ' + IPL_COUNT + ' (want ' + IPL_COUNT + ')');
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '  all lookups cleared = ' + allCleared + ' (want true)');
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '  all snapshot dates intact = ' + allDatesIntact + ' (want true)');
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '  RESULT: ' + (pass ? 'PASS' : 'FAIL'));
+Execute Anonymous:     System.debug(LoggingLevel.INFO, '======================================================');
+Execute Anonymous: } catch (Exception e) {
+Execute Anonymous:     System.debug(LoggingLevel.ERROR, 'SETUP ERROR: ' + e.getTypeName() + ': ' + e.getMessage() + ' (line ' + e.getLineNumber() + ')');
+Execute Anonymous: } finally {
+Execute Anonymous:     Database.rollback(sp);
+Execute Anonymous: }
+10:04:26.29 (29789309)|USER_INFO|[EXTERNAL]|005D700000GX4nJ|angie.montenegro@veevartmuseumdemo--uat.com|(GMT-04:00) Eastern Daylight Time (America/New_York)|GMT-04:00
+10:04:26.29 (29812412)|EXECUTION_STARTED
+10:04:26.29 (29825994)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+10:04:26.829 (829697748)|CUMULATIVE_LIMIT_USAGE
+10:04:26.829 (829697748)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 469 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:26.829 (829697748)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 6 out of 100
+  Number of query rows: 62 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:26.829 (829697748)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:26.29 (835517721)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:new
+10:04:26.29 (836462870)|CODE_UNIT_FINISHED|Validation:CatalogItem:new
+10:04:26.29 (836538572)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:new
+10:04:26.29 (837055307)|CODE_UNIT_FINISHED|Validation:CatalogItem:new
+10:04:26.29 (837104717)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:CatalogItem:new
+10:04:26.29 (837490880)|CODE_UNIT_FINISHED|Validation:CatalogItem:new
+10:04:27.355 (1355352395)|CUMULATIVE_LIMIT_USAGE
+10:04:27.355 (1355352395)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 918 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.355 (1355352395)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 14 out of 100
+  Number of query rows: 111 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 1 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.355 (1355352395)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.467 (1467793214)|CUMULATIVE_LIMIT_USAGE
+10:04:27.467 (1467793214)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 918 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.467 (1467793214)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 15 out of 100
+  Number of query rows: 114 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 1 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.467 (1467793214)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.584 (1584830962)|CUMULATIVE_LIMIT_USAGE
+10:04:27.584 (1584830962)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 1160 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.584 (1584830962)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 17 out of 100
+  Number of query rows: 117 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.584 (1584830962)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.688 (1688064395)|CUMULATIVE_LIMIT_USAGE
+10:04:27.688 (1688064395)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 1160 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.688 (1688064395)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 17 out of 100
+  Number of query rows: 117 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.688 (1688064395)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.708 (1708575916)|CUMULATIVE_LIMIT_USAGE
+10:04:27.708 (1708575916)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 3 out of 10000
+  Maximum CPU time: 1160 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.708 (1708575916)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 17 out of 100
+  Number of query rows: 117 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.708 (1708575916)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.709 (1709580747)|CODE_UNIT_STARTED|[EXTERNAL]|Workflow:01If4000000PhgA
+10:04:27.709 (1719503625)|CODE_UNIT_FINISHED|Workflow:01If4000000PhgA
+10:04:27.773 (1773931183)|CUMULATIVE_LIMIT_USAGE
+10:04:27.773 (1773931183)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 3 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 1160 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.773 (1773931183)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 22 out of 100
+  Number of query rows: 122 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.773 (1773931183)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.709 (1780987528)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:Item_per_location:new
+10:04:27.709 (1781081912)|CODE_UNIT_FINISHED|Validation:Item_per_location:new
+10:04:27.709 (1781112369)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:Item_per_location:new
+10:04:27.709 (1781185636)|CODE_UNIT_FINISHED|Validation:Item_per_location:new
+10:04:27.709 (1781207815)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:Item_per_location:new
+10:04:27.709 (1781249357)|CODE_UNIT_FINISHED|Validation:Item_per_location:new
+10:04:27.844 (1844455646)|CUMULATIVE_LIMIT_USAGE
+10:04:27.844 (1844455646)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 5 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 12 out of 10000
+  Maximum CPU time: 1376 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.844 (1844455646)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 22 out of 100
+  Number of query rows: 122 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.844 (1844455646)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.709 (1987163482)|USER_DEBUG|[87]|INFO|======================================================
+10:04:27.709 (1987199328)|USER_DEBUG|[88]|INFO|  SCENARIO B - bulk IPL delete preserves history (SH-1115 replay)
+10:04:27.709 (1987273658)|USER_DEBUG|[89]|INFO|  surviving rows = 3 of 3 (want 3)
+10:04:27.709 (1987304690)|USER_DEBUG|[90]|INFO|  all lookups cleared = true (want true)
+10:04:27.709 (1987326988)|USER_DEBUG|[91]|INFO|  all snapshot dates intact = true (want true)
+10:04:27.709 (1987343463)|USER_DEBUG|[92]|INFO|  RESULT: PASS
+10:04:27.709 (1987352030)|USER_DEBUG|[93]|INFO|======================================================
+10:04:27.999 (1999196172)|CUMULATIVE_LIMIT_USAGE
+10:04:27.999 (1999196172)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 2 out of 100
+  Number of query rows: 4 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 6 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 12 out of 10000
+  Maximum CPU time: 1376 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.999 (1999196172)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 22 out of 100
+  Number of query rows: 122 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 6 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 1 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+10:04:27.999 (1999196172)|CUMULATIVE_LIMIT_USAGE_END
+
+10:04:27.709 (1999263109)|CODE_UNIT_FINISHED|execute_anonymous_apex
+10:04:27.709 (1999286063)|EXECUTION_FINISHED
+

@@ -1,0 +1,32 @@
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+Querying Data... done
+┌─────────────────────────────────┬─────────────────────────────────────────┬─────────────────┬─────────────────┐
+│ PARENT.NAME                     │ PARENT.PROFILE.NAME                     │ PERMISSIONSREAD │ PERMISSIONSEDIT │
+├─────────────────────────────────┼─────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ Veevart_Admin                   │                                         │ true            │ true            │
+│ X00e5G000000jIeWQAU             │ Admin Test Profile                      │ true            │ true            │
+│ X00e5G000000jKgtQAE             │ POS User                                │ true            │ true            │
+│ X00e5G000000jMJfQAM             │ Identity User                           │ true            │ true            │
+│ X00e5G000000jMJgQAM             │ Minimum Access - Salesforce             │ true            │ true            │
+│ X00e5G000000neepQAA             │ Minimum Access - API Only Integrations  │ true            │ true            │
+│ X00e5G000000w68YQAQ             │ Zuppio System Admin                     │ true            │ true            │
+│ X00e5G000000w9rqQAA             │ Salesforce API Only System Integrations │ true            │ true            │
+│ X00e5G000001QrJwQAK             │ Anypoint Integration                    │ true            │ true            │
+│ X00ef4000000j5KzAAI             │ Member Portal Profile                   │ true            │ true            │
+│ X00ef4000000n2iwAAA             │ Veevart Trial 2                         │ true            │ true            │
+│ X00ex00000018ozT_128_09_43_34_1 │ System Administrator                    │ true            │ true            │
+│ X00ei0000000guKrAAI             │ Trial Customer Portal User              │ true            │ true            │
+│ X00ei0000000grSYAAY             │ Chatter Free User                       │ true            │ true            │
+│ X00ex00000018ozV_128_09_43_34_3 │ Standard User                           │ true            │ true            │
+│ X00ex00000018ozW_128_09_43_34_4 │ Read Only                               │ true            │ true            │
+│ X00ex00000018ozX_128_09_43_34_5 │ Solution Manager                        │ true            │ true            │
+│ X00ex00000018ozY_128_09_43_34_6 │ Marketing User                          │ true            │ true            │
+│ X00ex00000018ozZ_128_09_43_34_7 │ Contract Manager                        │ true            │ true            │
+│ X00ei0000000grSXAAY             │ Chatter Moderator User                  │ true            │ true            │
+│ X00ei0000000grSZAAY             │ Chatter External User                   │ true            │ true            │
+│ X00ei0000000graCAAQ             │ High Volume Customer Portal User        │ true            │ true            │
+│ X00ei0000001iBE4AAM             │ Guest License User                      │ true            │ true            │
+│ Veevart                         │                                         │ true            │ true            │
+└─────────────────────────────────┴─────────────────────────────────────────┴─────────────────┴─────────────────┘
+
+Total number of records retrieved: 24.

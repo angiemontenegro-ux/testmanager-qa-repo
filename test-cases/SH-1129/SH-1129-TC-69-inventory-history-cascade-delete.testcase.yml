@@ -2,7 +2,7 @@ schemaVersion: "1.0"
 id: "60116617-0cb2-4dc8-93a2-743f04e70d75"
 key: "TC-69"
 title: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
-description: "QA coverage for SH-1129 (ItemPerLocationTriggerHandler.beforeDelete() cascade-deleted ALL Auctifera__Inventory_History__c rows tied to a deleted Auctifera__Item_per_location__c, regardless of date). QA Sub-task: SH-1179. Implementation domain: AuctiferaDX Salesforce package (Auctifera namespace), Apex trigger handler ItemPerLocationTriggerHandler.cls + object metadata for Inventory_History__c.Item_per_location__c + Veevart permission set + InventoryHistoryBatch.cls. PR #2541 (merged to main 2026-07-30) removed the cascade-delete workaround and instead changed Inventory_History__c.Item_per_location__c from a required Restrict lookup to an optional SetNull lookup, so Salesforce clears the reference on IPL delete instead of destroying the history row. Discovered as a side effect of SH-1115's Eiteljorg consolidation, which deleted 146 duplicate IPLs and silently wiped historical inventory-value snapshots for dates unrelated to the consolidation (e.g. 2026-07-12), requiring manual reconstruction of the lost rows. Open risk: the PR's own test plan could not validate the new Veevart permission-set FLS grant in the AuctiferaDX__sh890 scratch org (partial permission-set deploys fail on unrelated fields there) — only a full CI/production-shaped org build can confirm it, so Scenario 3 here is flagged accordingly. Also ships a dedup-key change in InventoryHistoryBatch.cls (keying on Shop Item + Item Variant + Location instead of the now-nullable Item_per_location__c) to prevent duplicate same-day snapshots for orphaned history rows — this is the SH-1142 fix bundled into the same PR; covered here as a regression check, not as SH-1142's own QA record."
+description: "QA coverage for SH-1129 (ItemPerLocationTriggerHandler.beforeDelete() cascade-deleted ALL Auctifera__Inventory_History__c rows tied to a deleted Auctifera__Item_per_location__c, regardless of date). QA Sub-task: SH-1179. Implementation domain: AuctiferaDX Salesforce package (Auctifera namespace), Apex trigger handler ItemPerLocationTriggerHandler.cls + object metadata for Inventory_History__c.Item_per_location__c + Veevart permission set + InventoryHistoryBatch.cls. PR #2541 (merged to main 2026-07-30) removed the cascade-delete workaround and instead changed Inventory_History__c.Item_per_location__c from a required Restrict lookup to an optional SetNull lookup, so Salesforce clears the reference on IPL delete instead of destroying the history row. Discovered as a side effect of SH-1115's Eiteljorg consolidation, which deleted 146 duplicate IPLs and silently wiped historical inventory-value snapshots for dates unrelated to the consolidation (e.g. 2026-07-12), requiring manual reconstruction of the lost rows. Open risk: the PR's own test plan could not validate the new Veevart permission-set FLS grant in the AuctiferaDX__sh890 scratch org (partial permission-set deploys fail on unrelated fields there) — only a full CI/production-shaped org build can confirm it, so Scenario 3 here is flagged accordingly. Also ships a dedup-key change in InventoryHistoryBatch.cls (keying on Shop Item + Item Variant + Location instead of the now-nullable Item_per_location__c) to prevent duplicate same-day snapshots for orphaned history rows — this is the SH-1142 fix bundled into the same PR; covered here as a regression check, not as SH-1142's own QA record. Environment constraint discovered during the UAT run (TR-038): Scenario 4 can only be executed where the package source is deployed, since InventoryHistoryBatch is not visible to subscriber orgs - it is tagged scratch-org-only for that reason, and the other five scenarios are subscriber-executable."
 type: "functional"
 priority: "medium"
 status: "active"
@@ -11,6 +11,7 @@ preconditions:
   - "PR #2541 (bug/inventory-history-cascade-delete-SH-1129) is deployed to the target org/sandbox."
   - "An Auctifera__Item_per_location__c (IPL) record exists with at least one Auctifera__Inventory_History__c snapshot generated via InventoryHistoryRecorder / InventoryHistoryBatch."
   - "Access to a sandbox/scratch org with standard-user permissions assigned via the Veevart permission set to validate FLS on Inventory_History__c.Item_per_location__c (Scenario 3 needs a full-org-shaped deploy, not a partial permission-set deploy)."
+  - "Scenario 4 additionally requires an org where the package SOURCE is deployed - a package dev org or a scratch org. It is NOT executable in any subscriber org, UAT or production: InventoryHistoryBatch is declared public, not global, so the managed package does not expose it and Database.executeBatch fails to compile with 'Type is not visible'. InventoryHistoryScheduler carries the same modifier. Verified against UAT on 2026-08-14, see TR-038."
 scenarios:
   - title: "Deleting a single Item per location preserves its Inventory History records"
     tags:
@@ -62,6 +63,7 @@ scenarios:
       - "inventory-history-batch"
       - "dedup"
       - "sh-1142-spillover"
+      - "scratch-org-only"
     given:
       - "today's Inventory_History__c already exists for a given Shop Item + Item Variant + Location combination, with Item_per_location__c already null (orphaned earlier the same day by an IPL delete)"
     when:
@@ -116,6 +118,6 @@ estimatedDuration: 75
 metadata:
   createdBy: "codex"
   createdAt: "2026-08-05T00:00:00Z"
-  updatedBy: "codex"
-  updatedAt: "2026-08-05T00:00:00Z"
-  version: 1
+  updatedBy: "claude"
+  updatedAt: "2026-08-18T14:30:00Z"
+  version: 2

@@ -1,0 +1,40 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://veevartmuseumdemo--uat.sandbox.my.salesforce.com",
+      "orgId": "00DD7000000OCIrMAO",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 1,
+      "skipped": 0,
+      "testRunId": "707D700004X0eeY",
+      "testStartTime": "2026-08-13T19:02:37.000Z",
+      "testsRan": 1,
+      "userId": "005D700000GX4nJIAT",
+      "username": "angie.montenegro@veevartmuseumdemo--uat.com",
+      "commandTime": "305 ms",
+      "testExecutionTime": "6836 ms",
+      "testTotalTime": "6836 ms"
+    },
+    "tests": [
+      {
+        "Id": "07MD700000XKQkbMAH",
+        "QueueItemId": "709D7000003n9zVIAQ",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707D700004X0eeYIAR",
+        "MethodName": "standardUserWithVeevartPermsetInsertsInventoryHistory",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pD700000ac70sIAA",
+          "Name": "SH1129FlsProbeTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 6836,
+        "FullName": "SH1129FlsProbeTest.standardUserWithVeevartPermsetInsertsInventoryHistory"
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+SH-1129 Scenario 4 - InventoryHistoryBatch cannot be invoked from a subscriber org
+Org: veevartmuseumdemo--uat (00DD7000000OCIrMAO), Auctifera 8.332.0.2
+Date: 2026-08-14
+
+1) Attempt to invoke the batch from anonymous Apex:
+   Database.executeBatch(new Auctifera.InventoryHistoryBatch());
+
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+Error (executeCompileFailure): Compilation failed at Line 1 column 23 with the error:
+
+Type is not visible: Auctifera.InventoryHistoryBatch
+
+
+
+   -> The class is declared 'public with sharing', not 'global', so the managed package
+      does not expose it to subscriber orgs. Same for InventoryHistoryScheduler.
+
+2) No scheduled job would run it either. 75 CronTriggers in the org, none matching
+   Inventory / History / Stock:
+   matching jobs: 0
+
+3) Consequently the object has never been populated in this org:
+   Total number of records retrieved: 0.
+   CONCLUSION: this scenario is not executable in any subscriber org, only where the
+   package source is deployed (package dev org or scratch org) - which is where TR-034 ran it.

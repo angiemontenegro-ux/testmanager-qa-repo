@@ -1,0 +1,310 @@
+schemaVersion: "1.0"
+id: tr-b7387468-1d8a-40e6-9a1c-aa47e5bd1e0b
+key: TR-038
+title: "Run: Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+status: in-progress
+environment:
+  name: qa
+  buildVersion: "UAT sandbox veevartmuseumdemo--uat (org 00DD7000000OCIrMAO), managed package Auctifera 8.332.0.2. Second execution of TC-69, and the first against a real SUBSCRIBER org: TR-034 already ran this test case earlier against a scratch-org/source baseline (5 passed, 1 not-run). PR #2541 (bug/inventory-history-cascade-delete-SH-1129) merged to main on 2026-07-30 and shipped in the build now installed in UAT. Deploy of the fix confirmed before executing anything — Auctifera__Inventory_History__c.Auctifera__Item_per_location__c describes as nillable=true / createable=true / accessible=true and no longer appears in the object's required-field list, which is exactly the required+Restrict -> optional+SetNull change the PR made. Scenarios 1, 2 and 5 were executed with three new standalone anonymous-Apex scripts added to AuctiferaDX in branch task/uat-validation-apex-SH-1129-SH-1169 (scripts/apex/validateInventoryHistorySH1129-{A-singleDelete,B-bulkDelete,C-noHistory}.apex); each wraps its DML in a savepoint and rolls back, so UAT was left byte-identical to how it was found. Scenario 3, left not-run in TR-034 because it needed a full-org-shaped deploy, was executed here and passes. Scenario 6 FAILS here and CONTRADICTS TR-034, which had marked it passed by reading the repo's source XML rather than the deployed org — see its notes and defect SH-1201. That contradiction is the whole reason a subscriber-org run was worth doing."
+startedAt: "2026-08-13T13:45:00.000Z"
+results:
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: "Deleting a single Item per location preserves its Inventory History records"
+    scenarioIndex: 0
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Se creo un CatalogItem__c de prueba y un Item_per_location__c apuntando a una Display/Storage Location existente de tipo Store, mas un Inventory_History__c fechado 30 dias antes del borrado (Total_Stock__c=7, Item_Cost__c=25, Inventory_Value__c derivado a 175 por formula)."
+        phase: given
+        text: an Item_per_location__c record has at least one associated Inventory_History__c snapshot
+        attachments:
+          - name: validateInventoryHistorySH1129-A-singleDelete.log
+            path: attachments/SH-1129/TR-38/validateInventoryHistorySH1129-A-singleDelete.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "delete ipl; via DML estandar en Execute Anonymous contra veevart-uat."
+        phase: when
+        text: the Item_per_location__c record is deleted via standard DML
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "history row survived = true. Antes del fix esta fila se destruia en el beforeDelete del handler."
+        phase: then
+        text: the Inventory_History__c record still exists after the delete
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "Item_per_location__c cleared = true — el lookup quedo en null por SetNull, el registro sobrevivio."
+        phase: then
+        text: its Item_per_location__c lookup is null (SetNull), not the record itself
+        attachments: []
+      - order: 5
+        status: passed
+        actual: "historical fields intact = true — se verificaron Shop_Item__c, Location__c, Date__c (fecha historica -30 dias), Total_Stock__c=7 e Inventory_Value__c=175 uno por uno, no solo la supervivencia de la fila."
+        phase: then
+        text: "Shop_Item__c, Location__c, Date__c, and Inventory_Value__c remain populated on the surviving record"
+        attachments: []
+    notes: "RESULT: PASS. Ejecucion propia de QA contra UAT (sf apex run, no inspeccion estatica). Nota de implementacion del script: Inventory_Value__c es campo formula (Item_Cost__c * Total_Stock__c), no se puede insertar — se asierta sobre el valor derivado."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: "Bulk-deleting multiple Item per locations preserves history across every date, mirroring the SH-1115 Eiteljorg consolidation"
+    scenarioIndex: 1
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "3 Item_per_location__c, cada uno con su propio Inventory_History__c y fechas escalonadas hacia atras (-30, -60, -90 dias), todas anteriores al evento de borrado — la forma exacta del snapshot del 2026-07-12 que se perdio en Eiteljorg."
+        phase: given
+        text: "3 or more Item_per_location__c records each have their own Inventory_History__c snapshot, including at least one snapshot dated before the deletion event (analogous to the 2026-07-12 snapshot wiped by the real 146-record Eiteljorg consolidation)"
+        attachments:
+          - name: validateInventoryHistorySH1129-B-bulkDelete.log
+            path: attachments/SH-1129/TR-38/validateInventoryHistorySH1129-B-bulkDelete.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "delete ipls; — un solo DML masivo sobre la lista completa, igual que hizo el script de consolidacion real de SH-1115."
+        phase: when
+        text: all of the Item_per_location__c records are deleted in a single bulk DML call
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "surviving rows = 3 of 3. Ninguna fila se perdio, sin importar su fecha."
+        phase: then
+        text: every Inventory_History__c row from the deleted IPLs survives, regardless of its snapshot date
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "all lookups cleared = true y all snapshot dates intact = true — cada fila superviviente se comparo contra su fecha original registro por registro, no en agregado."
+        phase: then
+        text: every surviving row has its Item_per_location__c lookup cleared and its historical Date__c / Inventory_Value__c unchanged
+        attachments: []
+    notes: "RESULT: PASS. Este es el escenario que reproduce el incidente real: en Eiteljorg se borraron 146 IPLs en una pasada y se destruyeron snapshots historicos sin relacion con la consolidacion, que hubo que reconstruir a mano. Con el fix desplegado en UAT, el mismo patron de borrado masivo ya no pierde historial."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: "FLS on Inventory_History__c.Item_per_location__c lets a standard user insert history rows now that the field is optional"
+    scenarioIndex: 2
+    status: passed
+    executedAt: "2026-08-13T15:05:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Confirmado por consulta directa a FieldPermissions en UAT: el campo tiene 24 grants, incluyendo el permission set 'Veevart' con PermissionsRead=true y PermissionsEdit=true (tambien 'Veevart_Admin' y el perfil POS User). ObjectPermissions confirma ademas create/read/edit sobre Auctifera__Inventory_History__c para ese mismo permset."
+        phase: given
+        text: the Veevart permission set is deployed with its new fieldPermissions entry (read/edit) for Inventory_History__c.Item_per_location__c
+        attachments:
+          - name: fls-fieldpermissions-veevart-permset.log
+            path: attachments/SH-1129/TR-38/fls-fieldpermissions-veevart-permset.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "UAT (veevartmuseumdemo--uat, org 00DD7000000OCIrMAO) es un sandbox de deploy completo con el paquete gestionado Auctifera 8.332.0.2 instalado, no el scratch org sh890."
+        phase: given
+        text: "the validating org is a full-org-shaped deploy — NOT the AuctiferaDX__sh890 scratch org, where the PR's own test plan notes a partial permission-set deploy fails on unrelated fields"
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "DESVIACION DECLARADA sobre el vehiculo, no sobre la asercion: el insert se ejecuto directamente en AccessLevel.USER_MODE bajo System.runAs(usuario estandar), NO corriendo InventoryHistoryBatch. Correr el batch en UAT escribe Inventory_History__c reales en todo el org y no se puede revertir; el insert directo en USER_MODE ejerce exactamente el mismo control de CRUD+FLS que es lo que este escenario asiere. Detalle de la ejecucion: no existe en UAT ningun usuario no-admin con el permset Veevart (los 9 asignados son System Administrator), asi que la prueba crea su propio usuario con perfil 'Standard User', le asigna el permset Veevart y le otorga la licencia de paquete Auctifera (el paquete licencia por usuario, PackageLicense.UsedLicenses=6; sin la licencia el fallo habria parecido de FLS sin serlo). Como System.runAs solo existe en contexto de test, se desplego a UAT una clase de test temporal, SH1129FlsProbeTest, y se elimino del org al terminar (verificado: 0 filas en ApexClass)."
+        phase: when
+        text: a standard user assigned the Veevart permission set triggers InventoryHistoryBatch to insert a new Inventory_History__c record
+        attachments:
+          - name: SH1129FlsProbeTest.cls
+            path: attachments/SH-1129/TR-38/scenario-3-standard-user-fls/SH1129FlsProbeTest.cls
+            mimeType: text/plain
+      - order: 4
+        status: passed
+        actual: "PASS, 7 aserciones verdes. Bajo System.runAs(usuario estandar): Inventory_History__c createable=true; Item_per_location__c createable=true y accessible=true; el campo SOBREVIVE a Security.stripInaccessible(AccessType.CREATABLE) — si faltara el grant, ahi seria removido; el insert en USER_MODE tuvo exito sin excepcion; y la relectura en USER_MODE confirma que el lookup quedo escrito con el Id correcto, no vaciado por FLS. Test run 707D700004X0eeY, Passed, 1/1."
+        phase: then
+        text: the insert succeeds with no FLS/insufficient-access error, even though the field is no longer implicitly required
+        attachments:
+          - name: test-result.json
+            path: attachments/SH-1129/TR-38/scenario-3-standard-user-fls/test-result.json
+            mimeType: application/json
+    notes: "PASS. Cierra el riesgo abierto que este ticket arrastraba desde el PR: al quitar required=true, Salesforce deja de otorgar FLS implicitamente, y el PR tuvo que agregar un <fieldPermissions> explicito al permission set Veevart, que NO se pudo validar en el scratch org AuctiferaDX__sh890 porque alli el deploy parcial de un permission set falla por campos no relacionados. Ahora esta probado ejecutando, no solo por inspeccion de metadata. DOS FALSOS NEGATIVOS DESCARTADOS EN EL CAMINO, que vale documentar para quien repita esto: (1) el primer intento fallo con INSUFFICIENT_ACCESS_ON_CROSS_REFERENCE_ENTITY sobre un Auctifera__CatalogItem__c — AccessLevel.USER_MODE valida sharing a nivel de registro ADEMAS de FLS, y los registros padre creados por el admin no son visibles para el usuario de prueba; se resolvio haciendo que el propio usuario de prueba cree sus padres, con lo cual un fallo en USER_MODE solo puede significar CRUD/FLS. (2) el segundo intento fallo en la relectura porque SOQL dinamico no acepta binds de expresion como :history.Id; se cambio por una variable simple. Ninguno de los dos era un defecto del producto."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: "InventoryHistoryBatch does not create a duplicate same-day snapshot for a history row orphaned by an earlier IPL delete"
+    scenarioIndex: 3
+    status: blocked
+    executedAt: "2026-08-14T14:40:00.000Z"
+    stepResults:
+      - order: 1
+        status: blocked
+        actual: "No se llego a montar la precondicion: el paso 'when' es imposible en este entorno, asi que sembrar la fila huerfana no habria probado nada. Dato de contexto: UAT tiene 0 filas de Auctifera__Inventory_History__c en todo el org, justamente porque el batch nunca corrio ahi."
+        phase: given
+        text: "today's Inventory_History__c already exists for a given Shop Item + Item Variant + Location combination, with Item_per_location__c already null (orphaned earlier the same day by an IPL delete)"
+        attachments: []
+      - order: 2
+        status: blocked
+        actual: "BLOQUEO DURO, verificado ejecutando y no por inspeccion: Database.executeBatch(new Auctifera.InventoryHistoryBatch()) falla al compilar con 'Type is not visible: Auctifera.InventoryHistoryBatch'. La clase esta declarada 'public with sharing' y no 'global', asi que el paquete gestionado NO la expone a orgs suscriptores. InventoryHistoryScheduler tiene el mismo modificador, o sea tampoco sirve como puerta de entrada. Y no hay job programado que lo dispare: de 75 CronTriggers activos en UAT, ninguno corresponde a Inventory/History/Stock."
+        phase: when
+        text: InventoryHistoryBatch runs again for the IPL currently representing that same Shop Item + Item Variant + Location
+        attachments:
+          - name: evidence.txt
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/evidence.txt
+            mimeType: text/plain
+      - order: 3
+        status: blocked
+        actual: "No evaluable: el batch no se puede disparar."
+        phase: then
+        text: no second Inventory_History__c row is created for that date
+        attachments: []
+      - order: 4
+        status: blocked
+        actual: "No evaluable: el batch no se puede disparar."
+        phase: then
+        text: "exactly one Inventory_History__c record remains for that Shop Item + Item Variant + Location + Date"
+        attachments: []
+    notes: "BLOCKED, no not-run: se intento ejecutar y NO se puede en este tipo de org. Correccion de lo que yo mismo habia anotado antes en este run, que decia que no se corria por decision de alcance para no escribir datos en un sandbox compartido. Esa razon era secundaria y, sobre todo, no era la verdadera. La razon real es que Auctifera.InventoryHistoryBatch esta declarada 'public', no 'global', asi que el paquete gestionado no la expone a orgs suscriptores: el intento de invocarla falla al compilar con 'Type is not visible'. InventoryHistoryScheduler es igual de inaccesible y no hay job programado que lo dispare. CONSECUENCIA PARA EL TEST CASE, que vale mas que este run puntual: el Scenario 4, tal como esta redactado ('when InventoryHistoryBatch runs again'), NO es ejecutable en NINGUN org suscriptor — ni UAT ni produccion — sino unicamente donde esta desplegado el codigo fuente del paquete (org de desarrollo del paquete o scratch org), que es exactamente donde TR-034 lo valido. Conviene anotarlo en TC-69 como escenario solo-scratch-org, o reformularlo en terminos observables desde un suscriptor. Contexto: este escenario cubre el cambio de dedup-key de InventoryHistoryBatch.cls (ahora por Shop Item + Item Variant + Location, ya no por el ahora-nullable Item_per_location__c), que es el fix de SH-1142 viajando en el mismo PR #2541; es regresion, no reemplaza el QA propio de SH-1142. La cobertura vigente sigue siendo el passed de TR-034, con la salvedad de que el passed de TR-034 en el Scenario 6 resulto incorrecto al contrastarlo contra un org real, asi que su evidencia por unit test tampoco deberia leerse como garantia de comportamiento en un suscriptor."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: "Deleting an Item per location with zero Inventory History records completes without error"
+    scenarioIndex: 4
+    status: passed
+    executedAt: "2026-08-13T14:00:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Se creo un Item_per_location__c sin ningun Inventory_History__c asociado; el conteo previo confirmo 0 filas."
+        phase: given
+        text: an Item_per_location__c record exists with no associated Inventory_History__c records
+        attachments:
+          - name: validateInventoryHistorySH1129-C-noHistory.log
+            path: attachments/SH-1129/TR-38/validateInventoryHistorySH1129-C-noHistory.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "delete ipl; envuelto en su propio try/catch para distinguir un fallo del borrado de un fallo del setup."
+        phase: when
+        text: the Item_per_location__c record is deleted
+        attachments: []
+      - order: 3
+        status: passed
+        actual: "delete succeeded = true, sin excepcion. Cubre la regresion de null/vacio en el camino que el PR elimino (beforeDelete / deleteInventoryHistory)."
+        phase: then
+        text: the delete completes successfully with no exception
+        attachments: []
+      - order: 4
+        status: passed
+        actual: "history rows before = 0 / after = 0 — el borrado no creo ni altero ningun Inventory_History__c como efecto colateral."
+        phase: then
+        text: no Inventory_History__c records are created or altered as a side effect
+        attachments: []
+    notes: "RESULT: PASS."
+    attachments: []
+    defects: []
+
+  - testCaseId: "60116617-0cb2-4dc8-93a2-743f04e70d75"
+    testCaseKey: TC-69
+    testCaseTitle: "Item per location delete must not cascade-delete unrelated Inventory History snapshots"
+    testCaseFilePath: test-cases/SH-1129/SH-1129-TC-69-inventory-history-cascade-delete.testcase.yml
+    scenarioTitle: "Inventory History page layout no longer forces a value into Item per location"
+    scenarioIndex: 5
+    status: failed
+    executedAt: "2026-08-13T16:10:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "UAT no tenia NINGUN Auctifera__Inventory_History__c (0 filas en todo el org, el batch nunca corrio ahi), asi que se creo uno temporal con Auctifera__Item_per_location__c = null — el estado post-delete que produce el fix. El insert por API con el lookup nulo tuvo exito, lo que reconfirma que el cambio de esquema esta bien desplegado. El registro y su Shop Item se borraron al terminar; verificado que el objeto volvio a 0 filas."
+        phase: given
+        text: an Inventory_History__c record exists whose Item_per_location__c is null (post-delete state)
+        attachments: []
+      - order: 2
+        status: passed
+        actual: "Registro a4nD7000002QgquIAC abierto en Lightning (app Giftshop, sandbox UAT) y puesto en modo edicion."
+        phase: when
+        text: a user opens that record's page layout in Lightning
+        attachments: []
+      - order: 3
+        status: failed
+        actual: "FAIL. El campo se muestra con asterisco rojo de campo obligatorio, junto a la leyenda '* = Required Information', exactamente igual que Date, Display/Storage Location y Shop Item — y esta vacio, asi que el usuario queda bloqueado para guardar. Confirmado tambien en metadata: el layout desplegado en UAT trae <behavior>Required</behavior> para Auctifera__Item_per_location__c, mientras que el repo en origin/main tiene <behavior>Edit</behavior>. Divergencia real entre lo mergeado y lo que corre en el org."
+        phase: then
+        text: "the Item_per_location__c field shows behavior Edit, not Required — the user is not blocked from saving or viewing the record because the lookup is empty"
+        attachments:
+          - name: comparison.txt
+            path: attachments/SH-1129/TR-38/scenario-6-layout/comparison.txt
+            mimeType: text/plain
+          - name: uat-deployed-layout.xml
+            path: attachments/SH-1129/TR-38/scenario-6-layout/uat-deployed-layout.xml
+            mimeType: text/xml
+          - name: repo-main-layout.xml
+            path: attachments/SH-1129/TR-38/scenario-6-layout/repo-main-layout.xml
+            mimeType: text/xml
+          - name: uat-layout-audit-fields.log
+            path: attachments/SH-1129/TR-38/scenario-6-layout/uat-layout-audit-fields.log
+            mimeType: text/plain
+    notes: "FAIL con causa raiz identificada, y NO es que el fix este mal: es que los page layouts de un paquete gestionado no se actualizan en orgs suscriptores ya existentes. Evidencia: el layout de UAT tiene ManageableState=installed, fue creado el 2025-09-23 y su LastModifiedDate es 2025-09-23T13:37:50Z — nunca se toco desde la instalacion, casi un año antes de que se mergeara PR #2541 (2026-07-30). Nadie lo personalizo localmente. En cambio el cambio de CAMPO del MISMO PR si llego (Item_per_location__c describe nillable=true en UAT), lo que descarta que el build instalado sea anterior al fix. O sea: el paquete subio, el campo se actualizo, el layout no. IMPACTO: el fix hace que el lookup quede legitimamente vacio tras borrar un IPL, pero cualquier usuario que abra ese registro en Lightning y trate de guardarlo queda bloqueado por el Required del layout. Esto aplica a TODO org suscriptor existente, no solo UAT — incluido Eiteljorg, que es donde nacio el incidente de SH-1115 y donde justamente hubo que manipular estos registros a mano. El Required del layout es una restriccion solo de UI: la insercion por API con el lookup nulo funciona, por eso los Scenarios 1, 2, 3 y 5 pasan y este falla. CONTRADICE A TR-034, que habia marcado este mismo escenario como passed. La nota de TR-034 lo dice explicitamente: se valido 'por metadata declarativa (source-of-truth XML)' asumiendo que es 'un atributo simple sin logica intermedia que pudiera diferir de lo desplegado'. Esa suposicion es justamente la que falla aqui: el XML del repo dice Edit, el org desplegado dice Required. Es el argumento de por que vale ejecutar contra un org suscriptor real y no leer el repo. Defecto abierto: SH-1201. REMEDIACION propuesta ahi: actualizar el layout manualmente por org, o incluirlo en un post-install/upgrade step."
+    attachments: []
+    defects:
+      - jiraKey: SH-1201
+        url: https://veevart.atlassian.net/browse/SH-1201
+        severity: Medium
+        summary: Inventory History layout still marks Item per location as Required in existing subscriber orgs after SH-1129,
+          because managed-package page layouts are not upgraded in orgs that already have the package installed
+        regressionItem: TC-69 / Scenario 6
+        linkedTo: SH-1129 (Relates)
+
+summary:
+  total: 6
+  passed: 4
+  failed: 1
+  blocked: 1
+  skipped: 0
+  notRun: 0
+  passRate: 67
+history:
+  - action: created
+    timestamp: "2026-08-13T13:45:00.000Z"
+    user: claude
+  - action: updated
+    timestamp: "2026-08-13T14:06:00.000Z"
+    user: claude
+    reason: "Primera ejecucion de TC-69 contra un org suscriptor real (UAT veevartmuseumdemo--uat, Auctifera 8.332.0.2) y no contra un scratch org. Scenarios 1, 2 y 5 PASS con tres scripts nuevos de anonymous Apex, todos con savepoint + rollback. Sin defectos. Scenario 3 queda not-run como end-to-end pero su riesgo abierto se cierra: el grant de FLS del permission set Veevart sobre Inventory_History__c.Item_per_location__c esta confirmado en UAT (read/edit true), que es justo lo que no se podia validar en el scratch org sh890. Scenarios 4 y 6 quedan not-run por alcance: el batch escribe datos reales en un sandbox compartido y el layout requiere verificacion manual en Lightning."
+  - action: updated
+    timestamp: "2026-08-13T15:10:00.000Z"
+    user: claude
+    reason: "Scenario 3 EJECUTADO y PASS, pasa de not-run a passed (3/6 -> 4/6). Ya no queda solo la evidencia de metadata: se probo corriendo, bajo System.runAs con un usuario de perfil 'Standard User' al que se le asigno el permset Veevart y la licencia de paquete Auctifera. El insert de Inventory_History__c en AccessLevel.USER_MODE tuvo exito y el lookup Item_per_location__c quedo escrito y legible; ademas sobrevive a Security.stripInaccessible(CREATABLE), que es la comprobacion de FLS aislada de sharing. Se desplego a UAT una clase de test temporal (SH1129FlsProbeTest) porque System.runAs solo existe en contexto de test y en UAT no hay ningun usuario no-admin con el permset; la clase fue eliminada del org al terminar y se verifico que no queda (0 filas en ApexClass). Dos falsos negativos descartados en el proceso, documentados en las notas del escenario: sharing de registro sobre los padres creados por el admin, y un bind de expresion no soportado en SOQL dinamico. Siguen not-run los Scenarios 4 (dedup del batch) y 6 (layout en Lightning)."
+  - action: updated
+    timestamp: "2026-08-13T16:15:00.000Z"
+    user: claude
+    reason: "Scenario 6 EJECUTADO y FALLA. Primer hallazgo real de este run: el layout de Inventory History en UAT sigue marcando Auctifera__Item_per_location__c como Required, mientras que el repo en origin/main ya lo tiene como Edit. Confirmado por metadata (layout desplegado vs repo) y visualmente en Lightning, donde el campo aparece con asterisco rojo estando vacio, bloqueando el guardado. Causa raiz: los page layouts de un paquete gestionado no se actualizan en orgs suscriptores existentes — el layout de UAT tiene ManageableState=installed y no se modifica desde 2025-09-23, mientras que el cambio de campo del mismo PR si llego (nillable=true), lo que descarta un build viejo. Afecta a todo org suscriptor existente, incluido Eiteljorg. El run pasa de 4/6 con 2 not-run a 4 passed / 1 failed / 1 not-run. Queda not-run solo el Scenario 4 (dedup del batch). Pendiente decidir con el equipo si se abre defecto propio para el layout."
+  - action: updated
+    timestamp: "2026-08-14T14:00:00.000Z"
+    user: claude
+    reason: "Correccion de numeracion y de dos afirmaciones incorrectas, detectadas al revisar el historial del repo antes de registrar el defecto. (1) RENUMERADO de TR-037 a TR-038: mientras este run estaba en curso se mergeo a main TR-037 para SH-1174 (commits ab761d0..c7e8589, 2026-08-14), asi que la clave colisionaba. El run hermano de SH-1169 paso de TR-038 a TR-039 y el contador testRun subio a 39. Se habia elegido TR-037 mirando solo origin/main en el momento de ramificar; la leccion es verificar la numeracion contra main ACTUALIZADO justo antes de publicar, no al empezar. (2) Se retiro la afirmacion de que este era 'la primera ejecucion de TC-69': TR-034 ya lo habia ejecutado (5 passed, 1 not-run). Lo correcto es que este es el primer run contra un org SUSCRIPTOR. (3) El Scenario 4 deja de presentarse como hueco de cobertura: TR-034 ya lo tenia en passed. (4) Registrado el defecto SH-1201 contra el Scenario 6, con el detalle de que este FAIL contradice el passed de TR-034, que se habia validado leyendo el XML del repo en vez del org desplegado."
+  - action: updated
+    timestamp: "2026-08-14T14:45:00.000Z"
+    user: claude
+    reason: "Scenario 4 intentado y marcado BLOCKED, con lo cual ya no queda ningun escenario sin atender: 4 passed / 1 failed / 1 blocked. Se corrige ademas la razon que yo mismo habia dado antes. No es que se haya evitado correr el batch por prudencia en un sandbox compartido: es que Auctifera.InventoryHistoryBatch esta declarada 'public' y no 'global', asi que el paquete gestionado no la expone a orgs suscriptores y el intento de invocarla falla al compilar con 'Type is not visible'. El scheduler es igual de inaccesible y no hay ningun job programado que lo dispare, de ahi que UAT tenga 0 filas de Inventory_History__c. Implicacion para TC-69: el Scenario 4 no es ejecutable en NINGUN org suscriptor, solo donde esta el codigo fuente del paquete; conviene anotarlo como escenario solo-scratch-org o reformularlo."
+metadata:
+  createdBy: claude
+  createdAt: "2026-08-13T13:45:00.000Z"
+  updatedBy: claude
+  updatedAt: "2026-08-14T14:45:00.000Z"
+  version: 5
