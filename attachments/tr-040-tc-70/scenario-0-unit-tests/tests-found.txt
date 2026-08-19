@@ -1,0 +1,59 @@
+PRUEBAS DEL DEV EN LA PR #2585 head f1b460100d — TR-040 / SH-1174
+Ejecutado: 2026-08-19. Org sh1174qa2 (test-8lxraxspa7cm@example.com, 00DO900000XcfOv),
+deploy completo de la rama: 12427 componentes, 0 errores, permsets auctifera + Veevart.
+
+DELTA DE COBERTURA vs el head validado en TR-037 (6f0cff23c8):
+  ELIMINADO  LandedCostOnReceiptTest.editingOneReceivedOrderDoesNotRebuildTheWholeChain
+             Era el test que FIJABA el comportamiento defectuoso de SH-1200: asserteaba
+             Assert.areEqual(20, editedCost, '...recomputed from its raw unit cost ($20),
+             not re-prorated with expense'). Confirmado: 0 ocurrencias en el head nuevo.
+  AGREGADO   EditReceivedLineReproratesCostTest (clase nueva, 4 tests).
+  Total: 15 -> 18 tests de SH-1174, +2 de ICHCostCalculationServiceTest = 20 ejecutados.
+
+RESULTADO: 20/20 PASS (100%).
+
+EditReceivedLineReproratesCostTest (4/4 PASS) — NUEVA, cubre el fix de SH-1200
+  PASS  editingReceivedLineCostReproratesTheExpense
+  PASS  editingOneLineReproratesEveryReceivedLineByValue
+  PASS  editingReceivedLineWithoutExpenseKeepsRawNarrowScope
+  PASS  editingMultipleLinesOfSamePurchaseOrderEnqueuesSingleJob
+
+LandedCostAllocatorTest (5/5 PASS)
+  PASS  allocationsReconcileExactlyWithRoundingRemainder
+  PASS  fallsBackToQuantityWhenTotalValueIsZero
+  PASS  lineWithoutPurchaseOrderLandsOnRawCost
+  PASS  proratesByValueAcrossLines
+  PASS  zeroExpenseLeavesUnitCostUnchanged
+
+LandedCostOnReceiptTest (9/9 PASS) — una menos que en TR-037, por el test eliminado
+  Outcome Passed, 9 tests, 100%
+
+ICHCostCalculationServiceTest (2/2 PASS) — compatibilidad hacia atras de la sobrecarga
+  Outcome Passed, 2 tests, 100%
+
+NOTA DE EJECUCION IMPORTANTE — por que se corrio SINCRONICO
+El primer intento fue un run asincrono de las 4 clases (test run id 707O900003ALFcX). Se quedo
+en Status = Queued con 20 metodos encolados y 0 completados durante mas de 40 minutos, hasta que
+expiro el --wait. No fue una falla de los tests: la cola asincrona del scratch org recien creado
+no arranco. Se re-ejecuto clase por clase con --synchronous (Salesforce limita los runs sincronos
+a una clase por invocacion) y las 4 clases pasaron.
+Los Test.startTest()/stopTest() siguen drenando el Queueable en modo sincrono, asi que los asserts
+del camino asincrono siguen siendo validos.
+
+=== HALLAZGO DE PROCESO: ItemCostHistoryServiceTest pasa 28/28 en este org ===
+En TR-037 esta misma clase dio 24 FALLAS, todas con
+CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY en Auctifera.CatalogItem_Trg reventando en el primer
+insert del setup. Ahi las declare artefacto de configuracion del org y NO levante defecto.
+
+En TR-040 la misma clase, sobre el head nuevo, corre 28/28 PASS.
+
+La diferencia de procedimiento entre las dos corridas es el ORDEN:
+  TR-037: deploy -> correr tests -> asignar permsets   (24 fallas)
+  TR-040: deploy -> asignar permsets -> correr tests   (0 fallas)
+
+O sea que las fallas venian de correr la suite ANTES de asignar auctifera y Veevart. Esto
+confirma retroactivamente, con control positivo, que el juicio de TR-037 fue correcto: no eran
+defecto de la PR. Es la misma clase de falso positivo que hizo retractar SH-1182.
+
+REGLA PARA PROXIMAS CORRIDAS: asignar los permsets INMEDIATAMENTE despues del deploy y ANTES de
+correr cualquier suite de Apex. Si no, se produce una ola de fallas espurias que parecen defectos.

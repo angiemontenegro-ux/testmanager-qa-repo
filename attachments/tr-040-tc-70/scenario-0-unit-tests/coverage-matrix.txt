@@ -1,0 +1,44 @@
+MATRIZ DE COBERTURA AC <-> PRUEBAS DEL DEV — TR-040, PR #2585 head f1b460100d
+Ejecutado: 2026-08-19
+
+DELTA DE COBERTURA vs TR-040 anterior (head 6f0cff23c8):
+  - ELIMINADO: LandedCostOnReceiptTest.editingOneReceivedOrderDoesNotRebuildTheWholeChain
+    (era el test que FIJABA el comportamiento defectuoso de SH-1200: asserteaba que el ICH editado
+    volviera al costo crudo "not re-prorated with expense"). Confirmado: 0 ocurrencias en el head nuevo.
+  - AGREGADO: clase nueva EditReceivedLineReproratesCostTest con 4 tests.
+  Total: 15 tests -> 18 tests (5 unitarios + 9 funcionales + 4 de edicion post-recepcion).
+
+| AC  | Descripcion                                          | Tests que lo cubren                                                       | Estado |
+|-----|------------------------------------------------------|---------------------------------------------------------------------------|--------|
+| AC-1| El gasto se prorratea por valor entre las lineas      | proratesByValueAcrossLines, twoLineReceiptProratesExpenseByValue,          | CUBIERTO |
+|     |                                                      | editingOneLineReproratesEveryReceivedLineByValue (NUEVO)                   | |
+| AC-2| El promedio movil se calcula sobre el costo efectivo  | singleLineReceiptFoldsExpenseIntoMovingAverage,                            | CUBIERTO |
+|     | (landed), no sobre el costo crudo                    | addingExpenseRebuildsMultiReceiptChain,                                   | ahora TAMBIEN en |
+|     |                                                      | editingReceivedLineCostReproratesTheExpense (NUEVO)                       | edicion post-recepcion |
+| AC-3| Una recepcion posterior promedia el nuevo costo       | sameItemSequentialReceiptsRebuildTheMovingAverageChain (parcial: misma PO) | BRECHA, cubierta |
+|     | landed contra el promedio existente                  |                                                                           | por QA (escenario idx 2) |
+| AC-4| Item Cost History guarda Y MUESTRA el desglose        | Los campos se persisten y se asertan, pero NINGUN test cubre la           | FAIL |
+|     | ligado a la orden                                    | visibilidad en UI. El delta no toca ningun layout.                        | (SH-1202 sigue abierto) |
+| AC-5| Recepcion corta                                       | (ninguno)                                                                 | NO APLICA — el modelo de Shop 1.0 no lo permite |
+| AC-6| Todo tipo de gasto entra al costo sin excepcion       | Ninguno combina 3+ tipos. Satisfecho por arquitectura.                    | PARCIAL, cubierto por QA (idx 6) |
+| AC-7| Gasto total cero deja el costo unitario intacto       | zeroExpenseLeavesUnitCostUnchanged, lineWithoutPurchaseOrderLandsOnRawCost,| CUBIERTO |
+|     |                                                      | editingReceivedLineWithoutExpenseKeepsRawNarrowScope (NUEVO)              | reforzado |
+| AC-8| Las asignaciones reconcilian exacto pese al redondeo  | allocationsReconcileExactlyWithRoundingRemainder                          | CUBIERTO |
+
+LOS 4 TESTS NUEVOS, Y QUE APORTA CADA UNO:
+  1. editingReceivedLineCostReproratesTheExpense
+     El caso directo de SH-1200: al editar el costo, Allocated_Expense ya NO queda en 0 y el
+     Effective_Cost refleja el gasto re-prorrateado.
+  2. editingOneLineReproratesEveryReceivedLineByValue
+     El caso de dos lineas: edita la linea A y assertea que la linea B INTACTA tambien se
+     re-prorratea, porque el reparto por valor cambia para toda la PO. Es exactamente la forma
+     del defecto que reproduje en TR-037.
+  3. editingReceivedLineWithoutExpenseKeepsRawNarrowScope
+     Protege MED #4 donde importa: sin gasto en la PO, la edicion conserva el alcance angosto y
+     no reescribe recibos hermanos, baselines de activacion ni ajustes manuales.
+  4. editingMultipleLinesOfSamePurchaseOrderEnqueuesSingleJob
+     El dedup por transaccion: N ediciones sobre la misma PO encolan UN job, no N.
+
+MANEJO DEL CAMINO ASINCRONO: los 4 tests nuevos envuelven la accion en Test.startTest()/stopTest(),
+asi que el Queueable se drena dentro del test y los asserts corren sobre el estado post-job.
+Ningun assert huerfano antes del flush.

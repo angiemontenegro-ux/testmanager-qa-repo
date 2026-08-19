@@ -1,0 +1,52 @@
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+=== Test Results
+TEST NAME                                                                                                                     OUTCOME  MESSAGE  RUNTIME (MS)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────  ───────  ───────  ────────────
+Auctifera.ItemCostHistoryServiceTest.buildICHs_keepsVariantScopesIsolated                                                     Pass              762         
+Auctifera.ItemCostHistoryServiceTest.buildICHs_processesOrdersSequentiallyWithinTheSameInsert                                 Pass              201         
+Auctifera.ItemCostHistoryServiceTest.buildICHs_usesCalculatedSnapshotWhenThereIsNoPreviousICH                                 Pass              202         
+Auctifera.ItemCostHistoryServiceTest.buildICHs_usesShopItemSnapshotToCalculateWAC                                             Pass              870         
+Auctifera.ItemCostHistoryServiceTest.buildPreviousCostSnapshot_returnsZeroValueObjectWhenShopItemIsNull                       Pass              17          
+Auctifera.ItemCostHistoryServiceTest.buildShopItemsWithCurrentICHReassigned_skipsOlderICH                                     Pass              1248        
+Auctifera.ItemCostHistoryServiceTest.buildShopItemsWithCurrentICHReassigned_updatesWhenThereIsNoCurrentICH                    Pass              977         
+Auctifera.ItemCostHistoryServiceTest.createFromOrders_nullCostPerItemYieldsPreviousCostZero_regardlessOfHistoricalSROs_SH873  Pass              960         
+Auctifera.ItemCostHistoryServiceTest.createFromOrders_seedsFirstICHFromItemCostWhenPreExistingOrders                          Pass              2363        
+Auctifera.ItemCostHistoryServiceTest.createFromOrders_seedsFirstVariantICHFromCostPerItem_SH873                               Pass              896         
+Auctifera.ItemCostHistoryServiceTest.getEffectiveICHByRequestKey_prefersVariantAndFallsBackToShopItem                         Pass              923         
+Auctifera.ItemCostHistoryServiceTest.getEffectiveICHByRequestKey_returnsICHEffectiveAtRequestedDatetime                       Pass              893         
+Auctifera.ItemCostHistoryServiceTest.getLatestNewICHByShopItemId_usesMostRecentICH                                            Pass              880         
+Auctifera.ItemCostHistoryServiceTest.getPreviousICHByShopItemId_returnsCurrentICHFromLoadedContext                            Pass              1171        
+Auctifera.ItemCostHistoryServiceTest.loadPreICHSnapshotsForVariants_existingICHSkipsCostPerItem_SH873                         Pass              918         
+Auctifera.ItemCostHistoryServiceTest.loadPreICHSnapshotsForVariants_nullCostPerItemFallsToZero_SH873                          Pass              362         
+Auctifera.ItemCostHistoryServiceTest.loadPreICHSnapshotsForVariants_usesCostPerItemAsActivationBaseline                       Pass              418         
+Auctifera.ItemCostHistoryServiceTest.loadPreICHSnapshots_skipsShopItemsWithExistingICH                                        Pass              731         
+Auctifera.ItemCostHistoryServiceTest.loadPreICHSnapshots_usesItemCostAsActivationBaseline                                     Pass              842         
+Auctifera.ItemCostHistoryServiceTest.propagateItemCostToShopItems_rollsUpParentFromVariantICHs                                Pass              1450        
+Auctifera.ItemCostHistoryServiceTest.recalculateICHsFromOrders_recalculatesValuesFromCachedPreviousSnapshot                   Pass              900         
+Auctifera.ItemCostHistoryServiceTest.recalculateICHsFromOrders_returnsEmptyListWhenThereAreNoOrders                           Pass              16          
+Auctifera.ItemCostHistoryServiceTest.recomputeParentItemCostForVariants_excludesDisabledVariantWithStaleStock_SH689           Pass              1858        
+Auctifera.ItemCostHistoryServiceTest.recomputeParentItemCostForVariants_preservesLastCostWhenAllVariantsSoldOut               Pass              435         
+Auctifera.ItemCostHistoryServiceTest.seedVariantsFromParentICH_createsVariantICHFromParentCurrentCost                         Pass              1080        
+Auctifera.ItemCostHistoryServiceTest.updateICHPointers_advancesVariantPointerAcrossMultipleOrders                             Pass              981         
+Auctifera.ItemCostHistoryServiceTest.variantCost_writesMWACToCostPerItemAndSimpleAvgToAverageItemCost_SH818                   Pass              1496        
+Auctifera.ItemCostHistoryServiceTest.variantNegativeStockCarriesForwardLiability_SH818                                        Pass              3127        
+
+
+
+
+=== Test Summary
+NAME                 VALUE                        
+───────────────────  ─────────────────────────────
+Outcome              Passed                       
+Tests Ran            28                           
+Pass Rate            100%                         
+Fail Rate            0%                           
+Skip Rate            0%                           
+Test Run Id                                       
+Test Setup Time      0 ms                         
+Test Execution Time  26992 ms                     
+Test Total Time      26992 ms                     
+Org Id               00DO900000XcfOvMAJ           
+Username             test-8lxraxspa7cm@example.com
+
+EXIT=0

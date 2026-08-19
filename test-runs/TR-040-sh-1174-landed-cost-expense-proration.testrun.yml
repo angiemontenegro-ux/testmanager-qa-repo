@@ -1,0 +1,510 @@
+schemaVersion: '1.0'
+id: tr-3a68705f-ee3a-45d1-bf74-74d44e77b135
+key: TR-040
+title: 'Run: Order expenses are prorated by value and folded into the item''s average cost (landed cost) — PR #2585 head f1b460100d,
+  SH-1200 fix verification'
+status: completed
+environment:
+  name: qa
+  buildVersion: 'Salesforce-bound (logica Apex + esquema). PR #2585 head f1b460100d (draft, checks lint/build/test en SUCCESS).
+    Verifica el commit "fix(shop): re-prorate PO expenses when a received line is edited SH-1174", 6 archivos +515/-183 sobre
+    el head 6f0cff23c8 que valido TR-037. Org sh1174qa2, deploy 12427 componentes 0 errores, permsets asignados antes de los
+    tests. Suite 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS. VEREDICTO: SH-1200 ARREGLADO y verificado en org; SH-1202
+    SIGUE ABIERTO, el commit no toca ningun layout.'
+startedAt: '2026-08-19T13:30:00.000Z'
+results:
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Order expense is prorated by value into each line's effective unit cost
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: LandedCostAllocatorTest.proratesByValueAcrossLines PASS (5/5 en la clase).
+    phase: given
+    text: a receipt with line A valued at $800 and line B valued at $200, and a total order expense of $100
+    attachments: &id002
+    - name: tests-found.txt
+      path: attachments/tr-040-tc-70/scenario-0-unit-tests/tests-found.txt
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-040-tc-70/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 2
+    status: passed
+    actual: allocate() ejecutado dentro de Test.startTest()/stopTest(). PASS.
+    phase: when
+    text: the order is received
+    attachments: []
+  - order: 3
+    status: passed
+    actual: 'Prorrateo POR VALOR confirmado. Ademas el test nuevo editingOneLineReproratesEveryReceivedLineByValue prueba
+      que el reparto se RE-calcula para toda la PO al editar una linea: 100 x 200/300 = 66.666667 para la editada y 100 x
+      100/300 = 33.333333 para la intacta.'
+    phase: then
+    text: $80 is allocated to line A and $20 is allocated to line B (proration by value)
+    attachments: &id001
+    - name: t2b-readback.txt
+      path: attachments/tr-040-tc-70/t2b-readback.txt
+      mimeType: text/plain
+    - name: regression-results.txt
+      path: attachments/tr-040-tc-70/regression-results.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: 'Costo efectivo = costo unitario + (gasto asignado / cantidad). Verificado en org: 20 + 66.666667/10 = 26.666667
+      y 10 + 33.333333/10 = 13.333333.'
+    phase: then
+    text: each line's effective unit cost = unit cost + (allocated expense ÷ received qty)
+    attachments: *id001
+  notes: 'AC-1 sin cambios respecto de TR-037: proratesByValueAcrossLines y twoLineReceiptProratesExpenseByValue PASS en org
+    real. El fix de esta corrida REFUERZA el AC: ahora el prorrateo por valor tambien se re-aplica cuando se edita una linea
+    ya recibida (editingOneLineReproratesEveryReceivedLineByValue, PASS). Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy
+    completo de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES
+    de correr los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: The moving average cost is computed on the effective (landed) cost, not the raw unit cost
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Shop Item sin stock ni costo previo. PASS.
+    phase: given
+    text: item "Tote" has 0 on hand and no average cost
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: 10 u @ $8.00 con $20.00 de gasto. singleLineReceiptFoldsExpenseIntoMovingAverage PASS.
+    phase: when
+    text: 10 units are received at $8.00 unit cost with $20.00 total expense on the order
+    attachments: *id002
+  - order: 3
+    status: passed
+    actual: Costo efectivo = 8.00 + 20.00/10 = $10.00. PASS.
+    phase: then
+    text: the effective unit cost is $10.00 (8.00 + 20.00/10)
+    attachments: *id002
+  - order: 4
+    status: passed
+    actual: 'El promedio queda en $10.00 y no en $8.00. PASS. Y en el camino de EDICION, antes roto: tras corregir una linea
+      recibida de $10 a $20, Current_Item_Cost__c = 20.00 (antes 15.00) y el gasto asignado suma 100.000000 (antes 50.000000).
+      Ver t2b-readback.txt.'
+    phase: then
+    text: the item's average cost becomes $10.00, not $8.00
+    attachments: *id001
+  notes: 'AC-2 AHORA SE CUMPLE EN LOS DOS CAMINOS. En TR-037 se cumplia en la recepcion pero NO en la edicion post-recepcion
+    (defecto SH-1200). El commit f1b460100d lo arregla y quedo VERIFICADO en org: el gasto ya no se descarta, la PO se re-prorratea
+    completa y el promedio queda en 20.00 donde antes quedaba en 15.00, con $0 de gasto huerfano contra $50 antes. Los numeros
+    coinciden exacto con la expectativa escrita en SH-1200. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy completo
+    de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES de correr
+    los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: A later receipt averages the newly landed cost against the existing average
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Tras PO-1: Current_Item_Cost__c = 12.00, Total_Stock__c = 10. ICH: unitCost=10.000000 allocExpense=20.000000
+      effectiveCost=12.000000.'
+    phase: given
+    text: item "Tote" has 10 on hand at average cost $10.00
+    attachments: &id003
+    - name: s2-result.txt
+      path: attachments/tr-040-tc-70/scenario-2/s2-result.txt
+      mimeType: text/plain
+  - order: 2
+    status: passed
+    actual: 'Segunda PO independiente con su propio gasto: 10 u @ $6.00 con $40.00 -> efectivo $10.00/u.'
+    phase: when
+    text: 10 more units are received at effective unit cost $6.00
+    attachments: *id003
+  - order: 3
+    status: passed
+    actual: 'Promedio = ((10 x 12.00) + (10 x 10.00)) / 20 = 11.00. Observado 11.00. El ICH de PO-2 encadena: prevCost=12.000000
+      cost=11.000000.'
+    phase: then
+    text: the new average cost is $8.00 ((10×10 + 10×6) / 20)
+    attachments: *id003
+  - order: 4
+    status: passed
+    actual: Total_Stock__c = 20. PASS.
+    phase: then
+    text: on hand is 20 after the receipt
+    attachments: *id003
+  notes: 'Brecha de AC-3 cubierta por QA, re-corrida en el org nuevo con numeros IDENTICOS a TR-037: PO-1 efectivo $12.00
+    y PO-2 efectivo $10.00 -> promedio $11.00. Delta 0, sin regresion. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy
+    completo de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES
+    de correr los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Item Cost History records the landed-cost breakdown linked to the order
+  scenarioIndex: 3
+  status: failed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Recibo posteado con gasto plegado al costo (escenarios idx 2 y 6 en org real).
+    phase: given
+    text: a receipt is posted with freight folded into cost
+    attachments: *id003
+  - order: 2
+    status: passed
+    actual: Los 3 campos existen en el org con precision=18 scale=6.
+    phase: when
+    text: the Item Cost History record for that receipt is opened
+    attachments:
+    - name: ich-field-scale-describe.txt
+      path: attachments/tr-040-tc-70/scenario-9/ich-field-scale-describe.txt
+      mimeType: text/plain
+  - order: 3
+    status: failed
+    actual: 'FAIL. El ICH persiste el desglose y resuelve hasta la orden originaria, pero los 3 campos NO estan en el page
+      layout, asi que al ABRIR el registro el usuario no ve nada del desglose. Layout desde el org: Cost__c, CreatedById,
+      Effective_At__c, LastModifiedById, Name, Previous_Cost__c, Previous_Stock__c, Shop_Item__c, Stock_Replenishment_Order__c,
+      Stock__c. Defecto SH-1202, sigue abierto.'
+    phase: then
+    text: it shows unit cost, allocated expense, and effective (landed) unit cost, linked to the originating order
+    attachments:
+    - name: layout-still-missing.txt
+      path: attachments/tr-040-tc-70/scenario-3/layout-still-missing.txt
+      mimeType: text/plain
+    - name: layout-fields-from-org.txt
+      path: attachments/tr-040-tc-70/scenario-3/layout-fields-from-org.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: Current_Item_Cost__c refleja el promedio landed (20.00 en el escenario idx 6, 12.00 tras PO-1). El Inventory Adjustment
+      toma snapshotCost landed 12.00 y merchandiseCost 36.00.
+    phase: then
+    text: Current Item Cost and Cost of Value on Inventory reflect the landed average, not the raw unit cost
+    attachments: &id004
+    - name: s5-result.txt
+      path: attachments/tr-040-tc-70/scenario-5/s5-result.txt
+      mimeType: text/plain
+  notes: 'SIGUE FALLANDO. SH-1202 permanece ABIERTO: el commit f1b460100d no toca ningun layout, y el layout retraido del
+    org nuevo tiene los MISMOS 10 campos que en TR-037, sin Unit_Cost__c, Allocated_Expense__c ni Effective_Cost__c. El dato
+    es correcto (los 5 campos Currency existen con scale 6 y se poblan bien), pero el AC-4 pide que el registro los MUESTRE
+    al abrirlo. Sin cambio de veredicto respecto de TR-037. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy completo
+    de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES de correr
+    los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+  defects:
+  - jiraKey: SH-1202
+    url: https://veevart.atlassian.net/browse/SH-1202
+    severity: Medium
+    summary: Landed-cost breakdown fields still absent from the Item Cost History page layout — unchanged by the SH-1200 fix
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Shop 1.0 cannot record a short receipt — the expense prorates over the full ordered quantity
+  scenarioIndex: 4
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Stock Replenishment Order con gasto en la PO, montado en org real en los escenarios idx 2, 5 y 6.
+    phase: given
+    text: a Stock Replenishment Order for 100 units carries a total order expense
+    attachments: *id003
+  - order: 2
+    status: passed
+    actual: Un solo campo de cantidad y 3 valores de picklist, ninguno de recepcion parcial. Evidencia de describe en TR-037
+      (attachments/tr-037-tc-70/scenario-4), no invalidada por este delta.
+    phase: given
+    text: Shop 1.0 models quantity with the single field Order_Amount__c — there is no separate received-quantity field —
+      and Order_Status__c offers only Draft, Ordered and Received - Complete, with no partial-receipt value
+    attachments: []
+  - order: 3
+    status: passed
+    actual: La orden pasa a Received - Complete, unica transicion de recepcion disponible.
+    phase: when
+    text: the order is moved to "Received - Complete"
+    attachments: []
+  - order: 4
+    status: passed
+    actual: 'El gasto se prorratea sobre el Order_Amount__c completo. Verificado en idx 6: $100 sobre las 10 unidades ordenadas.'
+    phase: then
+    text: the total expense is prorated over the full ordered quantity of 100 units, because a short receipt cannot be entered
+      on the purchase
+    attachments: &id005
+    - name: s6-result.txt
+      path: attachments/tr-040-tc-70/scenario-6/s6-result.txt
+      mimeType: text/plain
+  - order: 5
+    status: passed
+    actual: 'La compra nunca se recibe parcialmente ni se reabre: no hay estado que lo permita.'
+    phase: then
+    text: the purchase is never partially received or re-opened
+    attachments: []
+  notes: 'Sin cambios: el modelo de Shop 1.0 no permite recepcion corta. Un solo campo de cantidad (Order_Amount__c) y 3 valores
+    de picklist sin recepcion parcial. Verificado en TR-037 contra dos orgs, incluido UAT con el paquete gestionado. El delta
+    de esta corrida no toca el esquema de StockReplenishmentOrder. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy completo
+    de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES de correr
+    los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: A later Inventory Adjustment does not corrupt the landed average cost
+  scenarioIndex: 5
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Item recibido con gasto plegado: Current_Item_Cost__c = 12.00, stock 10, ICH con unitCost=10.000000 allocExpense=20.000000
+      effectiveCost=12.000000.'
+    phase: given
+    text: an item was received with an order expense already folded into its landed average cost
+    attachments: *id004
+  - order: 2
+    status: passed
+    actual: Inventory_Adjustment__c con Type = Adjustment, Reason = Damaged/Broken, Quantity = 3.
+    phase: when
+    text: a separate Inventory_Adjustment__c is posted to correct the on-hand quantity for units that never physically arrived
+    attachments: *id004
+  - order: 3
+    status: passed
+    actual: Stock corregido de 10 a 7. PASS.
+    phase: then
+    text: the item's on-hand quantity is corrected by the adjustment
+    attachments: *id004
+  - order: 4
+    status: passed
+    actual: Promedio landed INTACTO en 12.00. El ajuste toma snapshotCost = 12.00, el costo LANDED y no el crudo de 10.00,
+      y calcula merchandiseCost = 36.00 = 3 x 12.00. PASS.
+    phase: then
+    text: the landed average cost derived from the receipt is not recomputed, distorted or reset by the adjustment
+    attachments: *id004
+  - order: 5
+    status: passed
+    actual: 'Ningun ICH del recibo original se reescribe: la cadena post-ajuste queda identica. PASS.'
+    phase: then
+    text: no Item Cost History record created by the original receipt is rewritten by the adjustment
+    attachments: *id004
+  notes: 'Re-corrido en el org nuevo con numeros IDENTICOS a TR-037. Importante para esta corrida: el fix de SH-1200 introduce
+    un re-prorrateo de PO completa, asi que habia que confirmar que un ajuste posterior sigue sin disparar reconstruccion
+    de cadena. Confirmado: no la dispara. Delta 0. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy completo de la rama
+    en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES de correr los tests.
+    Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Every expense-module line (freight, tax, handling, duties, insurance) folds into cost with no exceptions
+  scenarioIndex: 6
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'PO con cinco lineas: Freight $10, Tax $20, Handling $30, Duties $15, Insurance $25.'
+    phase: given
+    text: a receipt has freight, tax, and handling entered as separate expense lines on the order
+    attachments: *id005
+  - order: 2
+    status: passed
+    actual: Linea de 10 u @ $10.00 recibida contra esa PO.
+    phase: when
+    text: the order is received
+    attachments: *id005
+  - order: 3
+    status: passed
+    actual: 'Los cinco tipos se suman y se prorratean: allocExpense=100.000000, effectiveCost=20.000000 = 10 + 100/10.'
+    phase: then
+    text: all three expense lines are summed into total_expense and prorated into the effective unit cost
+    attachments: *id005
+  - order: 4
+    status: passed
+    actual: 'Ninguno excluido: Current_Item_Cost__c = 20.00 exacto. Sin filtro por clasificacion recuperable / no recuperable.'
+    phase: then
+    text: none of the three expense types is excluded from the landed average, regardless of recoverable/non-recoverable classification
+    attachments: *id005
+  notes: 'Re-corrido en el org nuevo con numeros IDENTICOS a TR-037: los 5 tipos de gasto del ticket como lineas separadas
+    suman Total_Expenses = 100.00 y aterrizan en allocExpense 100.000000 / effectiveCost 20.000000. Delta 0. Org sh1174qa2
+    (test-8lxraxspa7cm@example.com), deploy completo de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets
+    auctifera y Veevart asignados ANTES de correr los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28
+    PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Zero total expense leaves the effective unit cost unchanged
+  scenarioIndex: 7
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Recibo con gasto total de $0.
+    phase: given
+    text: a receipt has a total order expense of $0
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: La orden se recibe.
+    phase: when
+    text: the order is received
+    attachments: []
+  - order: 3
+    status: passed
+    actual: No se asigna gasto a ninguna linea. PASS.
+    phase: then
+    text: no expense is allocated to any line
+    attachments: *id002
+  - order: 4
+    status: passed
+    actual: Costo efectivo = costo crudo en todas las lineas. Ademas el ruteo del trigger manda estas lineas al camino angosto,
+      sin encolar job. PASS.
+    phase: then
+    text: the effective unit cost equals the raw unit cost for every line
+    attachments: *id002
+  notes: 'AC-7 sin cambios y REFORZADO por el delta: zeroExpenseLeavesUnitCostUnchanged y lineWithoutPurchaseOrderLandsOnRawCost
+    siguen PASS, y el test nuevo editingReceivedLineWithoutExpenseKeepsRawNarrowScope confirma que una PO sin gasto conserva
+    el camino angosto crudo, donde crudo == landed. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy completo de la rama
+    en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES de correr los tests.
+    Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Per-line expense allocations reconcile exactly to the total expense despite rounding
+  scenarioIndex: 8
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Recibo cuyo gasto no divide exacto.
+    phase: given
+    text: any receipt with a total order expense that does not divide evenly across received line values
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: Se computan las asignaciones por linea.
+    phase: when
+    text: the order is received and per-line allocations are computed
+    attachments: []
+  - order: 3
+    status: passed
+    actual: 'La suma iguala EXACTO el gasto total. Verificado en el re-prorrateo de la edicion: 66.666667 + 33.333333 = 100.000000.'
+    phase: then
+    text: the sum of all per-line allocated expense equals the total expense exactly, with no rounding loss
+    attachments: *id001
+  - order: 4
+    status: passed
+    actual: El residuo de redondeo va a la linea de mayor valor asignado. PASS.
+    phase: then
+    text: any rounding remainder is assigned to the line with the largest allocated value
+    attachments: *id002
+  notes: 'AC-8 sin cambios: allocationsReconcileExactlyWithRoundingRemainder PASS. Reforzado en org por el fix: tras el re-prorrateo
+    de la edicion, 66.666667 + 33.333333 = 100.000000 exacto contra Total_Expenses = 100.00, con $0 huerfanos. Org sh1174qa2
+    (test-8lxraxspa7cm@example.com), deploy completo de la rama en el head f1b460100d: 12427 componentes, 0 errores, permsets
+    auctifera y Veevart asignados ANTES de correr los tests. Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28
+    PASS.'
+- testCaseId: 87339977-18fe-4c40-9633-68762de86658
+  testCaseKey: TC-70
+  testCaseTitle: Order expenses are prorated by value and folded into the item's average cost (landed cost)
+  testCaseFilePath: test-cases/SH-1174/SH-1174-TC-70-landed-cost-expense-proration.testcase.yml
+  scenarioTitle: Worked example — two-line receipt with $100 freight allocates $94.74 / $5.26 by value
+  scenarioIndex: 9
+  status: passed
+  executedAt: '2026-08-19T15:10:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Linea A $720.00 y linea B $40.00 con $100.00 de gasto.
+    phase: given
+    text: a receipt has line A "Exhibition catalogue" at $12.00 unit cost × 60 qty ($720.00 value) and line B "Museum tote"
+      at $4.00 unit cost × 10 qty ($40.00 value), with a total order expense of $100.00
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: La orden se recibe.
+    phase: when
+    text: the order is received
+    attachments: []
+  - order: 3
+    status: passed
+    actual: A recibe $94.74 y B $5.26, suman exacto $100.00. PASS.
+    phase: then
+    text: line A is allocated $94.74 (100 × 720/760) and line B is allocated $5.26 (100 × 40/760), summing exactly to $100.00
+    attachments: *id002
+  - order: 4
+    status: passed
+    actual: Efectivo A = $13.58 y B = $4.53. PASS.
+    phase: then
+    text: line A's effective unit cost is $13.58 (12.00 + 94.74/60) and line B's is $4.53 (4.00 + 5.26/10)
+    attachments: *id002
+  - order: 5
+    status: passed
+    actual: 'Ambos arrancan en 0, su promedio iguala su costo efectivo: $13.58 (60) y $4.53 (10). PASS.'
+    phase: then
+    text: 'both items start from 0 on hand, so their new average cost equals their effective unit cost: $13.58 for A (60 on
+      hand) and $4.53 for B (10 on hand)'
+    attachments: *id002
+  notes: 'El ejemplo trabajado del ticket sigue implementado y PASS: twoLineReceiptProratesExpenseByValue con 60 u @ $12.00
+    y 10 u @ $4.00 y $100 de flete -> $94.74 / $5.26. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy completo de la
+    rama en el head f1b460100d: 12427 componentes, 0 errores, permsets auctifera y Veevart asignados ANTES de correr los tests.
+    Suite del dev: 20/20 PASS mas ItemCostHistoryServiceTest 28/28 PASS.'
+summary:
+  total: 10
+  passed: 9
+  failed: 1
+  blocked: 0
+  skipped: 0
+  notRun: 0
+history:
+- action: created
+  timestamp: '2026-08-19T13:30:00.000Z'
+  user: angie.montenegro@veevart.com
+  to: planned
+- action: status-changed
+  timestamp: '2026-08-19T13:35:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: planned
+  to: in-progress
+  reason: 'Head nuevo f1b460100d: verificar el fix de SH-1200 y re-confirmar SH-1202'
+- action: status-changed
+  timestamp: '2026-08-19T15:10:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: in-progress
+  to: completed
+  reason: SH-1200 verificado arreglado; SH-1202 sigue abierto
+metadata:
+  parentTicket: SH-1174
+  qaSubTask: SH-1180
+  pullRequest: https://github.com/Veevarts/AuctiferaDX/pull/2585
+  headUnderTest: f1b460100d
+  previousRun: TR-037 (head 6f0cff23c8, 9/10, defectos SH-1200 y SH-1202)
+  org: sh1174qa2 / test-8lxraxspa7cm@example.com
+  defects:
+  - jiraKey: SH-1202
+    url: https://veevart.atlassian.net/browse/SH-1202
+    severity: Medium
+    status: ABIERTO — el commit no toca ningun layout
+    regressionItem: R2 / scenario idx 3
+  defectsResolved:
+  - jiraKey: SH-1200
+    url: https://veevart.atlassian.net/browse/SH-1200
+    verifiedFixedIn: f1b460100d
+    evidence: attachments/tr-040-tc-70/t2b-readback.txt
+  attachmentsPath: attachments/tr-040-tc-70

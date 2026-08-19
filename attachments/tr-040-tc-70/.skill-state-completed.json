@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1174",
+  "tcKey": "TC-70",
+  "trKey": "TR-040",
+  "prNumber": 2585,
+  "startedAt": "2026-08-19T13:30:00Z",
+  "lastUpdated": "2026-08-19T15:15:00Z",
+  "status": "completed",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "currentStep": 12,
+  "data": {
+    "priorRuns": [
+      {
+        "trKey": "TR-036",
+        "pr": 2567,
+        "note": "PR cerrada y superseded"
+      },
+      {
+        "trKey": "TR-037",
+        "pr": 2585,
+        "head": "6f0cff23c8",
+        "result": "9/10, defectos SH-1200 y SH-1202"
+      }
+    ],
+    "headUnderTest": "f1b460100d",
+    "headPreviouslyValidated": "6f0cff23c8",
+    "keyCollision": "TR-038 y TR-039 ya estaban tomadas en main (re-corridas de SH-1129 y SH-1169 en UAT, PR #21/#22). Se uso TR-040.",
+    "org": {
+      "alias": "sh1174qa2",
+      "username": "test-8lxraxspa7cm@example.com",
+      "orgId": "00DO900000XcfOv",
+      "deploy": "12427 componentes, 0 errores",
+      "permsets": [
+        "auctifera",
+        "Veevart"
+      ],
+      "permsetOrder": "asignados ANTES de correr tests"
+    },
+    "tests": {
+      "suite": "20/20 PASS",
+      "itemCostHistoryServiceTest": "28/28 PASS",
+      "asyncRunStuck": "el run asincrono 707O900003ALFcX quedo Queued 40+ min; se re-corrio por clase con --synchronous"
+    },
+    "scenarioResults": [
+      {
+        "scenarioIndex": 0,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 1,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 2,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 3,
+        "status": "failed"
+      },
+      {
+        "scenarioIndex": 4,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 5,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 6,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 7,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 8,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 9,
+        "status": "passed"
+      }
+    ],
+    "regression": {
+      "technical": {
+        "pass": 7,
+        "fail": 1
+      },
+      "security": {
+        "findings": 0
+      }
+    },
+    "owasp": {
+      "applicable": 5,
+      "pass": 5,
+      "fail": 0,
+      "na": 5
+    },
+    "defectsResolved": [
+      {
+        "jiraKey": "SH-1200",
+        "verifiedFixedIn": "f1b460100d",
+        "evidence": "t2b-readback.txt"
+      }
+    ],
+    "defectsOpen": [
+      {
+        "jiraKey": "SH-1202",
+        "reason": "el commit no toca ningun layout"
+      }
+    ],
+    "observations": [
+      {
+        "id": "OBS-1",
+        "summary": "El recalculo de la edicion de SRO es asincrono; leer en la misma ejecucion da un FALSO FAIL. Script partido en T2 (monta+edita) y T2b (lee tras Status=Completed).",
+        "filed": false
+      }
+    ],
+    "processFinding": "Asignar permsets ANTES de correr la suite: en TR-037 correrlos despues produjo 24 fallas espurias en ItemCostHistoryServiceTest."
+  }
+}

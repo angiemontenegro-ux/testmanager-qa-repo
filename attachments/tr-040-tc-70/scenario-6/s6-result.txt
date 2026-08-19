@@ -1,0 +1,8 @@
+=== SH-1174 S6 :: GASTOS EN LA PO ===
+5 lineas de gasto (Freight 10, Tax 20, Handling 30, Duties 15, Insurance 25)
+Total_Expenses__c = 100.00 (esperado 100.00 — ningun tipo excluido del rollup)
+=== SH-1174 S6 :: DESPUES DE RECIBIR ===
+Current_Item_Cost__c = 20.00 (esperado 20.00 = 10 + 100/10)
+Total_Stock__c       = 10 (esperado 10)
+ICH cost=20.000000 unitCost=10.000000 allocExpense=100.000000 (esperado 100.00) effectiveCost=20.000000
+=== VEREDICTO S6: PASS — los 5 tipos de gasto entran al costo landed ===

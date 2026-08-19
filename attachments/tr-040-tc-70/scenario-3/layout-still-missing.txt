@@ -1,0 +1,24 @@
+SH-1202 — RE-CONFIRMADO en el head f1b460100d: el layout SIGUE sin los 3 campos.
+Ejecutado: 2026-08-19. Org sh1174qa2 (test-8lxraxspa7cm@example.com), deploy 12427 componentes, 0 errores.
+
+El commit f1b460100d (el fix de SH-1200) NO toca ningun layout:
+  $ git diff --name-only 6f0cff23c8 f1b460100d | grep -i layout   ->  (vacio)
+
+Layout retraido DEL org con el head nuevo desplegado:
+  Cost__c
+  CreatedById
+  Effective_At__c
+  LastModifiedById
+  Name
+  Previous_Cost__c
+  Previous_Stock__c
+  Shop_Item__c
+  Stock_Replenishment_Order__c
+  Stock__c
+
+  -> 10 campos, IDENTICO a lo observado en TR-037. Ausentes: Unit_Cost__c,
+     Allocated_Expense__c y Effective_Cost__c.
+
+Los campos SI existen y SI se poblan (ver scenario-9/ich-describe y los escenarios 2/5/6),
+pero el AC-4 pide que el registro los MUESTRE al abrirlo. Sigue incumplido.
+SH-1202 permanece ABIERTO. Sin cambio de veredicto respecto de TR-037.

@@ -1,0 +1,28 @@
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+=== Test Results
+TEST NAME                                                                                              OUTCOME  MESSAGE  RUNTIME (MS)
+─────────────────────────────────────────────────────────────────────────────────────────────────────  ───────  ───────  ────────────
+Auctifera.EditReceivedLineReproratesCostTest.editingMultipleLinesOfSamePurchaseOrderEnqueuesSingleJob  Pass              4067        
+Auctifera.EditReceivedLineReproratesCostTest.editingOneLineReproratesEveryReceivedLineByValue          Pass              2336        
+Auctifera.EditReceivedLineReproratesCostTest.editingReceivedLineCostReproratesTheExpense               Pass              2542        
+Auctifera.EditReceivedLineReproratesCostTest.editingReceivedLineWithoutExpenseKeepsRawNarrowScope      Pass              2455        
+
+
+
+
+=== Test Summary
+NAME                 VALUE                        
+───────────────────  ─────────────────────────────
+Outcome              Passed                       
+Tests Ran            4                            
+Pass Rate            100%                         
+Fail Rate            0%                           
+Skip Rate            0%                           
+Test Run Id                                       
+Test Setup Time      0 ms                         
+Test Execution Time  11545 ms                     
+Test Total Time      11545 ms                     
+Org Id               00DO900000XcfOvMAJ           
+Username             test-8lxraxspa7cm@example.com
+
+EXIT=0

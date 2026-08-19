@@ -1,0 +1,11 @@
+=== T2b :: ESTADO DEL JOB ASINCRONO ===
+Status=Completed | ExtendedStatus=null | creado=2026-08-19 14:36:03
+=== T2b :: CADENA DE ICH DESPUES DEL RECALCULO ===
+linea con Item_Cost=20.00 | prevCost=0.000000 | cost=26.666667 | stock=10 | unitCost=20.000000 | allocExpense=66.666667 | effectiveCost=26.666667
+linea con Item_Cost=10.00 | prevCost=26.666667 | cost=20.000000 | stock=20 | unitCost=10.000000 | allocExpense=33.333333 | effectiveCost=13.333333
+=== T2b :: VEREDICTO ===
+Current_Item_Cost__c = 20.00 (esperado 20.00)
+Total_Stock__c       = 20 (esperado 20)
+Gasto asignado en la cadena = 100.000000 (esperado 100.00)
+Gasto HUERFANO = 0.000000 (esperado 0.00)
+VEREDICTO T2b (fix de SH-1200): PASS

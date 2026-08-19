@@ -1,0 +1,89 @@
+########## LandedCostAllocatorTest ##########
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+=== Test Results
+TEST NAME                                                                           OUTCOME  MESSAGE  RUNTIME (MS)
+──────────────────────────────────────────────────────────────────────────────────  ───────  ───────  ────────────
+Auctifera.LandedCostAllocatorTest.allocationsReconcileExactlyWithRoundingRemainder  Pass              2555        
+Auctifera.LandedCostAllocatorTest.fallsBackToQuantityWhenTotalValueIsZero           Pass              1525        
+Auctifera.LandedCostAllocatorTest.lineWithoutPurchaseOrderLandsOnRawCost            Pass              1065        
+Auctifera.LandedCostAllocatorTest.proratesByValueAcrossLines                        Pass              1460        
+Auctifera.LandedCostAllocatorTest.zeroExpenseLeavesUnitCostUnchanged                Pass              4941        
+
+
+
+
+=== Test Summary
+NAME                 VALUE                        
+───────────────────  ─────────────────────────────
+Outcome              Passed                       
+Tests Ran            5                            
+Pass Rate            100%                         
+Fail Rate            0%                           
+Skip Rate            0%                           
+Test Run Id                                       
+Test Setup Time      0 ms                         
+Test Execution Time  11558 ms                     
+Test Total Time      11558 ms                     
+Org Id               00DO900000XcfOvMAJ           
+Username             test-8lxraxspa7cm@example.com
+
+########## LandedCostOnReceiptTest ##########
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+=== Test Results
+TEST NAME                                                                                 OUTCOME  MESSAGE  RUNTIME (MS)
+────────────────────────────────────────────────────────────────────────────────────────  ───────  ───────  ────────────
+Auctifera.LandedCostOnReceiptTest.addingExpenseAfterReceiptReproratesLandedCost           Pass              4832        
+Auctifera.LandedCostOnReceiptTest.addingExpenseRebuildsMultiReceiptChain                  Pass              2272        
+Auctifera.LandedCostOnReceiptTest.bulkReceiptStaysWithinGovernorLimits                    Pass              17024       
+Auctifera.LandedCostOnReceiptTest.sameItemSequentialReceiptsRebuildTheMovingAverageChain  Pass              2995        
+Auctifera.LandedCostOnReceiptTest.sequentialReceiptProratesExpenseAcrossAllReceivedLines  Pass              2504        
+Auctifera.LandedCostOnReceiptTest.singleLineReceiptFoldsExpenseIntoMovingAverage          Pass              1755        
+Auctifera.LandedCostOnReceiptTest.storedAverageKeepsFullPrecisionWhileDisplayRoundsToTwo  Pass              1744        
+Auctifera.LandedCostOnReceiptTest.twoLineReceiptProratesExpenseByValue                    Pass              2171        
+Auctifera.LandedCostOnReceiptTest.variantReceiptFoldsExpenseIntoVariantCost               Pass              3260        
+
+
+
+
+=== Test Summary
+NAME                 VALUE                        
+───────────────────  ─────────────────────────────
+Outcome              Passed                       
+Tests Ran            9                            
+Pass Rate            100%                         
+Fail Rate            0%                           
+Skip Rate            0%                           
+Test Run Id                                       
+Test Setup Time      0 ms                         
+Test Execution Time  38647 ms                     
+Test Total Time      38647 ms                     
+Org Id               00DO900000XcfOvMAJ           
+Username             test-8lxraxspa7cm@example.com
+
+########## ICHCostCalculationServiceTest ##########
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+=== Test Results
+TEST NAME                                                                                        OUTCOME  MESSAGE  RUNTIME (MS)
+───────────────────────────────────────────────────────────────────────────────────────────────  ───────  ───────  ────────────
+Auctifera.ICHCostCalculationServiceTest.calculateWACWithPreviousICHReturnsWAC                    Pass              34          
+Auctifera.ICHCostCalculationServiceTest.calculateWACWithoutPreviousSnapshotUsesIncomingUnitCost  Pass              22          
+
+
+
+
+=== Test Summary
+NAME                 VALUE                        
+───────────────────  ─────────────────────────────
+Outcome              Passed                       
+Tests Ran            2                            
+Pass Rate            100%                         
+Fail Rate            0%                           
+Skip Rate            0%                           
+Test Run Id                                       
+Test Setup Time      0 ms                         
+Test Execution Time  68 ms                        
+Test Total Time      68 ms                        
+Org Id               00DO900000XcfOvMAJ           
+Username             test-8lxraxspa7cm@example.com
+
+EXIT=0

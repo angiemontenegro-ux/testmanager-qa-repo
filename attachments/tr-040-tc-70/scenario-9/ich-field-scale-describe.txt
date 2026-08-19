@@ -1,0 +1,11 @@
+=== Campos Currency de Item_Cost_History__c en el org sh1174qa2 (head f1b460100d) ===
+
+  Auctifera__Allocated_Expense__c        type=currency  precision=18 scale=6
+  Auctifera__Cost__c                     type=currency  precision=18 scale=6
+  Auctifera__Effective_Cost__c           type=currency  precision=18 scale=6
+  Auctifera__Previous_Cost__c            type=currency  precision=18 scale=6
+  Auctifera__Unit_Cost__c                type=currency  precision=18 scale=6
+
+Los 5 campos presentes con scale 6. Sin cambios respecto de TR-037.
+Nota: visibles solo despues de asignar los permsets auctifera y Veevart — un deploy plano
+los deja sin FLS y el describe/SOQL los reporta como inexistentes.

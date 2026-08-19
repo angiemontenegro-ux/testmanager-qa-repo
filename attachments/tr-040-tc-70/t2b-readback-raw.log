@@ -1,0 +1,109 @@
+ ›   Warning: @salesforce/cli update available from 2.131.7 to 2.147.7.
+Compiled successfully.
+Executed successfully.
+
+67.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO
+Execute Anonymous: // SH-1174 / TR-040 — lectura del resultado de T2 DESPUES de que corra el recalculo asincrono.
+Execute Anonymous: // Correr solo cuando LandedCostExpenseRecalcQueueable este en Completed.
+Execute Anonymous: //
+Execute Anonymous: // Montaje que dejo T2: PO con $100 de flete, linea A 10u @ $10 -> editada a $20, linea B 10u @ $10.
+Execute Anonymous: // Esperado por AC-1/AC-2 tras el fix de SH-1200 (nuevos valores A=$200, B=$100, total $300):
+Execute Anonymous: //   linea A: gasto 100 x 200/300 = 66.666667 -> efectivo 20 + 6.666667 = 26.666667
+Execute Anonymous: //   linea B: gasto 100 x 100/300 = 33.333333 -> efectivo 10 + 3.333333 = 13.333333
+Execute Anonymous: //   promedio final = ((10 x 26.666667) + (10 x 13.333333)) / 20 = 20.00
+Execute Anonymous: //   gasto huerfano = 0.00
+Execute Anonymous: 
+Execute Anonymous: List<Auctifera__CatalogItem__c> items = [
+Execute Anonymous:     SELECT Id, Auctifera__Product_ID__c, Auctifera__Current_Item_Cost__c, Auctifera__Total_Stock__c
+Execute Anonymous:     FROM Auctifera__CatalogItem__c
+Execute Anonymous:     WHERE Auctifera__Product_ID__c LIKE 'QA-1174-T2-%'
+Execute Anonymous:     ORDER BY CreatedDate DESC
+Execute Anonymous:     LIMIT 1
+Execute Anonymous: ];
+Execute Anonymous: if (items.isEmpty()) {
+Execute Anonymous:     System.debug('=== T2b: no hay item de montaje. Correr primero T2. ===');
+Execute Anonymous:     return;
+Execute Anonymous: }
+Execute Anonymous: Auctifera__CatalogItem__c item = items[0];
+Execute Anonymous: 
+Execute Anonymous: List<AsyncApexJob> jobs = [
+Execute Anonymous:     SELECT Status, ExtendedStatus, CreatedDate FROM AsyncApexJob
+Execute Anonymous:     WHERE JobType = 'Queueable' AND ApexClass.Name = 'LandedCostExpenseRecalcQueueable'
+Execute Anonymous:     ORDER BY CreatedDate DESC LIMIT 1
+Execute Anonymous: ];
+Execute Anonymous: System.debug('=== T2b :: ESTADO DEL JOB ASINCRONO ===');
+Execute Anonymous: System.debug(jobs.isEmpty() ? 'NO hay job (ojo: la PO puede no tener gasto, o cayo al fallback sincrono)'
+Execute Anonymous:     : 'Status=' + jobs[0].Status + ' | ExtendedStatus=' + jobs[0].ExtendedStatus + ' | creado=' + jobs[0].CreatedDate);
+Execute Anonymous: 
+Execute Anonymous: Decimal allocated = 0;
+Execute Anonymous: System.debug('=== T2b :: CADENA DE ICH DESPUES DEL RECALCULO ===');
+Execute Anonymous: for (Auctifera__Item_Cost_History__c ich : [
+Execute Anonymous:         SELECT Auctifera__Cost__c, Auctifera__Previous_Cost__c, Auctifera__Stock__c,
+Execute Anonymous:                Auctifera__Unit_Cost__c, Auctifera__Allocated_Expense__c, Auctifera__Effective_Cost__c,
+Execute Anonymous:                Auctifera__Stock_Replenishment_Order__r.Auctifera__Item_Cost__c
+Execute Anonymous:         FROM Auctifera__Item_Cost_History__c
+Execute Anonymous:         WHERE Auctifera__Shop_Item__c = :item.Id
+Execute Anonymous:         ORDER BY Auctifera__Effective_At__c ASC, CreatedDate ASC]) {
+Execute Anonymous:     System.debug('linea con Item_Cost=' + ich.Auctifera__Stock_Replenishment_Order__r.Auctifera__Item_Cost__c +
+Execute Anonymous:         ' | prevCost=' + ich.Auctifera__Previous_Cost__c + ' | cost=' + ich.Auctifera__Cost__c +
+Execute Anonymous:         ' | stock=' + ich.Auctifera__Stock__c + ' | unitCost=' + ich.Auctifera__Unit_Cost__c +
+Execute Anonymous:         ' | allocExpense=' + ich.Auctifera__Allocated_Expense__c + ' | effectiveCost=' + ich.Auctifera__Effective_Cost__c);
+Execute Anonymous:     allocated += (ich.Auctifera__Allocated_Expense__c == null ? 0 : ich.Auctifera__Allocated_Expense__c);
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: System.debug('=== T2b :: VEREDICTO ===');
+Execute Anonymous: System.debug('Current_Item_Cost__c = ' + item.Auctifera__Current_Item_Cost__c + ' (esperado 20.00)');
+Execute Anonymous: System.debug('Total_Stock__c       = ' + item.Auctifera__Total_Stock__c + ' (esperado 20)');
+Execute Anonymous: System.debug('Gasto asignado en la cadena = ' + allocated + ' (esperado 100.00)');
+Execute Anonymous: System.debug('Gasto HUERFANO = ' + (100 - allocated) + ' (esperado 0.00)');
+Execute Anonymous: Boolean pass = item.Auctifera__Current_Item_Cost__c == 20.00 && allocated.setScale(2) == 100.00;
+Execute Anonymous: System.debug('VEREDICTO T2b (fix de SH-1200): ' + (pass ? 'PASS' : 'FAIL'));
+07:49:22.46 (46331946)|EXECUTION_STARTED
+07:49:22.46 (46360535)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+07:49:22.46 (99988738)|USER_DEBUG|[29]|DEBUG|=== T2b :: ESTADO DEL JOB ASINCRONO ===
+07:49:22.46 (100292183)|USER_DEBUG|[30]|DEBUG|Status=Completed &#124; ExtendedStatus=null &#124; creado=2026-08-19 14:36:03
+07:49:22.46 (100364719)|USER_DEBUG|[34]|DEBUG|=== T2b :: CADENA DE ICH DESPUES DEL RECALCULO ===
+07:49:22.46 (128866661)|USER_DEBUG|[42]|DEBUG|linea con Item_Cost=20.00 &#124; prevCost=0.000000 &#124; cost=26.666667 &#124; stock=10 &#124; unitCost=20.000000 &#124; allocExpense=66.666667 &#124; effectiveCost=26.666667
+07:49:22.46 (129037563)|USER_DEBUG|[42]|DEBUG|linea con Item_Cost=10.00 &#124; prevCost=26.666667 &#124; cost=20.000000 &#124; stock=20 &#124; unitCost=10.000000 &#124; allocExpense=33.333333 &#124; effectiveCost=13.333333
+07:49:22.46 (129079002)|USER_DEBUG|[49]|DEBUG|=== T2b :: VEREDICTO ===
+07:49:22.46 (129111842)|USER_DEBUG|[50]|DEBUG|Current_Item_Cost__c = 20.00 (esperado 20.00)
+07:49:22.46 (129136418)|USER_DEBUG|[51]|DEBUG|Total_Stock__c       = 20 (esperado 20)
+07:49:22.46 (129151510)|USER_DEBUG|[52]|DEBUG|Gasto asignado en la cadena = 100.000000 (esperado 100.00)
+07:49:22.46 (129197701)|USER_DEBUG|[53]|DEBUG|Gasto HUERFANO = 0.000000 (esperado 0.00)
+07:49:22.46 (129283589)|USER_DEBUG|[55]|DEBUG|VEREDICTO T2b (fix de SH-1200): PASS
+07:49:22.129 (129364275)|CUMULATIVE_LIMIT_USAGE
+07:49:22.129 (129364275)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+07:49:22.129 (129364275)|LIMIT_USAGE_FOR_NS|Auctifera|
+  Number of SOQL queries: 3 out of 100
+  Number of query rows: 4 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+07:49:22.129 (129364275)|CUMULATIVE_LIMIT_USAGE_END
+
+07:49:22.46 (129431055)|CODE_UNIT_FINISHED|execute_anonymous_apex
+07:49:22.46 (129444497)|EXECUTION_FINISHED
+

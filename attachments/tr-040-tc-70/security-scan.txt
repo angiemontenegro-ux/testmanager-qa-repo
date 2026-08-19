@@ -1,0 +1,29 @@
+SECURITY SCAN — delta f1b460100d vs 6f0cff23c8 (el fix de SH-1200), TR-040
+Ejecutado: 2026-08-19. 6 archivos, +515/-183.
+Barrido completo de la PR ya cubierto en TR-037; aqui solo el DELTA nuevo.
+
+--- [1] Inyeccion SOQL: consultas dinamicas / concatenacion ---
+  NINGUNA. El SOQL nuevo (getPurchaseOrderIdsWithExpenses) es estatico con bind.
+
+--- [2] Secretos / credenciales ---
+  NINGUNO.
+
+--- [3] PII en logs ---
+  NINGUNO nuevo.
+
+--- [4] Sharing / FLS / AccessLevel ---
++public with sharing class EditReceivedLineReproratesCostTest {
+
+--- [5] Perfiles / permission sets / layouts ---
+  NINGUNO tocado. (Nota: que NO toque layout es justo lo que mantiene SH-1202 abierto.)
+
+--- [6] Dependencias ---
+  NINGUNA.
+
+--- [7] Callouts / SSRF ---
+  NINGUNO.
+
+--- [8] Deserializacion / ejecucion dinamica ---
+  NINGUNA.
+
+CONCLUSION: el delta no abre ninguna superficie de seguridad nueva. 0 hallazgos.

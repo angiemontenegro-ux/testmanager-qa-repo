@@ -1,0 +1,34 @@
+PLAN DE REGRESION — TR-040 / TC-70 / SH-1174 / PR #2585 head f1b460100d
+Elaborado 2026-08-19, ANTES de ejecutar. Veredictos en regression-results.txt.
+
+CONTEXTO: TR-037 valido el head 6f0cff23c8 y dejo 2 defectos (SH-1200 y SH-1202). El dev empujo
+f1b460100d ("re-prorate PO expenses when a received line is edited"), 6 archivos, +515/-183.
+Esta corrida verifica el fix y re-confirma que SH-1202 sigue abierto. El barrido completo de la PR
+ya esta en TR-037; aqui el foco es el delta y lo que el delta puede romper.
+
+QUE HACE EL FIX (leido del codigo, no del commit message)
+StockReplenishmentOrderTriggerHandler ahora ENRUTA las lineas editadas en dos caminos:
+  - Si la PO de la linea tiene Total_Expenses > 0 -> re-prorratea la PO COMPLETA via
+    LandedCostExpenseRecalcQueueable.enqueue(). Ya no usa el recompute angosto que ponia
+    Allocated_Expense = 0.
+  - Si la linea no tiene PO, o la PO tiene gasto cero -> conserva el alcance angosto crudo.
+    Ahi crudo == landed, y el alcance angosto sigue protegiendo recibos hermanos, baselines de
+    activacion y ajustes manuales (lo que pedia MED #4).
+La decision de ruteo se toma con UN SOQL bulk (getPurchaseOrderIdsWithExpenses).
+Ademas el dedup por transaccion y el fallback sincrono se CONSOLIDARON en un unico dueño:
+LandedCostExpenseRecalcQueueable.enqueue(), compartido ahora por el camino de PO y el de SRO.
+
+| # | Item | Riesgo | Metodo de verificacion |
+|---|------|--------|------------------------|
+| R1 | El fix de SH-1200: editar el costo de una linea recibida debe re-prorratear la PO completa y NO descartar el gasto. | ALTO | Re-correr el script exacto que reprodujo el defecto (validateLandedCostSH1174-T2-editDropsExpense.apex) en org nuevo. Antes: allocExpense 0, promedio 15.00, $50 huerfanos. Debe pasar a: gasto conservado, promedio 20.00, $0 huerfanos. |
+| R2 | SH-1202: el layout sigue sin los 3 campos. | ALTO | Retraer el layout DEL org nuevo y diff contra los 10 campos de TR-037. Esperado: identico, sigue FAIL. |
+| R3 | El alcance angosto de MED #4 debe seguir vivo para PO sin gasto: editar una linea NO debe reescribir recibos hermanos ni baselines. | ALTO | Test del dev editingReceivedLineWithoutExpenseKeepsRawNarrowScope + revisar el ruteo en codigo. |
+| R4 | CAMBIO DE SINCRONO A ASINCRONO en el camino de edicion de SRO. Antes el recompute corria inline; ahora, para POs con gasto, corre en un Queueable. En la UI el usuario guarda y puede ver el costo viejo hasta que el job termine (consistencia eventual). | MEDIO | Confirmar que los tests envuelven en Test.startTest/stopTest (drena el job). Documentar el comportamiento en la UI como riesgo de percepcion, no como defecto de datos. |
+| R5 | El dedup ahora es COMPARTIDO entre el camino de PO y el de SRO en la misma transaccion (handledPurchaseOrderIds). Si un cambio de gasto y una edicion de linea ocurren juntos, solo corre UN recompute. | MEDIO | Test del dev editingMultipleLinesOfSamePurchaseOrderEnqueuesSingleJob. Verificar que el job lee estado COMMITEADO, con lo cual un solo recompute al final es correcto y no pierde ninguno de los dos cambios. |
+| R6 | Doble trabajo: las lineas enrutadas al re-prorrateo NO deben pasar tambien por el recompute angosto. | MEDIO | Leer el early-return de rawScopeOrders y confirmar que las listas son disjuntas. |
+| R7 | Regresion de los 15 tests que ya pasaban en TR-037. El delta BORRA 93 lineas de LandedCostOnReceiptTest (el test que fijaba el comportamiento malo) y agrega una clase nueva de 4 tests. | ALTO | Correr la suite completa en el org nuevo: LandedCostAllocatorTest, LandedCostOnReceiptTest, EditReceivedLineReproratesCostTest, ICHCostCalculationServiceTest. |
+| R8 | Escenarios ya verdes en TR-037 que tocan los mismos caminos (recepcion, segunda PO, ajuste de inventario, 5 tipos de gasto). | MEDIO | Re-correr los 3 scripts de QA (S2, S5, S6) en el org nuevo. Delta esperado: 0. |
+
+SEGURIDAD: barrido del delta en security-scan.txt. 0 hallazgos, no abre superficie nueva.
+OWASP: el perfil de la PR no cambia (sigue sin UI, sin API publica, sin callouts, sin dependencias).
+Se re-decide igual en owasp-top10-scan.txt.

@@ -1,0 +1,25 @@
+OWASP TOP 10 (2021) — BARRIDO DE APLICABILIDAD — TR-040 / SH-1174 / PR #2585 head f1b460100d
+Ejecutado: 2026-08-19.
+
+ALCANCE: el barrido completo de la PR esta en TR-037 (attachments/tr-037-tc-70/owasp-top10-scan.txt).
+Aqui se re-decide cada categoria contra el DELTA nuevo (6 archivos, +515/-183: ruteo en el trigger de
+SRO, consolidacion del enqueue/dedup/fallback en el Queueable, una clase de test nueva, y el borrado
+del test que fijaba el comportamiento de SH-1200).
+El perfil de la PR NO cambia: sigue sin UI, sin API publica, sin callouts y sin dependencias.
+
+| ID  | Riesgo                          | Aplica | Metodo de verificacion                                | Veredicto | Evidencia / Justificacion |
+|-----|---------------------------------|--------|-------------------------------------------------------|-----------|---------------------------|
+| A01 | Broken Access Control           | Si     | Revision de sharing, AccessLevel y cambios de permisos | PASS      | El delta no cambia ninguna declaracion de acceso. La clase de test nueva declara `with sharing`. Las escrituras siguen siendo las mismas de TR-037 (Database.update en SYSTEM_MODE sobre Item_Cost_History__c, patron preexistente a SH-1174). El delta NO toca perfiles, permission sets, sharing rules ni layouts. |
+| A02 | Cryptographic Failures          | No     | -                                                     | N/A       | El delta no maneja credenciales, tokens, hashing ni cifrado. Solo logica de costo y ruteo de recalculo. |
+| A03 | Injection                       | Si     | grep de SOQL dinamico sobre el delta                   | PASS      | El unico SOQL nuevo es getPurchaseOrderIdsWithExpenses, estatico y con bind de variables. CERO Database.query, cero concatenacion en WHERE. Ver security-scan.txt seccion [1]. |
+| A04 | Insecure Design                 | Si     | Modelo de amenaza del ruteo y del camino asincrono     | PASS      | El ruteo nuevo no expone superficie a usuarios: se decide dentro del trigger a partir de Total_Expenses, sin entrada externa. El dedup (handledPurchaseOrderIds) y el guard cannotEnqueue (isBatch/isFuture/isQueueable/headroom) quedaron CONSOLIDADOS en un unico dueño compartido por los dos caminos, lo cual reduce el riesgo de avalancha de jobs respecto de TR-037, donde el dedup vivia solo en el camino de PO. Sin endpoint nuevo, por lo tanto sin necesidad de rate limiting. |
+| A05 | Security Misconfiguration       | No     | -                                                     | N/A       | El delta no toca configuracion, variables de entorno, CORS, headers ni verbosidad de errores. No incluye ningun metadato mas alla de un .cls-meta.xml de la clase de test nueva. |
+| A06 | Vulnerable/Outdated Components  | No     | -                                                     | N/A       | El delta no modifica package.json, package-lock.json ni ningun manifiesto de dependencias. Cero dependencias nuevas. |
+| A07 | Identification/Auth Failures    | No     | -                                                     | N/A       | El delta no toca login, sesiones, MFA, reseteo de contrasena ni emision/validacion de tokens. |
+| A08 | Software/Data Integrity Failures| Si     | grep de deserializacion + revision de escrituras       | PASS      | Cero JSON.deserialize y cero Type.forName sobre entrada de usuario. Las escrituras del recalculo siguen usando Database.update con allOrNone, asi que una falla parcial hace rollback en vez de dejar la cadena de costo a medias. El delta no toca CI/CD ni sistemas de plugins. |
+| A09 | Security Logging/Monitoring     | Si     | Revision de que se registra y si expone PII            | PASS      | El delta no elimina logging. El catch del Queueable sigue persistiendo un Auctifera__Log__c via Utils.createLog, con payload JSON.serialize(purchaseOrderIds) — solo Ids de Purchase Order, sin PII. Al mover el camino de edicion de SRO a asincrono, ese logging pasa a cubrir tambien ese camino, o sea que la observabilidad AUMENTA respecto de TR-037. |
+| A10 | SSRF                            | No     | -                                                     | N/A       | El delta no introduce ninguna llamada HTTP saliente (cero HttpRequest, setEndpoint o callout:). |
+
+RESUMEN: 5 aplicables (A01, A03, A04, A08, A09) — 5 PASS, 0 FAIL. 5 N/A justificados.
+Ningun bloqueador de seguridad. Ningun defecto de seguridad levantado.
+Sin cambios de veredicto respecto de TR-037.

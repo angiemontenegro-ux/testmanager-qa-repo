@@ -1,0 +1,75 @@
+RESULTADOS DE REGRESION — TR-040 / TC-70 / SH-1174 / PR #2585 head f1b460100d
+Ejecutado: 2026-08-19. Org sh1174qa2 (test-8lxraxspa7cm@example.com, 00DO900000XcfOv),
+deploy completo de la rama: 12427 componentes, 0 errores. Permsets auctifera + Veevart asignados
+ANTES de correr cualquier test (ver la nota de proceso en scenario-0-unit-tests/tests-found.txt).
+
+CONTEXTO: TR-037 valido el head 6f0cff23c8 y dejo 2 defectos abiertos (SH-1200 y SH-1202).
+Esta corrida verifica el commit f1b460100d, que dice arreglar SH-1200.
+
+=========================== REGRESION TECNICA: 7/8 PASS, 1 FAIL ===========================
+
+| # | Item | Riesgo | Veredicto | Evidencia |
+|---|------|--------|-----------|-----------|
+| R1 | El fix de SH-1200: editar el costo de una linea recibida debe re-prorratear la PO completa sin descartar el gasto | ALTO | **PASS** | Re-corrido el script exacto que reprodujo el defecto. Ver el bloque SH-1200 abajo: gasto conservado, promedio 20.00, $0 huerfanos, y la linea B intacta tambien se re-prorrateo. Los numeros coinciden EXACTO con la expectativa que quedo escrita en SH-1200. |
+| R2 | SH-1202: el layout sigue sin los 3 campos | ALTO | **FAIL** | El commit no toca ningun layout. Layout retraido del org nuevo: los mismos 10 campos de TR-037, sin Unit_Cost__c, Allocated_Expense__c ni Effective_Cost__c. SH-1202 permanece ABIERTO, sin cambio de veredicto. Ver scenario-3/layout-still-missing.txt. |
+| R3 | El alcance angosto de MED #4 debe seguir vivo para POs SIN gasto (no reescribir hermanos, baselines ni ajustes manuales) | ALTO | PASS | El ruteo del trigger manda al camino angosto crudo solo las lineas sin PO o con PO de gasto cero, donde crudo == landed. Cubierto por editingReceivedLineWithoutExpenseKeepsRawNarrowScope (PASS). |
+| R4 | Cambio de SINCRONO a ASINCRONO en el camino de edicion de SRO | MEDIO | PASS con observacion | El dato queda correcto, pero el recalculo ya no es inmediato. Se comprobo en vivo: el script leyo justo despues del update y devolvio el estado PRE-recalculo; el job LandedCostExpenseRecalcQueueable completo segundos despues y los valores quedaron correctos. NO es defecto de datos, es consistencia eventual en la UI: quien guarda la edicion puede ver el costo viejo unos segundos. Ver la observacion OBS-1 abajo. |
+| R5 | El dedup ahora es COMPARTIDO entre el camino de PO y el de SRO en la misma transaccion | MEDIO | PASS | handledPurchaseOrderIds quedo consolidado en LandedCostExpenseRecalcQueueable.enqueue(), unico dueño de enqueue + dedup + fallback sincrono. Es MEJOR que en TR-037, donde el dedup vivia solo en el camino de PO y el de SRO no lo compartia. El job lee Total_Expenses COMMITEADO, asi que un solo recompute al final es correcto y no pierde ninguno de los dos cambios. Cubierto por editingMultipleLinesOfSamePurchaseOrderEnqueuesSingleJob (PASS). |
+| R6 | Doble trabajo: las lineas enrutadas al re-prorrateo no deben pasar tambien por el recompute angosto | MEDIO | PASS | El if/else asigna cada orden a EXACTAMENTE una de las dos listas (purchaseOrderIdsToReprorate o rawScopeOrders), y hay early-return cuando rawScopeOrders queda vacia. Listas disjuntas por construccion. |
+| R7 | Regresion de la clase preexistente ItemCostHistoryServiceTest, afectada por el cambio de semantica de recalculateICHsFromOrders | ALTO | PASS | 28/28 PASS en este org. En TR-037 la misma clase dio 24 fallas, que declare artefacto de configuracion. Confirmado con control positivo: la diferencia fue el ORDEN (permsets antes de los tests, no despues). Ver la nota de proceso en tests-found.txt. |
+| R8 | Escenarios ya verdes en TR-037 que tocan los mismos caminos | MEDIO | PASS | Los 3 scripts de QA re-corridos en el org nuevo con numeros IDENTICOS a TR-037: idx 2 (12.00 -> 11.00), idx 5 (stock 10->7, promedio intacto 12.00, snapshotCost landed 12.00, merchandiseCost 36.00), idx 6 (5 tipos de gasto -> allocExpense 100.000000, effectiveCost 20.000000). Delta 0. |
+
+=========================== SEGURIDAD: 0 HALLAZGOS ===========================
+Barrido del delta en security-scan.txt: cero SOQL dinamico, cero secretos, cero PII nueva en logs,
+sin cambios de sharing/AccessLevel, sin perfiles ni permission sets tocados, sin dependencias,
+sin callouts, sin deserializacion. El delta no abre superficie nueva.
+OWASP Top 10 re-decidido en owasp-top10-scan.txt: 5 aplicables, 5 PASS, 5 N/A. Sin cambios vs TR-037.
+
+===============================================================================
+SH-1200 — VERIFICADO Y ARREGLADO
+===============================================================================
+Script: apex-scripts/validateLandedCostSH1174-T2-editDropsExpense.apex (montaje + edicion)
+        apex-scripts/validateLandedCostSH1174-T2b-readback.apex (lectura post-job)
+Salida: t2b-readback.txt
+
+Montaje: PO con $100 de flete, linea A 10u @ $10 y linea B 10u @ $10.
+Recepcion: $50 por linea -> efectivo $15/u -> promedio $15.00.
+Accion: se corrige Item_Cost__c de la linea A de $10 a $20.
+
+ANTES DEL FIX (TR-037, head 6f0cff23c8):
+  LINEA A  unitCost=10.000000  allocExpense=50.000000 -> 0.000000   effectiveCost=20.000000
+  LINEA B  unitCost=10.000000  allocExpense=50.000000  (intacta)
+  Current_Item_Cost__c = 15.00   Gasto HUERFANO = 50.000000
+
+DESPUES DEL FIX (TR-040, head f1b460100d):
+  Job LandedCostExpenseRecalcQueueable: Status=Completed
+  linea con Item_Cost=20.00  prevCost=0.000000        cost=26.666667  stock=10
+                             unitCost=20.000000  allocExpense=66.666667  effectiveCost=26.666667
+  linea con Item_Cost=10.00  prevCost=26.666667       cost=20.000000  stock=20
+                             unitCost=10.000000  allocExpense=33.333333  effectiveCost=13.333333
+  Current_Item_Cost__c = 20.00       Total_Stock__c = 20
+  Gasto asignado en la cadena = 100.000000    Gasto HUERFANO = 0.000000
+
+Coincide EXACTO con la expectativa escrita en SH-1200: "A $66.67 ($6.667/unit -> effective
+$26.667) and B $33.33 ($3.333/unit -> effective $13.333), giving a final average of $20.00".
+Y confirma lo que faltaba probar: la linea B, que NO se toco, tambien se re-prorrateo, porque el
+reparto por valor cambia para toda la PO.
+
+===============================================================================
+OBS-1 — Observacion, NO defecto: el recalculo de la edicion es asincrono
+===============================================================================
+El fix mueve el recalculo de la edicion de SRO a un Queueable cuando la PO tiene gasto. El dato
+final es correcto, pero no es inmediato.
+
+Evidencia dura, encontrada al ejecutar: el script T2 original leia los valores en la MISMA
+ejecucion que hacia el update, y devolvio la cadena SIN recalcular (allocExpense todavia
+50.000000 / 50.000000, promedio 15.00). Parecia un FAIL identico al defecto original. Consultando
+AsyncApexJob se vio que el job completo segundos despues, y la relectura dio los valores correctos.
+
+Dos consecuencias:
+1. PRODUCTO / UX: quien edita una linea recibida y guarda puede ver el costo viejo por unos
+   segundos hasta que el job corra. Vale decidir si la UI necesita algun aviso. No es defecto de
+   datos y no se levanto ticket; queda como punto para producto.
+2. QA: cualquier script o test que valide este camino DEBE esperar el job. El script T2 se partio
+   en dos (T2 monta y edita, T2b lee despues de confirmar Status=Completed) justo por esto.
+   Leer en la misma ejecucion produce un FALSO FAIL.

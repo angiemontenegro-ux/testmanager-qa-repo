@@ -1,0 +1,10 @@
+Cost__c
+CreatedById
+Effective_At__c
+LastModifiedById
+Name
+Previous_Cost__c
+Previous_Stock__c
+Shop_Item__c
+Stock_Replenishment_Order__c
+Stock__c

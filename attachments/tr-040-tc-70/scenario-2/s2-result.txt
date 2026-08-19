@@ -1,0 +1,9 @@
+=== SH-1174 S2 :: DESPUES DE PO-1 ===
+Current_Item_Cost__c = 12.00 (esperado 12.00)
+Total_Stock__c       = 10 (esperado 10)
+=== SH-1174 S2 :: DESPUES DE PO-2 ===
+Current_Item_Cost__c = 11.00 (esperado 11.00)
+Total_Stock__c       = 20 (esperado 20)
+PO=QA-1174-S2-1787150171841 PO-1 | prevCost=0.000000 | cost=12.000000 | prevStock=0 | stock=10 | unitCost=10.000000 | allocExpense=20.000000 | effectiveCost=12.000000
+PO=QA-1174-S2-1787150171841 PO-2 | prevCost=12.000000 | cost=11.000000 | prevStock=10 | stock=20 | unitCost=6.000000 | allocExpense=40.000000 | effectiveCost=10.000000
+=== VEREDICTO S2: PASS ===
