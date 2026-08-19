@@ -1,0 +1,13 @@
+Extracto de InventoryHistoryBatch.cls en sh1174qa2, confirmando la dedup key de SH-1142:
+
+  Set<Id> shopItemIds = new Set<Id>();
+        for (Auctifera__Inventory_History__c history : inventoryHistories) {
+            shopItemIds.add(history.Auctifera__Shop_Item__c);
+        }
+
+        // SH-1142: dedupe by business key (Shop_Item__c + Item_Variant__c + Location__c), not by
+        // Auctifera__Item_per_location__c. Since SH-1129 made that lookup nullable (SetNull instead of
+        // cascade-delete), an orphaned history row from a deleted IPL would never match a same-day
+        // record created for a NEW IPL representing the same Shop Item/Variant/Location, producing a
+        // duplicate snapshot for that date.
+        Map<String, Auctifera__Inventory_History__c> existingHistoriesMap = new Ma
