@@ -120,39 +120,79 @@ explica la trampa de los dos campos sin necesidad de texto.
 
 ---
 
-## Qué debe verse — caso base, 3 × USD 40.00 sin impuesto
+## Qué debe verse — valores de una corrida real
 
-| Campo | Valor esperado |
+Ejecutado el 2026-08-20 en UAT: 3 unidades de USD 40.00 con impuesto del 7.5%.
+Shopify cobró **USD 129.00**.
+
+| Campo | Valor observado |
 |---|---|
 | Price | 40.00 |
 | Quantity | 3 |
 | Amount | 120.00 |
 | Discount Amount | 0.00 |
 | Subtotal | 120.00 |
-| Tax Amount | 0.00 |
-| **Total** | **120.00** ← el campo del bug |
+| Tax Amount | 9.00 |
+| **Total** | **129.00** ← el campo del bug |
 
 ```
-40.00 × 3      = 120.00   Amount (precio × cantidad)
-120.00 − 0.00  = 120.00   Subtotal
-120.00 × 0%    =   0.00   Tax Amount
-120.00 + 0.00  = 120.00   TOTAL
-```
-
-**Sin el fix, Total mostraría 40.00** — el precio unitario, ignorando la cantidad.
-
-### Variante con impuesto (opcional)
-
-Si el Shop Item tiene impuesto configurado, el impuesto se suma **sobre** el subtotal.
-Con 7.5%:
-
-```
-40.00 × 3        = 120.00   Amount
+40.00 × 3        = 120.00   Amount (precio × cantidad)
+120.00 − 0.00    = 120.00   Subtotal
 120.00 × 7.50%   =   9.00   Tax Amount
 120.00 + 9.00    = 129.00   TOTAL
 ```
 
-Verificar la tasa en el Shop Item **antes** de comprar, para saber qué esperar.
+**Sin el fix, Total mostraría 40.00** — el precio unitario, ignorando la cantidad.
+
+### De dónde sale la tasa de impuesto — dato confirmado en esta corrida
+
+El Shop Item tenía **Tax = 0%** en Salesforce y aun así el Tax Amount quedó en 9.00.
+Es decir: **la tasa que viene en el payload de Shopify gana sobre la del Shop Item.**
+`calculateAmount()` solo cae a la tasa del Shop Item cuando el payload no trae ninguna.
+
+Consecuencia práctica: no alarmarse si el Shop Item dice 0% y el Sale Item muestra
+impuesto. Lo que hay que comparar es contra lo que cobró Shopify.
+
+Si el pedido fuera sin impuesto, el Total esperado sería 120.00.
+
+---
+
+### Paso 7 · ⭐ El reporte — el paso que cierra el caso
+
+Este es el que más le importa al PM, porque **es el artefacto del que se quejó el cliente**.
+El Case 00176210 no reportó "un campo se ve mal": reportó que el reporte de ventas e
+impuestos del gift shop **no cuadraba con la plata cobrada**.
+
+Abrir el reporte **`Shop Sales - Today`**
+(carpeta *End of Day Reports*, tipo *Client Purchases with Sale Items and Shop Items*).
+
+Valores observados en la corrida del 2026-08-20:
+
+| Métrica del reporte | Valor |
+|---|---|
+| Total Quantity | 3 |
+| Total Price | $40.00 |
+| Total Tax Amount | $9.00 |
+| **Total Total** | **$129.00** |
+
+Y la cadena que hay que verificar que cierre:
+
+| Fuente | Monto |
+|---|---|
+| Lo que cobró Shopify | $129.00 |
+| El Charge en Salesforce | $129.00 |
+| **El reporte** | **$129.00** |
+
+**Por qué es decisivo:** el reporte suma el campo `Total` de los Sale Items.
+Antes del fix habría mostrado **$40.00** en vez de $129.00, porque cada línea
+aportaba el precio unitario en vez del total. Ese descuadre ES el reclamo del caso.
+
+📸 **Captura 4** — el encabezado del reporte con las cuatro métricas visibles.
+
+> Nota sobre otro reporte: `Sales Tax - Report` (carpeta *Veevart Accounting Reports*)
+> NO sirve para esto. Su tipo es *Charges with Charge Items*, un join que exige
+> Charge Items; un pedido de Shopify que no los genera sale con "No Results" aunque
+> el cargo exista. No confundir ese vacío con un fallo del fix.
 
 ---
 
@@ -160,9 +200,12 @@ Verificar la tasa en el Shop Item **antes** de comprar, para saber qué esperar.
 
 | Lo que muestra **Total** | Qué significa |
 |---|---|
-| **120.00** | ✅ El fix funciona |
-| **40.00** | ❌ El bug se reproduce — el org no tiene el fix, o hay que reabrir |
-| Otro valor | Revisar descuentos e impuesto del Shop Item antes de concluir |
+| Lo mismo que cobró Shopify | ✅ El fix funciona |
+| **El precio unitario** (40.00) | ❌ El bug se reproduce — ese org no tiene el fix |
+| Otro valor | Revisar descuento e impuesto antes de concluir |
+
+La regla simple: **el `Total` del Sale Item y el total del reporte tienen que ser
+iguales a lo que el cliente pagó en Shopify.** Si los tres no coinciden, hay algo.
 
 ---
 
@@ -182,7 +225,8 @@ Verificar la tasa en el Shop Item **antes** de comprar, para saber qué esperar.
 Guardar en `screenshots/` junto a este documento:
 
 ```
-1-shopify-carrito-3-unidades.png
-2-client-purchase-con-sale-items.png
-3-sale-item-amount-y-total.png        ← la clave
+1-shopify-carrito-3-unidades.png       resumen del pedido en Shopify
+2-client-purchase-con-sale-items.png   P-2425: 3 items, Total $129.00
+3-sale-item-amount-y-total.png         Amount $120 y Total $129 juntos ← la clave
+4-reporte-shop-sales-today.png         el reporte cuadrando en $129.00 ← la del PM
 ```
