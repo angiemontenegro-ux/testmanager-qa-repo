@@ -1,0 +1,57 @@
+SH-1201 - transcripcion de la observacion en Lightning
+Org: veevartmuseumdemo--uat (00DD7000000OCIrMAO) | Auctifera 8.337.0.1
+Registro: a4nD7000002QgrTIAS - "SH-1201 Layout Check - BORRAR"
+Fecha: 2026-08-19
+
+PASO 1 - VISTA DEL REGISTRO
+  URL: /lightning/r/Auctifera__Inventory_History__c/a4nD7000002QgrTIAS/view
+  Observado: el campo "Item per location" aparece vacio, sin valor.
+  Resto de campos: Date 8/18/2026 | Display/Storage Location "Veevart locations"
+                   Shop Item "SH-1201 Layout Check - BORRAR" | Item Cost $25.00
+                   Total Stock 3 | Inventory Value $75.00
+
+PASO 2 - MODO EDICION (menu del registro -> Edit)
+  Observado en el modal "Edit a4nD7000002QgrT":
+    - leyenda arriba a la derecha:  "* = Required Information"
+    - campo con asterisco rojo:      "* Item per location"
+    - contenido del campo:           vacio, placeholder "Search Items per location..."
+
+  CONTROL INTERNO EN LA MISMA PANTALLA (lo que aisla la causa):
+    - "Item Variant" NO muestra asterisco.
+    - Ambos son lookups OPCIONALES a nivel de campo despues de SH-1129.
+    - La unica diferencia entre ellos es el <behavior> del layout:
+        Item_per_location__c -> Required   (en el org)
+        Item_Variant__c      -> Edit
+    - Por lo tanto el asterisco proviene del LAYOUT, no de la metadata del campo.
+
+PASO 3 - INTENTO DE GUARDADO (boton "Save")
+  Resultado: BLOQUEADO. Textos exactos observados:
+    - inline, bajo el campo, en rojo:  "Complete this field."
+    - campo resaltado con borde y fondo rojo
+    - toast de error:
+         "We hit a snag."
+         "Review the following fields"
+         "Item per location"
+  No se produjo guardado.
+
+PASO 4 - CONFIRMACION DE QUE NO SE ESCRIBIO NADA
+  Tras cancelar, consulta via API:
+    Item_per_location__c = null
+    LastModifiedDate     = 2026-08-18T15:33:57.000+0000  (sin cambios)
+  Ver record-state-unchanged.log
+
+ALCANCE - LA RESTRICCION ES SOLO DE UI
+  No hizo falta ninguna escritura extra para demostrarlo: la existencia misma del
+  registro a4nD7000002QgrTIAS con Item_per_location__c = null lo prueba. Si la
+  restriccion fuera de API, ese registro no podria existir. La API acepta el
+  lookup nulo; solo Lightning bloquea, y solo por el layout.
+
+NOTA SOBRE CAPTURAS DE PANTALLA
+  Las capturas se tomaron durante la corrida pero la herramienta no expuso un
+  archivo recuperable en disco, asi que NO se adjuntan imagenes. La evidencia
+  equivalente y reproducible queda en:
+    - uat-layout-DURING-run-required.xml  (el layout tal como estaba durante la corrida)
+    - uat-layout-audit.log
+    - record-state-unchanged.log
+  Para volver a capturar imagenes hay que re-aplicar temporalmente
+  behavior=Required sobre Item_per_location__c y repetir los pasos 2 y 3.

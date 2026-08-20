@@ -1,0 +1,57 @@
+schemaVersion: "1.0"
+id: "db2389ab-c6cf-415a-9ac6-a5a3807d9838"
+key: "TC-71"
+title: "Inventory History layout must not mark Item per location as required in existing subscriber orgs"
+description: "QA coverage for SH-1201. SH-1129 turned Auctifera__Inventory_History__c.Auctifera__Item_per_location__c from a required Restrict lookup into an optional SetNull lookup, and PR #2541 changed the Inventory History page layout so the field renders as Edit rather than Required. The field change reaches subscriber orgs through the package upgrade; the LAYOUT change does not, because Salesforce does not upgrade page layouts in orgs where the package is already installed. The result is an org where an empty Item per location is a legitimate, expected state that the UI refuses to save. This test case describes the EXPECTED behaviour; a run against an affected subscriber org is expected to fail scenarios 1 and 2 while passing scenario 3, which is what bounds the defect to the UI."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "An org that had the Auctifera package installed BEFORE the build containing SH-1129 (PR #2541). A fresh install is NOT a valid environment: layout changes do apply on first install, so the defect cannot reproduce there."
+  - "The field-level part of SH-1129 is confirmed deployed: Auctifera__Inventory_History__c.Auctifera__Item_per_location__c describes as nillable=true and is absent from the object's required-field list."
+  - "An Auctifera__Inventory_History__c record exists whose Auctifera__Item_per_location__c is null. Deleting an Item per location produces one; it can also be seeded via the API."
+  - "A user with Lightning access to the Inventory History object and the Veevart permission set assigned."
+  - "Retrieving the managed layout requires the namespace on BOTH parts of the name: Auctifera__Inventory_History__c-Auctifera__Inventory History Layout. The fullName reported by 'sf org list metadata' omits the second prefix and fails to retrieve."
+scenarios:
+  - title: "The deployed layout renders Item per location as editable, not required"
+    tags:
+      - "sh-1201"
+      - "metadata"
+      - "subscriber-org"
+      - "layout"
+    given:
+      - "an existing subscriber org running a package build that contains SH-1129"
+    when:
+      - "the Inventory History Layout is retrieved from the org and compared against the layout on origin/main"
+    then:
+      - "the layoutItem for Auctifera__Item_per_location__c reports behavior Edit, matching the repo"
+      - "no layoutItem in the org marks Auctifera__Item_per_location__c as Required"
+
+  - title: "An Inventory History record with no Item per location can be saved from Lightning"
+    tags:
+      - "sh-1201"
+      - "ui"
+      - "lightning"
+      - "user-facing"
+    given:
+      - "an Auctifera__Inventory_History__c record whose Auctifera__Item_per_location__c is null, which is the state SH-1129 deliberately produces"
+    when:
+      - "the record is opened in Lightning and put into edit mode"
+    then:
+      - "the Item per location field renders WITHOUT the red required asterisk"
+      - "saving the record with Item per location left empty succeeds"
+      - "no validation message asks the user to complete the Item per location field"
+
+  - title: "The null Item per location lookup is accepted at the API level"
+    tags:
+      - "sh-1201"
+      - "api"
+      - "scope-boundary"
+    given:
+      - "the same subscriber org"
+    when:
+      - "an Auctifera__Inventory_History__c row with a null Auctifera__Item_per_location__c is written or read through the API"
+    then:
+      - "the operation succeeds, confirming the constraint is enforced only by the page layout and not by the field or the platform"
+      - "this is what bounds the defect: every API-level scenario of the SH-1129 plan passes while the layout scenario fails"
