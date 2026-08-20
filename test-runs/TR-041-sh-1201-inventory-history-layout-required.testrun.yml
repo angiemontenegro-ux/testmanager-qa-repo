@@ -105,7 +105,7 @@ results:
         text: "no validation message asks the user to complete the Item per location field"
         attachments:
           []
-    notes: "RESULT: FAIL - este es el escenario que faltaba. Hasta ahora SH-1201 se sostenia en comparacion de metadata; aqui se reproduce en la UI, que es donde el defecto realmente afecta al usuario. LIMITACION DECLARADA: se tomaron capturas de pantalla durante la corrida pero la herramienta no dejo un archivo recuperable en disco, asi que NO se adjuntan imagenes. La evidencia equivalente y reproducible queda en ui-observation-transcript.txt con los textos exactos, mas el layout tal como estaba durante la corrida. Para recapturar imagenes hay que re-aplicar temporalmente behavior=Required."
+    notes: "RESULT: FAIL - este es el escenario que faltaba. Hasta ahora SH-1201 se sostenia en comparacion de metadata; aqui se reproduce en la UI, que es donde el defecto realmente afecta al usuario. CAPTURAS: las tres capturas de pantalla SI se tomaron (modo edicion con el asterisco, guardado bloqueado con el toast, y vista del registro con el campo vacio) y estan pendientes de subir al test manager; ver attachments/SH-1201/TR-41/screenshots/. Mientras tanto la evidencia textual equivalente y reproducible queda en ui-observation-transcript.txt con los textos exactos, mas el layout tal como estaba durante la corrida. Para recapturar imagenes hay que re-aplicar temporalmente behavior=Required sobre Item_per_location__c, porque el org ya volvio a Edit."
     attachments: []
     defects:
       - SH-1201
@@ -162,3 +162,7 @@ history:
     timestamp: "2026-08-20T02:25:00.000Z"
     user: claude
     reason: "Primera ejecucion de TC-71 y primera reproduccion de SH-1201 en la UI. Resultado 1 passed / 2 failed, con el unico PASS sirviendo para acotar el defecto a la capa de UI. La corrida exigio revertir temporalmente la remediacion manual que ya existia en UAT (deploy 0AfD700003TOxRpKAL, Edit -> Required), porque esa remediacion habia eliminado la reproduccion; terminada la captura se re-aplico (deploy 0AfD700003TOxRuKAL, Required -> Edit) y se verifico releyendo el layout del org. El org termina identico a como empezo. Hallazgo adicional de esta corrida: el SetupAuditTrail muestra un upgrade real del paquete el 2026-08-18 que no toco el layout, y el layout cambiando 26 horas despues por edicion manual — dos eventos separados que convierten la causa raiz de SH-1201 en evidencia directa en vez de deduccion. Limitacion declarada: las capturas de pantalla no quedaron en disco; la evidencia de UI es la transcripcion con textos exactos."
+  - action: updated
+    timestamp: "2026-08-20T02:45:00.000Z"
+    user: claude
+    reason: "Segunda pasada de captura: se repitio la secuencia de ambiente (Edit -> Required, capturar, Required -> Edit) para obtener las tres imagenes de la UI, que en la primera pasada no habian quedado en disco. Estado final del org verificado releyendo el layout: Item_per_location__c = Edit, Shop_Item__c intacto en Required. El registro a4nD7000002QgrTIAS conserva su LastModifiedDate original del 2026-08-18, o sea que ninguna de las dos pasadas escribio datos. Las imagenes quedan pendientes de subir al test manager; la nota del escenario 2 se actualizo para reflejarlo en vez de seguir diciendo que no existian."
