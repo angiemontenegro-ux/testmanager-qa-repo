@@ -2,7 +2,27 @@ SH-1169 — QUE MIRAR PARA VALIDAR EL FIX
 Guia para revision de PM · UAT (veevartmuseumdemo--uat) · Auctifera 8.337.0.1
 
 ================================================================
-EL REGISTRO
+!! ESTE REGISTRO YA NO EXISTE — actualizado 2026-08-20
+================================================================
+Los valores de abajo son el REGISTRO HISTORICO de una corrida real
+ejecutada el 2026-08-20 sobre el Sale Item S-3447. Ese registro fue
+borrado el mismo dia por la suite de regresion automatizada que corre
+a diario contra UAT y limpia los datos de Shop.
+
+Se conservan porque siguen siendo evidencia valida de lo observado.
+Pero NO se puede abrir el registro: ya no esta.
+
+Para validar el fix hoy, usar la guia que si funciona:
+    GUIA-MANUAL-END-TO-END.md
+que arranca desde la compra en Shopify y genera evidencia nueva.
+
+LECCION: en UAT no sirve documentar "anda a mirar este registro".
+Cualquier link a un registro concreto muere en menos de 24 horas.
+Hay que documentar COMO producir la evidencia, y dejar los valores
+por escrito.
+
+================================================================
+EL REGISTRO OBSERVADO (historico, ya borrado)
 ================================================================
   Sale Item:        S-3447
   Id:               a1ED7000005VOMcMAO
@@ -10,8 +30,7 @@ EL REGISTRO
   Origen:           pedido REAL de Shopify (External Id 15789035421832)
                     creado por la integracion y re-sincronizado 51 s despues
 
-  URL directa:
-  https://veevartmuseumdemo--uat.sandbox.lightning.force.com/lightning/r/Auctifera__Sale_Item__c/a1ED7000005VOMcMAO/view
+  (La URL directa se omite a proposito: el registro fue borrado.)
 
 ================================================================
 LA TRAMPA — LEER ANTES DE MIRAR NINGUN VALOR
