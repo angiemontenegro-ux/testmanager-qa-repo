@@ -225,8 +225,10 @@ iguales a lo que el cliente pagó en Shopify.** Si los tres no coinciden, hay al
 Guardar en `screenshots/` junto a este documento:
 
 ```
-1-shopify-carrito-3-unidades.png       resumen del pedido en Shopify
-2-client-purchase-con-sale-items.png   P-2425: 3 items, Total $129.00
-3-sale-item-amount-y-total.png         Amount $120 y Total $129 juntos ← la clave
-4-reporte-shop-sales-today.png         el reporte cuadrando en $129.00 ← la del PM
+1-shopify-checkout-129.png                 checkout de Shopify: 3 × $40 + $9 = $129.00
+2-client-purchase-P-2425.png               la compra: 3 items, Sold, Total $129.00
+3-sale-item-S-3457-amount-y-total.png      Amount $120 y Total $129 juntos ← la clave
+4-reporte-shop-sales-today.png             el reporte cuadrando en $129.00 ← la del PM
 ```
+
+Las capturas de intentos anteriores quedaron en `otras-capturas/`, sin usar.
