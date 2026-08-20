@@ -1,0 +1,12 @@
+# Estado del registro de prueba antes y despues de la corrida
+# a4nD7000002QgrTIAS - 'SH-1201 Layout Check - BORRAR'
+
+## Despues del intento de guardado bloqueado (sin cambios respecto al 2026-08-18):
+Querying Data... done
+┌────────────────────┬─────────────────┬─────────────────────────────────┬───────────────────────────────┬───────────────────────────┬───────────────────────────────┬──────────────────────────────┐
+│ ID                 │ NAME            │ AUCTIFERA__ITEM_PER_LOCATION__C │ AUCTIFERA__SHOP_ITEM__R.NAME  │ AUCTIFERA__TOTAL_STOCK__C │ AUCTIFERA__INVENTORY_VALUE__C │ LASTMODIFIEDDATE             │
+├────────────────────┼─────────────────┼─────────────────────────────────┼───────────────────────────────┼───────────────────────────┼───────────────────────────────┼──────────────────────────────┤
+│ a4nD7000002QgrTIAS │ a4nD7000002QgrT │ null                            │ SH-1201 Layout Check - BORRAR │ 3                         │ 75                            │ 2026-08-18T15:33:57.000+0000 │
+└────────────────────┴─────────────────┴─────────────────────────────────┴───────────────────────────────┴───────────────────────────┴───────────────────────────────┴──────────────────────────────┘
+
+Total number of records retrieved: 1.
