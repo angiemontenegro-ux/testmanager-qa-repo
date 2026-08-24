@@ -1,0 +1,188 @@
+schemaVersion: "1.0"
+id: "1972438a-4799-4e03-8d3d-b66b32bdc730"
+key: "TC-71"
+title: "Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order"
+description: "QA coverage for SH-1218 (hotfix reverting SH-942). SH-942 removed the Item Cost auto-population from the Stock Replenishment Order wizards; production customers depend on it, so SH-1218 restores it. Implementation domain: Salesforce Shop 1.0 (Auctifera namespace), Aura wizards in the purchase-order / stock-replenishment flow. The change being reverted is commit 6f221f5736 (PR #2454, merged 2026-06-24) — a pure deletion of 39 lines across 4 Aura JS files, so this suite verifies restoration rather than new behavior. THREE structural risks drive the scenario set. (1) TWO INDEPENDENT ENTRY POINTS: the logic was duplicated in ReplenishmentOrderWizard{Controller,Helper}.js and ReplenishmentWizardFromStockReplenishmentView{Controller,Helper}.js, so a partial revert can restore one wizard and leave the other dead — every populate scenario is run against both entry points. (2) DIVERGENT ARRAY INDICES: the two copies address different row positions (wizard 1 uses itemRow[2]=itemCost, [3]=orderQuantity, [4]=orderCost; wizard 2 uses itemRow[3]=itemCost, [4]=orderQuantity, [5]=orderCost). A copy-paste revert that reuses one wizard's indices in the other writes the cost into the WRONG column and throws no error, so scenario 3 asserts column identity explicitly. (3) THREE EFFECTS, NOT ONE: the deleted block set itemCost.value, set itemRow[0].cost, and recomputed orderCost.value = itemCost.value * orderQuantity.value — restoring only the Item Cost field leaves Order Cost blank or stale, so the derived recompute is asserted separately. The deletion also removed selectFields: [\"Auctifera__Item_Cost__c\"] from the query config; without it shopItem.Auctifera__Item_Cost__c arrives undefined, the if (... !== undefined) guard skips the whole block, and the field stays blank with NO error — a silent no-op that scenario 5 is designed to catch. Note the guard tests !== undefined, so an Item Cost of 0 must populate (0 is not undefined) while a null cost must not — covered as separate edge cases. SUPERSEDES SH-942 / TC-1, which asserts the opposite behavior (Item Cost stays blank) and will fail by design once this hotfix ships."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The SH-1218 hotfix (revert of SH-942) is deployed to the target org/sandbox."
+  - "User is authenticated with access to Purchase Orders and Stock Replenishment Orders."
+  - "At least one open Purchase Order with a valid Location selected is available."
+  - "A Shop Item with a known non-zero Item Cost exists (e.g. 25.00), plus one Shop Item with Item Cost = 0 and one with Item Cost empty/null."
+  - "At least one Shop Item with a Variant carrying its own distinct Item Cost exists."
+  - "Both wizard entry points are reachable: the Replenishment Order wizard and the Replenishment wizard opened from the Stock Replenishment view."
+scenarios:
+  - title: "Item Cost auto-populates when selecting a Shop Item (Replenishment Order wizard)"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "wizard-1"
+      - "item-cost"
+    given:
+      - "I am in the Replenishment Order wizard inside an open Purchase Order"
+      - "the Shop Item \"Tote\" has an Item Cost of 25.00"
+    when:
+      - "I select \"Tote\" in the Search Shop Item field"
+    then:
+      - "the Item Cost field is populated with 25.00"
+      - "the Item Cost field remains editable"
+
+  - title: "Item Cost auto-populates when selecting a Shop Item (wizard opened from the Stock Replenishment view)"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "wizard-2"
+      - "item-cost"
+      - "second-entry-point"
+    given:
+      - "I opened the Replenishment wizard from the Stock Replenishment view"
+      - "the Shop Item \"Tote\" has an Item Cost of 25.00"
+    when:
+      - "I select \"Tote\" in the Search Shop Item field"
+    then:
+      - "the Item Cost field is populated with 25.00"
+      - "the behavior is identical to the Replenishment Order wizard (no entry point left unreverted)"
+
+  - title: "The cost lands in the Item Cost column and no neighbouring column is mutated"
+    tags:
+      - "ac-1"
+      - "regression"
+      - "critical"
+      - "array-indices"
+    given:
+      - "the two wizards address different row positions for Item Cost, Order Quantity and Order Cost"
+      - "I note the values of every column in the row before selecting an item"
+    when:
+      - "I select a Shop Item with Item Cost 25.00, in each wizard entry point in turn"
+    then:
+      - "in both wizards the value 25.00 appears in the Item Cost column specifically"
+      - "Order Quantity is not overwritten by the cost value"
+      - "no unrelated column in the row changed its value"
+
+  - title: "Order Cost is recomputed as Item Cost x Order Quantity on auto-population"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "order-cost"
+      - "derived-value"
+    given:
+      - "the Shop Item \"Tote\" has an Item Cost of 50.00"
+      - "the row has an Order Quantity of 3"
+    when:
+      - "I select \"Tote\" so the Item Cost auto-populates"
+    then:
+      - "Item Cost shows 50.00"
+      - "Order Cost is recomputed automatically to 150.00"
+      - "Order Cost is not left blank or showing a stale value"
+
+  - title: "A Shop Item with a known Item Cost never populates blank (guards the removed selectFields)"
+    tags:
+      - "ac-1"
+      - "negative"
+      - "silent-failure"
+      - "select-fields"
+    given:
+      - "the Shop Item \"Tote\" has a confirmed Item Cost of 25.00 on its record"
+    when:
+      - "I select \"Tote\" in each wizard entry point"
+    then:
+      - "the Item Cost field is never left blank"
+      - "no silent no-op occurs (a blank field here indicates Item_Cost__c was not requested in the query and arrived undefined, not a logic failure)"
+
+  - title: "An Item Cost of 0 auto-populates as 0"
+    tags:
+      - "ac-1"
+      - "edge-case"
+      - "zero-cost"
+    given:
+      - "a Shop Item exists with Item Cost = 0"
+      - "the row has an Order Quantity of 5"
+    when:
+      - "I select that Shop Item"
+    then:
+      - "Item Cost is populated with 0, not left blank (the guard tests for undefined, and 0 is defined)"
+      - "Order Cost is recomputed to 0"
+
+  - title: "A Shop Item with no Item Cost leaves the field blank and editable"
+    tags:
+      - "ac-1"
+      - "edge-case"
+      - "null-cost"
+    given:
+      - "a Shop Item exists with an empty/null Item Cost"
+    when:
+      - "I select that Shop Item"
+    then:
+      - "the Item Cost field stays blank"
+      - "no error is raised and the field remains editable for manual entry"
+
+  - title: "Selecting a Variant populates the Variant's own Item Cost"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "variant"
+    given:
+      - "I have selected a Shop Item whose Item Cost is 25.00"
+      - "the chosen Variant carries its own Item Cost of 30.00"
+    when:
+      - "I select that Variant in Choose Variant"
+    then:
+      - "Item Cost updates to the Variant's cost of 30.00"
+      - "Order Cost is recomputed from the Variant's cost"
+
+  - title: "Auto-population is per-row and does not leak across rows"
+    tags:
+      - "ac-1"
+      - "edge-case"
+      - "multi-row"
+    given:
+      - "I have several Stock Replenishment Order rows, some already filled in manually"
+    when:
+      - "I select a Shop Item in one row only"
+    then:
+      - "only that row's Item Cost and Order Cost are populated"
+      - "the other rows keep their existing values untouched"
+
+  - title: "A manual override of the auto-populated cost survives Save"
+    tags:
+      - "ac-3"
+      - "regression"
+      - "manual-override"
+    given:
+      - "I selected a Shop Item and the Item Cost auto-populated to 25.00"
+    when:
+      - "I overwrite Item Cost with 40.00, set Order Quantity to 2, and click Save All Stock Orders"
+    then:
+      - "Order Cost updates to 80.00 before saving"
+      - "the record is persisted in Salesforce with the manual Item Cost of 40.00, not the auto-populated 25.00"
+tags:
+  - "sh-1218"
+  - "sh-942"
+  - "hotfix"
+  - "revert"
+  - "stock-replenishment"
+  - "purchasing"
+  - "item-cost"
+  - "order-cost"
+  - "aura"
+  - "salesforce"
+parameters: []
+links:
+  jira:
+    - key: "SH-1218"
+      url: "https://veevart.atlassian.net/browse/SH-1218"
+      type: "bug"
+    - key: "SH-942"
+      url: "https://veevart.atlassian.net/browse/SH-942"
+      type: "relates"
+  external: []
+estimatedDuration: 75
+metadata:
+  createdBy: "claude"
+  createdAt: "2026-08-24T00:00:00Z"
+  updatedBy: "claude"
+  updatedAt: "2026-08-24T00:00:00Z"
+  version: 1
