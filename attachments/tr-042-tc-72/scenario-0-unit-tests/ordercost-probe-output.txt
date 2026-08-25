@@ -1,0 +1,9 @@
+case                                             | itemCost   | orderCost  | block ran
+--------------------------------------------------------------------------------------------
+TC-72 S1/S4: cost 25, qty 3 (normal)             | 25         | 75         | true
+TC-72 S4: cost 50, qty 3                         | 50         | 150        | true
+TC-72 S6: cost 0, qty 5 (zero-cost edge)         | 0          | 0          | true
+TC-72 S7: cost null, qty 3 (SOQL empty field)    | null       | 0          | true
+FRESH ROW: cost 25, qty null (no qty yet)        | 25         | 0          | true
+FRESH ROW: cost 25, qty undefined                | 25         | NaN        | true
+FIELD ABSENT: cost undefined (no selectFields)   | null       | null       | false

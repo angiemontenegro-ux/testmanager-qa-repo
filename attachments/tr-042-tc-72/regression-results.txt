@@ -1,0 +1,66 @@
+RESULTADOS DE REGRESION — SH-1218 / PR #2604
+============================================
+REGRESION TECNICA
+| # | Item                                        | Veredicto | Evidencia                                                                 |
+|---|---------------------------------------------|-----------|---------------------------------------------------------------------------|
+| T1| Indices divergentes entre wizards           | PASS      | index-mapping-proof.txt. W1 [2]/[3]/[4] y W2 [3]/[4]/[5], ambos correctos. |
+|   |                                             |           | Divergen porque W2 tiene un lookup Supplier extra en el indice 2.         |
+| T2| splice de Location desplaza indices         | PASS      | splice inserta en length-1 (antes de "status", despues de "order-cost").  |
+|   |                                             |           | Indices 0..5 intactos con Location activa. Ambos helpers.                  |
+| T3| selectFields consumido de verdad            | PASS      | customLookupField.js:144 `@api selectFields = []` y                        |
+|   |                                             |           | InputRow.cmp:64 `selectFields="{!input.selectFields}"`. No es cargo-cult.  |
+| T4| ShopInventoryWizard intacto                 | PASS      | SH-942 solo toco los 4 archivos de los 2 wizards (git show --name-only).  |
+|   |                                             |           | El 3er wizard nunca perdio la logica; el PR no lo toca. Sin gap.          |
+| T5| Recomputo al cambiar cantidad manual        | PASS      | handleChangeInput existe en AMBOS controllers con indices correctos       |
+|   |                                             |           | (W1 linea 52 -> escribe [4]; W2 linea 53 -> escribe [5]).                  |
+| T6| Suite LWC del repo                          | PASS      | npm run test:unit -> 61 suites / 623 tests, 0 fallos.                      |
+| T7| Order Cost con cantidad vacia               | PASS*     | ordercost-probe-output.txt. order-quantity inicializa en `value: null` en  |
+|   |                                             |           | ambos wizards => 25*null = 0. NaN NO es alcanzable (requeriria undefined). |
+|   |                                             |           | *PASS con observacion: muestra $0.00 en vez de blanco. Ver OBS-1 abajo.    |
+
+REGRESION DE SEGURIDAD
+| # | Item                                        | Veredicto | Evidencia                                                                 |
+|---|---------------------------------------------|-----------|---------------------------------------------------------------------------|
+| S1| SOQL/SQL dinamico concatenado               | PASS      | grep sin coincidencias en las 133 lineas del diff. No hay queries.        |
+| S2| Secretos en el diff                         | PASS      | grep sin coincidencias.                                                   |
+| S3| PII en logs                                 | PASS      | grep sin coincidencias. El PR no agrega ni un console.log.                |
+| S4| Sinks XSS                                   | PASS      | grep sin coincidencias. Solo asignaciones a .value de inputs Aura.        |
+| S5| Llamadas salientes / SSRF                   | PASS      | grep sin coincidencias.                                                   |
+| S6| Dependencias                                | PASS      | El PR no toca package.json ni lockfiles.                                  |
+| S7| Metadata de permisos                        | PASS      | El PR no toca permissionsets, profiles ni sharing rules.                  |
+| S8| CI/CD / deserializacion                     | PASS      | El PR no toca .github/, workflows, Dockerfile ni cumulusci.               |
+
+TOTAL: Tecnica 7/7 PASS · Seguridad 8/8 PASS · 0 bloqueadores High/Critical.
+
+-------------------------------------------------------------------------------
+OBS-1 (observacion, NO defecto) — Order Cost = $0.00 en fila a medio llenar
+-------------------------------------------------------------------------------
+El bloque restaurado multiplica sin guardia:
+    orderCost.value = itemCost.value * orderQuantity.value;
+Con `order-quantity` en `value: null` (fila nueva sin cantidad), 25 * null = 0,
+por lo que Order Cost muestra $0.00 en vez de quedar en blanco. Al escribir la
+cantidad, handleChangeInput recalcula bien.
+
+Por que NO se clasifica como defecto:
+  1. Es comportamiento PREEXISTENTE restaurado, identico al de antes de SH-942.
+     El revert no lo introduce.
+  2. El mismo idiom sin guardia ya vive en ShopInventoryWizardHelper.js:54
+     (`itemRow[7].value = shopItem.Auctifera__Item_Cost__c * systemInventory`),
+     o sea es patron del repo, no desliz de este PR.
+  3. No contradice ningun AC. El AC5 dice "Order Cost equals Item Cost x Order
+     Quantity"; con cantidad vacia, 0 es consistente con esa formula.
+  4. Impacto cosmetico: un campo currency de solo lectura (order-cost tiene
+     `disabled: true`) mostrando $0.00 transitoriamente.
+
+Asimetria colateral observada: el controller SI protege el recomputo
+(`if (itemRow[2].value && itemRow[3].value)`) pero el helper NO. Queda a criterio
+del equipo si vale unificar.
+
+OBS-2 — truthiness con costo 0 en la rama del Variant
+El controller usa `else if (itemRow[0].cost)`. Si el costo base es 0 (falsy), al
+elegir un Variant sin Cost_per_item__c no cae al fallback. Borde muy estrecho;
+el camino de limpiar el Variant (`itemRow[2].value = itemRow[0].cost`) si maneja 0.
+
+OBS-3 (proceso, no codigo) — PR mergeado sin ningun review
+gh pr view 2604 --json reviewDecision,reviews -> {"reviewDecision":"","reviews":[]}
+Hotfix de prioridad Highest que llego a clientes sin revision de pares.

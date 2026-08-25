@@ -1,0 +1,528 @@
+schemaVersion: '1.0'
+id: tr-6c1d4f28-9b73-4e05-a1f6-3d82ac57e914
+key: TR-042
+title: 'Run: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order — PR #2604
+  merge 0af3106813, SH-1218 revert verification'
+status: in-progress
+environment:
+  name: qa
+  buildVersion: 'UI / Frontend-only (4 archivos Aura JS client-side, +39/-1, 133 lineas de diff). PR #2604 hotfix/revert-item-cost-autopopulation-SH-1218
+    -> main, MERGEADO 2026-08-21T20:59:12Z, merge commit 0af3106813c0e756cb3fee1481acf59bba206612, autor nicksiuxs. CI: build/lint/test
+    y AWS CodeBuild en SUCCESS. Suite local npm run test:unit 61 suites / 623 tests, 0 fallos. Sin SQL, sin pipeline, sin
+    dependencias, sin metadata de permisos: no aplica safesql ni carga a sandbox. VERIFICACION POR CODIGO FUENTE + SONDA DE
+    COMPORTAMIENTO, no por navegador — Aura no es instrumentable con sfdx-lwc-jest, por lo que no existe ni puede existir
+    test unitario del dev para estos archivos. VEREDICTO: 9/10 PASS, 1 not-run (persistencia del AC4, requiere org). Los 4
+    riesgos criticos del TC-72 CERRADOS. 0 defectos. Regresion tecnica 7/7 PASS, seguridad 8/8 PASS, OWASP 1 aplicable (A03)
+    PASS / 9 N/A.'
+startedAt: '2026-08-25T15:45:00.000Z'
+results:
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: Item Cost auto-populates when selecting a Shop Item (Replenishment Order wizard)
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Wizard 1 = ReplenishmentOrderWizard. Confirmado por fuente: inputsToUse arranca en la linea 214 del helper y
+      el orden real es [0] lookupInput, [1] related-variant, [2] item-cost, [3] order-quantity, [4] order-cost.'
+    phase: given
+    text: I am in the Replenishment Order wizard inside an open Purchase Order
+    attachments: &id001
+    - name: index-mapping-proof.txt
+      path: attachments/tr-042-tc-72/index-mapping-proof.txt
+      mimeType: text/plain
+  - order: 2
+    status: passed
+    actual: 'El Shop Item con Item_Cost__c viaja en la respuesta porque el PR restauro selectFields: ["Auctifera__Item_Cost__c"]
+      en la config del lookup (helper linea ~227). Ese selectFields SI se consume: customLookupField.js:144 lo declara @api
+      y InputRow.cmp:64 lo propaga.'
+    phase: given
+    text: the Shop Item "Tote" has an Item Cost of 25.00
+    attachments: &id002
+    - name: regression-results.txt
+      path: attachments/tr-042-tc-72/regression-results.txt
+      mimeType: text/plain
+  - order: 3
+    status: passed
+    actual: 'ReplenishmentOrderWizardHelper.js reintroduce: itemCost.value = shopItem.Auctifera__Item_Cost__c sobre itemRow[2],
+      mas itemRow[0].cost = mismo valor. Sonda con costo 25 -> itemCost 25. PASS.'
+    phase: when
+    text: I select "Tote" in the Search Shop Item field
+    attachments: &id003
+    - name: ordercost-probe-output.txt
+      path: attachments/tr-042-tc-72/scenario-0-unit-tests/ordercost-probe-output.txt
+      mimeType: text/plain
+    - name: ordercost-probe.js
+      path: attachments/tr-042-tc-72/scenario-0-unit-tests/ordercost-probe.js
+      mimeType: application/javascript
+  - order: 4
+    status: passed
+    actual: ReplenishmentOrderWizardHelper.js reintroduce itemCost.value = shopItem.Auctifera__Item_Cost__c sobre itemRow[2],
+      que es la posicion real de item-cost en este wizard (helper linea 254). Sonda con costo 25 -> itemCost 25. PASS por
+      fuente + sonda.
+    phase: then
+    text: the Item Cost field is populated with 25.00
+    attachments: *id001
+  - order: 5
+    status: passed
+    actual: 'El input item-cost NO declara disabled en su config (solo name, label, formatter currency, value y onChange).
+      El unico campo de la fila con disabled: true es order-cost. Queda editable por construccion, sin depender de datos.'
+    phase: then
+    text: the Item Cost field remains editable
+    attachments: []
+  notes: 'AC1 cubierto por fuente + sonda, no por navegador: Aura no es instrumentable con sfdx-lwc-jest, asi que no existe
+    ni puede existir un test unitario del dev para este archivo (ver tests-found.txt). La evidencia es el mapeo de indices
+    archivo por archivo mas la reproduccion del bloque restaurado en node. Editabilidad inferida de la ausencia de disabled
+    en la config del input.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: Item Cost auto-populates when selecting a Shop Item (wizard opened from the Stock Replenishment view)
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Wizard 2 = ReplenishmentWizardFromStockReplenishmentView. inputsToUse arranca en la linea 213 y el orden real
+      es [0] lookupInput, [1] related-variant, [2] lookupInput (Supplier), [3] item-cost, [4] order-quantity, [5] order-cost.
+      El lookup extra del Supplier en el indice 2 es lo que desplaza todo en +1.
+    phase: given
+    text: I opened the Replenishment wizard from the Stock Replenishment view
+    attachments: *id001
+  - order: 2
+    status: passed
+    actual: 'selectFields: ["Auctifera__Item_Cost__c"] tambien restaurado en este helper (linea ~234), igual que en el wizard
+      1. Los dos puntos de entrada quedaron cubiertos.'
+    phase: given
+    text: the Shop Item "Tote" has an Item Cost of 25.00
+    attachments: *id002
+  - order: 3
+    status: passed
+    actual: El helper del wizard 2 escribe itemCost.value sobre itemRow[3] (no [2]), que es la posicion correcta de item-cost
+      en ESTE wizard. Sonda con costo 25 -> 25. PASS.
+    phase: when
+    text: I select "Tote" in the Search Shop Item field
+    attachments: *id003
+  - order: 4
+    status: passed
+    actual: El helper del wizard 2 escribe itemCost.value sobre itemRow[3] (no [2]), la posicion real de item-cost en ESTE
+      wizard (helper linea 272). Sonda con costo 25 -> 25. PASS por fuente + sonda.
+    phase: then
+    text: the Item Cost field is populated with 25.00
+    attachments:
+    - name: revert-fidelity.txt
+      path: attachments/tr-042-tc-72/revert-fidelity.txt
+      mimeType: text/plain
+  - order: 5
+    status: passed
+    actual: 'Paridad confirmada: ningun punto de entrada quedo sin revertir. Los 4 archivos de los 2 wizards estan en el PR
+      y son exactamente los mismos 4 que SH-942 habia tocado. El wizard 2 recibe ademas un extra que el 1 no tiene, la inicializacion
+      de fila value: shopItem ? shopItem.Auctifera__Item_Cost__c : null (la unica linea -1 del PR); esa asimetria es PREEXISTENTE
+      a SH-942, no la introduce el revert.'
+    phase: then
+    text: the behavior is identical to the Replenishment Order wizard (no entry point left unreverted)
+    attachments: []
+  notes: 'AC1 y AC3 en el segundo punto de entrada. El riesgo de revert parcial (restaurar un wizard y dejar el otro muerto)
+    queda descartado: los 4 archivos de los 2 wizards estan en el PR, y son exactamente los mismos 4 que SH-942 habia tocado.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: The cost lands in the Item Cost column and no neighbouring column is mutated
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Divergencia confirmada por fuente y documentada en index-mapping-proof.txt: wizard 1 usa [2]/[3]/[4] y wizard
+      2 usa [3]/[4]/[5]. La causa es el lookup Supplier extra en el indice 2 del wizard 2 — exactamente la distincion que
+      el AC3 llama ''the wizard with a Supplier column and the wizard without it''.'
+    phase: given
+    text: the two wizards address different row positions for Item Cost, Order Quantity and Order Cost
+    attachments: *id001
+  - order: 2
+    status: passed
+    actual: Enumeracion completa de cada array inputsToUse con numero de linea por nombre de input, en los dos helpers. Base
+      de comparacion tomada del codigo, no de la UI.
+    phase: given
+    text: I note the values of every column in the row before selecting an item
+    attachments: *id001
+  - order: 3
+    status: passed
+    actual: 'CADA wizard escribe en SU propia posicion de item-cost: W1 en [2], W2 en [3]. No hay reutilizacion cruzada de
+      indices. El riesgo critico de copy-paste NO se materializo.'
+    phase: when
+    text: I select a Shop Item with Item Cost 25.00, in each wizard entry point in turn
+    attachments: *id001
+  - order: 4
+    status: passed
+    actual: 'Identidad de columna probada por fuente en los dos wizards: el 25.00 se escribe en la posicion que en CADA wizard
+      corresponde a item-cost — [2] en el wizard 1 (helper linea 254) y [3] en el wizard 2 (helper linea 272). Sin reutilizacion
+      cruzada de indices.'
+    phase: then
+    text: in both wizards the value 25.00 appears in the Item Cost column specifically
+    attachments: *id001
+  - order: 5
+    status: passed
+    actual: 'Order Quantity no se sobreescribe: en W1 el codigo LEE itemRow[3] y escribe [2] y [4]; en W2 LEE [4] y escribe
+      [3] y [5]. La cantidad solo se lee, nunca se asigna dentro del bloque restaurado.'
+    phase: then
+    text: Order Quantity is not overwritten by the cost value
+    attachments: *id001
+  - order: 6
+    status: passed
+    actual: 'Ninguna columna ajena cambia. Verificado ademas el hazard del splice de la columna Location: ambos helpers insertan
+      en inputsToUse.length - 1, o sea DESPUES de order-cost y ANTES de status, por lo que los indices 0..5 no se desplazan
+      ni con Location activa. El resto de la fila (status, y Location cuando aplica) queda intacto.'
+    phase: then
+    text: no unrelated column in the row changed its value
+    attachments: []
+  notes: 'ESTE ERA EL RIESGO CRITICO #1 del TC-72 y quedo CERRADO con evidencia definitiva. Un revert por copy-paste habria
+    escrito el costo en la columna equivocada sin lanzar error, o sea sin sintoma visible en logs. La verificacion del splice
+    es el hallazgo no obvio: aunque la columna Location entra condicionalmente, entra en una posicion que no rompe el direccionamiento.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: Order Cost is recomputed as Item Cost x Order Quantity on auto-population
+  scenarioIndex: 3
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Sonda ordercost-probe.js reproduce el bloque restaurado del helper con los indices del wizard 1. Caso costo 50.
+    phase: given
+    text: the Shop Item "Tote" has an Item Cost of 50.00
+    attachments: *id003
+  - order: 2
+    status: passed
+    actual: Order Quantity 3 en la misma fila.
+    phase: given
+    text: the row has an Order Quantity of 3
+    attachments: *id003
+  - order: 3
+    status: passed
+    actual: 'Al auto-poblarse, itemCost.value = 50. Salida de la sonda: itemCost 50.'
+    phase: when
+    text: I select "Tote" so the Item Cost auto-populates
+    attachments: *id003
+  - order: 4
+    status: passed
+    actual: 'Al auto-poblarse, itemCost.value = 50. Salida de la sonda: itemCost 50.'
+    phase: then
+    text: Item Cost shows 50.00
+    attachments: *id003
+  - order: 5
+    status: passed
+    actual: 'orderCost.value = itemCost.value * orderQuantity.value = 50 * 3 = 150. Salida de la sonda: orderCost 150. Los
+      TRES efectos del bloque eliminado estan restaurados: itemCost.value, itemRow[0].cost y el recomputo de orderCost.'
+    phase: then
+    text: Order Cost is recomputed automatically to 150.00
+    attachments: *id002
+  - order: 6
+    status: passed
+    actual: 'No queda en blanco ni con valor viejo en el camino normal. El recomputo posterior ante edicion manual tambien
+      existe en AMBOS controllers via handleChangeInput (W1 linea 52 escribe [4]; W2 linea 53 escribe [5]), con los indices
+      correctos de cada wizard. OBSERVACION OBS-1: en fila fresca sin cantidad, order-quantity vale null y 25*null = 0, asi
+      que Order Cost muestra $0.00 en vez de blanco; preexistente y no contradice el AC5, ver regression-results.txt.'
+    phase: then
+    text: Order Cost is not left blank or showing a stale value
+    attachments: []
+  notes: 'AC5 cubierto. Riesgo ''tres efectos, no uno'' CERRADO: el bloque no se restauro a medias. OBSERVACION registrada
+    en regression-results.txt (OBS-1): en una fila fresca sin cantidad, order-quantity vale null y 25*null = 0, por lo que
+    Order Cost muestra $0.00 en vez de blanco. No se clasifica como defecto — es comportamiento preexistente restaurado, el
+    mismo idiom sin guardia ya existe en ShopInventoryWizardHelper.js:54, y no contradice el AC5. NaN no es alcanzable porque
+    order-quantity inicializa en null y no en undefined.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: A Shop Item with a known Item Cost never populates blank (guards the removed selectFields)
+  scenarioIndex: 4
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: El Shop Item de prueba tiene Item_Cost__c poblado en el registro. La pregunta real del escenario es si ese valor
+      LLEGA al cliente.
+    phase: given
+    text: the Shop Item "Tote" has a confirmed Item Cost of 25.00 on its record
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: 'Verificado en los dos puntos de entrada: selectFields: ["Auctifera__Item_Cost__c"] restaurado en ambos helpers.'
+    phase: when
+    text: I select "Tote" in each wizard entry point
+    attachments: *id001
+  - order: 3
+    status: passed
+    actual: 'Nunca queda en blanco por la causa que este escenario vigila. Prueba de que selectFields no es cargo-cult: customLookupField.js:144
+      lo declara como @api selectFields = [] y InputRow.cmp:64 lo pasa con selectFields="{!input.selectFields}". O sea el
+      campo se pide de verdad en la query del lookup.'
+    phase: then
+    text: the Item Cost field is never left blank
+    attachments: *id002
+  - order: 4
+    status: passed
+    actual: 'El no-op silencioso queda descartado. La sonda demuestra el mecanismo exacto de la falla que se estaba vigilando:
+      con el costo en undefined el guard `shopItem.Auctifera__Item_Cost__c !== undefined` se salta el bloque completo y tanto
+      itemCost como orderCost quedan en null, sin error. Con selectFields restaurado ese camino ya no se toma. MATIZ TECNICO:
+      como SOQL devuelve los campos pedidos como null (no undefined) cuando estan vacios, con selectFields presente el guard
+      practicamente siempre pasa; la distincion real que queda viva es null vs numero, no undefined.'
+    phase: then
+    text: no silent no-op occurs (a blank field here indicates Item_Cost__c was not requested in the query and arrived undefined,
+      not a logic failure)
+    attachments: *id003
+  notes: 'Riesgo del selectFields perdido CERRADO. El matiz undefined-vs-null es importante para interpretar los escenarios
+    6 y 7: el guard filtra ''campo ausente en la respuesta'', no ''campo vacio en el registro''.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: An Item Cost of 0 auto-populates as 0
+  scenarioIndex: 5
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Caso costo 0 en la sonda, reproduciendo el guard verbatim.
+    phase: given
+    text: a Shop Item exists with Item Cost = 0
+    attachments: *id003
+  - order: 2
+    status: passed
+    actual: Order Quantity 5.
+    phase: given
+    text: the row has an Order Quantity of 5
+    attachments: *id003
+  - order: 3
+    status: passed
+    actual: 'El guard es `!== undefined`, no truthiness, y 0 !== undefined es verdadero: el bloque ENTRA. Salida de la sonda:
+      itemCost 0, no blanco. Exactamente el comportamiento que el escenario exige.'
+    phase: when
+    text: I select that Shop Item
+    attachments: *id003
+  - order: 4
+    status: passed
+    actual: 'El guard es `!== undefined`, no truthiness, y 0 !== undefined es verdadero: el bloque ENTRA. Salida de la sonda:
+      itemCost 0, no blanco. Exactamente lo que exige el escenario. Si el guard hubiese usado truthiness, este caso habria
+      fallado en silencio dejando el campo vacio.'
+    phase: then
+    text: Item Cost is populated with 0, not left blank (the guard tests for undefined, and 0 is defined)
+    attachments: *id003
+  - order: 5
+    status: passed
+    actual: 'orderCost = 0 * 5 = 0. Salida de la sonda: orderCost 0.'
+    phase: then
+    text: Order Cost is recomputed to 0
+    attachments: []
+  notes: 'Borde de cero CERRADO. Si el guard hubiese usado truthiness (`if (shopItem.Auctifera__Item_Cost__c)`) este caso
+    habria fallado en silencio dejando el campo en blanco. Usa la comparacion estricta, que es la correcta. OBS-2 relacionada
+    en regression-results.txt: la rama del Variant en el controller SI usa truthiness (`else if (itemRow[0].cost)`), asi que
+    con costo base 0 no cae al fallback; borde muy estrecho y el camino de limpiar el Variant si maneja el 0 porque asigna
+    sin condicion.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: A Shop Item with no Item Cost leaves the field blank and editable
+  scenarioIndex: 6
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Caso costo null en la sonda, que es lo que SOQL devuelve para un Item Cost vacio con el campo pedido en selectFields.
+    phase: given
+    text: a Shop Item exists with an empty/null Item Cost
+    attachments: *id003
+  - order: 2
+    status: passed
+    actual: Seleccion del Shop Item.
+    phase: when
+    text: I select that Shop Item
+    attachments: *id003
+  - order: 3
+    status: passed
+    actual: 'Salida de la sonda: itemCost null, que renderiza como campo vacio. El escenario se cumple.'
+    phase: then
+    text: the Item Cost field stays blank
+    attachments: *id003
+  - order: 4
+    status: passed
+    actual: 'No se lanza error: la asignacion de null es valida y el input no queda deshabilitado (item-cost no declara disabled),
+      asi que sigue editable para captura manual.'
+    phase: then
+    text: no error is raised and the field remains editable for manual entry
+    attachments: *id002
+  notes: 'El campo queda blanco como exige el escenario, PERO con un efecto colateral que el TC no habia previsto: como null
+    !== undefined es verdadero, el bloque ENTRA y ejecuta orderCost = null * cantidad = 0. Es decir, con un Shop Item sin
+    costo, Order Cost pasa a $0.00 en vez de quedar blanco. Misma familia que OBS-1 y con el mismo veredicto: comportamiento
+    preexistente, no contradice ningun AC, no se levanta defecto. Vale confirmarlo visualmente cuando se corra el escenario
+    10 en org.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: Selecting a Variant populates the Variant's own Item Cost
+  scenarioIndex: 7
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Shop Item con costo 25 ya seleccionado, itemRow[0].cost = 25 gracias al bloque del helper.
+    phase: given
+    text: I have selected a Shop Item whose Item Cost is 25.00
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: El Variant elegido trae Auctifera__Cost_per_item__c = 30.
+    phase: given
+    text: the chosen Variant carries its own Item Cost of 30.00
+    attachments: *id002
+  - order: 3
+    status: passed
+    actual: 'Los dos controllers reintroducen: if (variant.Auctifera__Cost_per_item__c !== undefined) itemRow[N].value = variant.Auctifera__Cost_per_item__c,
+      con N = 2 en el wizard 1 y N = 3 en el wizard 2. El costo del Variant sobrescribe el del item base. PASS por fuente
+      en ambos wizards.'
+    phase: when
+    text: I select that Variant in Choose Variant
+    attachments: *id001
+  - order: 4
+    status: passed
+    actual: 'Los dos controllers reintroducen: if (variant.Auctifera__Cost_per_item__c !== undefined) itemRow[N].value = variant.Auctifera__Cost_per_item__c,
+      con N = 2 en el wizard 1 y N = 3 en el wizard 2. El costo del Variant (30.00) sobrescribe el del item base (25.00).
+      PASS por fuente en ambos wizards.'
+    phase: then
+    text: Item Cost updates to the Variant's cost of 30.00
+    attachments: *id002
+  - order: 5
+    status: passed
+    actual: 'El recomputo del Variant SI esta protegido: W1 `if (itemRow[2].value && itemRow[3].value) itemRow[4].value =
+      ...`; W2 `if (itemRow[3].value && itemRow[4].value) itemRow[5].value = ...`. Order Cost se recalcula desde el costo
+      del Variant cuando ambos valores son truthy. Nota: por usar truthiness, un Variant con costo 0 no dispara el recalculo
+      (borde estrecho, consistente con OBS-2).'
+    phase: then
+    text: Order Cost is recomputed from the Variant's cost
+    attachments: []
+  notes: 'AC2 cubierto por fuente en los dos puntos de entrada. Tambien se restauro el camino inverso: al limpiar el Variant,
+    itemRow[N].value = itemRow[0].cost devuelve el costo del item base (W1 controller linea ~330, W2 linea ~326). Nota: el
+    recomputo del Variant usa truthiness, asi que un Variant con costo 0 no dispara el recalculo; borde estrecho, consistente
+    con OBS-2.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: Auto-population is per-row and does not leak across rows
+  scenarioIndex: 8
+  status: passed
+  executedAt: '2026-08-25T16:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Escenario multi-fila con filas previamente llenadas a mano.
+    phase: given
+    text: I have several Stock Replenishment Order rows, some already filled in manually
+    attachments: *id002
+  - order: 2
+    status: passed
+    actual: Seleccion de un Shop Item en una sola fila.
+    phase: when
+    text: I select a Shop Item in one row only
+    attachments: *id002
+  - order: 3
+    status: passed
+    actual: 'Aislamiento garantizado por construccion: todo el bloque restaurado opera sobre itemRow, que es inputsRow[position].inputsToUse,
+      donde position viene del evento del lookup. No hay bucle sobre inputsRow ni escritura por indice fijo de fila.'
+    phase: then
+    text: only that row's Item Cost and Order Cost are populated
+    attachments: *id001
+  - order: 4
+    status: passed
+    actual: 'Las demas filas no se tocan: handleChangeInput tambien se ancla en inputsRow[position], y component.set("v.inputsRow",
+      inputsRow) reescribe el arreglo con las otras filas intactas.'
+    phase: then
+    text: the other rows keep their existing values untouched
+    attachments: *id001
+  notes: 'AC1 en contexto multi-fila. Cubierto por fuente: el scoping por position es estructural, no depende de datos, asi
+    que no requiere navegador para afirmarse.'
+- testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
+  testCaseKey: TC-72
+  testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
+  testCaseFilePath: test-cases/SH-1218/SH-1218-TC-72-item-cost-auto-populate-restored.testcase.yml
+  scenarioTitle: A manual override of the auto-populated cost survives Save
+  scenarioIndex: 9
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: 'PENDIENTE: seleccionar un Shop Item y confirmar que Item Cost se auto-completa en 25.00.'
+    phase: given
+    text: I selected a Shop Item and the Item Cost auto-populated to 25.00
+    attachments: *id002
+  - order: 2
+    status: not-run
+    actual: 'PENDIENTE: sobrescribir Item Cost a 40.00, poner Order Quantity 2 y presionar Save All Stock Orders.'
+    phase: when
+    text: I overwrite Item Cost with 40.00, set Order Quantity to 2, and click Save All Stock Orders
+    attachments: *id002
+  - order: 3
+    status: passed
+    actual: 'El recomputo previo al guardado SI es demostrable por fuente: handleChangeInput dispara cuando inputName coincide
+      con item-cost o order-quantity y escribe 40 * 2 = 80 en order-cost. Falta confirmarlo en pantalla.'
+    phase: then
+    text: Order Cost updates to 80.00 before saving
+    attachments: *id002
+  - order: 4
+    status: not-run
+    actual: 'PENDIENTE Y NO DEMOSTRABLE POR FUENTE: que el registro quede persistido en Salesforce con el Item Cost manual
+      40.00 y no con el auto-poblado 25.00. Requiere un org con el hotfix desplegado y lectura del registro guardado.'
+    phase: then
+    text: the record is persisted in Salesforce with the manual Item Cost of 40.00, not the auto-populated 25.00
+    attachments: *id002
+  notes: 'UNICO escenario que no se puede cerrar sin org. Cubre el AC4, el unico AC cuya verificacion es de persistencia y
+    no de logica de cliente. El paso 3 (recomputo a 80) queda demostrado por fuente pero el escenario toma el estado mas debil
+    porque su assertion central — que el valor manual sobrevive al guardado — es de base de datos. PENDIENTE DE TU PARTE:
+    ver la seccion en el resumen. Guardar evidencia en attachments/tr-042-tc-72/ui/.'
+history:
+- action: created
+  timestamp: '2026-08-25T15:45:00.000Z'
+  user: angie.montenegro@veevart.com
+  to: planned
+- action: status-changed
+  timestamp: '2026-08-25T15:50:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: planned
+  to: in-progress
+  reason: 'Verificar el revert de SH-942 sobre el merge 0af3106813 del PR #2604'
+metadata:
+  parentTicket: SH-1218
+  qaSubTask: SH-1231
+  pullRequest: https://github.com/Veevarts/AuctiferaDX/pull/2604
+  headUnderTest: 0af3106813c0e756cb3fee1481acf59bba206612
+  revertedCommit: '6f221f5736c914dd115a18eda00edfebc9ba282b (SH-942, PR #2454)'
+  classification: UI / Frontend-only
+  unitTestsInPR: ninguno — Aura no es cubrible por sfdx-lwc-jest (limitacion estructural, no omision del dev)
+  localSuite: npm run test:unit -> 61 suites / 623 tests, 0 fallos
+  technicalRegression: 7/7 PASS
+  securityRegression: 8/8 PASS, 0 bloqueadores High/Critical
+  owaspTop10: 1 aplicable (A03 Injection) PASS · 0 FAIL · 9 N/A
+  defects: []
+  observations:
+  - 'OBS-1: Order Cost muestra $0.00 en fila fresca sin cantidad (25*null=0). Preexistente, no contradice AC5, sin defecto.'
+  - 'OBS-2: la rama del Variant usa truthiness (else if (itemRow[0].cost)), asi que un costo base 0 no cae al fallback. Borde
+    estrecho.'
+  - 'OBS-3 (proceso): PR #2604 se mergeo con reviewDecision vacio y cero reviews, siendo un hotfix de prioridad Highest ya
+    promovido a stable via PR #2621.'
+  attachmentsPath: attachments/tr-042-tc-72

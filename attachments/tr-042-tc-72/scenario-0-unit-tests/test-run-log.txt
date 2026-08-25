@@ -1,0 +1,30 @@
+LOG DE EJECUCION DE LA SUITE — repo AuctiferaDX checkout local
+==============================================================
+El repo del PR SI esta en disco (/Users/veevart/Downloads/AuctiferaDX-main),
+asi que la suite se corrio localmente. No aplica el modo remote-only.
+
+$ npm run test:unit
+  > sfdx-lwc-jest
+
+  Test Suites: 61 passed, 61 total
+  Tests:       623 passed, 623 total
+  Snapshots:   0 total
+  Time:        5.371 s
+  Ran all test suites.
+
+Ruido observado (no es fallo): rentalResourceFeeModelTotals.js:42 loguea
+"error while getting tax model TypeError: Cannot read properties of undefined"
+dentro de connectedCallback. La suite igual pasa; es preexistente y ajeno a SH-1218.
+
+CI DEL PR #2604 (gh pr checks 2604)
+-----------------------------------
+  build                                          pass   1h2m57s
+  lint                                           pass   1m3s
+  test                                           pass   1m26s
+  AWS CodeBuild us-east-1                        pass    Build succeeded
+  beta_checks                                    skipping
+  build (segundo workflow)                       skipping
+
+ADVERTENCIA DE PROCESO: el PR se mergeo con reviewDecision vacio y cero reviews
+(gh pr view 2604 --json reviewDecision,reviews -> {"reviewDecision":"","reviews":[]}).
+Merge el 2026-08-21T20:59:12Z, merge commit 0af3106813c0e756cb3fee1481acf59bba206612.

@@ -1,0 +1,33 @@
+TESTS APORTADOS POR EL PR #2604 — SH-1218
+=========================================
+Comando: gh pr diff 2604 --name-only | grep -iE "(spec|test|__tests__|\.test\.)"
+Resultado: NINGUNO. El PR no agrega ni modifica ningun archivo de test.
+
+Archivos del PR (4, todos Aura JS, +39/-1):
+  force-app/main/default/aura/ReplenishmentOrderWizard/ReplenishmentOrderWizardController.js        (+7  -0)
+  force-app/main/default/aura/ReplenishmentOrderWizard/ReplenishmentOrderWizardHelper.js            (+12 -0)
+  .../ReplenishmentWizardFromStockReplenishmentView/ReplenishmentWizardFromStockReplenishmentViewController.js (+7  -0)
+  .../ReplenishmentWizardFromStockReplenishmentView/ReplenishmentWizardFromStockReplenishmentViewHelper.js     (+13 -1)
+
+CONTEXTO IMPORTANTE — NO ES NEGLIGENCIA DEL DEV
+-----------------------------------------------
+El runner de tests del repo es sfdx-lwc-jest:
+  package.json -> "test:unit": "sfdx-lwc-jest"
+  jest.config.js -> const { jestConfig } = require("@salesforce/sfdx-lwc-jest/config")
+
+sfdx-lwc-jest SOLO instrumenta Lightning Web Components. NO puede cargar ni
+ejecutar componentes Aura. Verificado: cero referencias a "aura" en jest.config.js.
+El repo tiene 10 carpetas __tests__ y todas estan bajo force-app/**/lwc/**.
+
+=> Es estructuralmente IMPOSIBLE cubrir estos 4 archivos con el runner del repo.
+   La ausencia de tests no se computa como falta del dev; se compensa con
+   verificacion por codigo fuente + sonda de comportamiento (ver ordercost-probe)
+   + validacion funcional manual en org (escenario 10).
+
+SUITE COMPLETA EJECUTADA LOCALMENTE (evidencia de no-regresion)
+--------------------------------------------------------------
+Comando: npm run test:unit
+Resultado: Test Suites 61 passed / 61 total · Tests 623 passed / 623 total · 5.371 s
+Nota: el conteo incluye copias de suites dentro de .claude/worktrees/ (worktrees
+locales antiguos), por lo que 61/623 sobreestima el tamano real del proyecto.
+Lo relevante: CERO fallos.

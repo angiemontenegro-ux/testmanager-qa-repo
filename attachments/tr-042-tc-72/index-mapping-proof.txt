@@ -1,0 +1,43 @@
+PRUEBA DE IDENTIDAD DE COLUMNA (riesgo critico #1) — TC-72 escenario 3
+=====================================================================
+Riesgo original: las dos copias de la logica direccionan posiciones de fila
+DISTINTAS. Un revert por copy-paste que reutilice los indices de un wizard en el
+otro escribiria el costo en la columna equivocada SIN lanzar error.
+
+VEREDICTO: NO OCURRIO. Los indices son distintos y CORRECTOS en cada wizard.
+
+WIZARD 1 — ReplenishmentOrderWizardHelper.js, array inputsToUse
+  linea 214  name: "lookupInput"      -> indice 0   (Shop Item)
+  linea 238  name: "related-variant"  -> indice 1
+  linea 254  name: "item-cost"        -> indice 2   <<<
+  linea 264  name: "order-quantity"   -> indice 3   <<<
+  linea 274  name: "order-cost"       -> indice 4   <<<
+  linea 284  name: "status"           -> indice 5
+  Codigo restaurado escribe: itemRow[2] / itemRow[3] / itemRow[4]   => COINCIDE
+
+WIZARD 2 — ReplenishmentWizardFromStockReplenishmentViewHelper.js, inputsToUse (linea 213)
+  linea 221  name: "lookupInput"      -> indice 0   (Shop Item)
+  linea 245  name: "related-variant"  -> indice 1
+  linea 262  name: "lookupInput"      -> indice 2   (SEGUNDO lookup = Supplier)
+  linea 272  name: "item-cost"        -> indice 3   <<<
+  linea 281  name: "order-quantity"   -> indice 4   <<<
+  linea 290  name: "order-cost"       -> indice 5   <<<
+  linea 300  name: "status"           -> indice 6
+  Codigo restaurado escribe: itemRow[3] / itemRow[4] / itemRow[5]   => COINCIDE
+
+POR QUE DIVERGEN: el wizard 2 tiene un lookup EXTRA en el indice 2 (Supplier) que
+desplaza todo en +1. Es exactamente la distincion que el AC3 de SH-1218 llama
+"the wizard with a Supplier column and the wizard without it".
+
+HAZARD ADICIONAL VERIFICADO — el splice de la columna Location
+  wizard 1 helper linea 292-293 y wizard 2 helper linea 309-313:
+      if (includeLocationField) {
+        newRow.inputsToUse.splice(newRow.inputsToUse.length - 1, 0, rowLocationInput);
+      }
+  Inserta en length-1, es decir ANTES de "status" y DESPUES de "order-cost".
+  => los indices 0..5 NO se desplazan cuando la columna Location esta activa.
+  El auto-relleno sigue apuntando a la columna correcta en ambos modos.
+
+RECOMPUTO EN CAMBIO MANUAL — indices tambien correctos en ambos
+  wizard 1 controller linea 52 handleChangeInput: usa [2],[3] -> escribe [4]
+  wizard 2 controller linea 53 handleChangeInput: usa [3],[4] -> escribe [5]
