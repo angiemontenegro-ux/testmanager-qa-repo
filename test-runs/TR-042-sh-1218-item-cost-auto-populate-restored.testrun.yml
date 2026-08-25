@@ -111,14 +111,19 @@ results:
     attachments: *id003
   - order: 4
     status: passed
-    actual: El helper del wizard 2 escribe itemCost.value sobre itemRow[3] (no [2]), la posicion real de item-cost en ESTE
-      wizard (helper linea 272). Sonda con costo 25 -> 25. PASS por fuente + sonda.
+    actual: 'El helper del wizard 2 escribe itemCost.value sobre itemRow[3] (no [2]), la posicion real de item-cost en ESTE
+      wizard (helper linea 272). Sonda con costo 25 -> 25. PASS por fuente + sonda. CONFIRMADO EN UI: capturas 1 y 3, URL
+      Auctifera__ReplenishmentWizardFromStock..., con la columna Supplier visible en pantalla — justo el input extra que corre
+      el Item Cost al indice 3 en este wizard. Item Cost poblado con 74.67 / 25.33 / 3.03 / 100.00, ninguno en blanco.'
     phase: then
     text: the Item Cost field is populated with 25.00
     attachments:
-    - name: revert-fidelity.txt
-      path: attachments/tr-042-tc-72/revert-fidelity.txt
-      mimeType: text/plain
+    - name: 1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      path: attachments/tr-042-tc-72/ui/1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      mimeType: image/png
+    - name: 3-wizard2-guardado-success-cuatro-filas.png
+      path: attachments/tr-042-tc-72/ui/3-wizard2-guardado-success-cuatro-filas.png
+      mimeType: image/png
   - order: 5
     status: passed
     actual: 'Paridad confirmada: ningun punto de entrada quedo sin revertir. Los 4 archivos de los 2 wizards estan en el PR
@@ -129,7 +134,9 @@ results:
     text: the behavior is identical to the Replenishment Order wizard (no entry point left unreverted)
     attachments: []
   notes: 'AC1 y AC3 en el segundo punto de entrada. El riesgo de revert parcial (restaurar un wizard y dejar el otro muerto)
-    queda descartado: los 4 archivos de los 2 wizards estan en el PR, y son exactamente los mismos 4 que SH-942 habia tocado.'
+    queda descartado: los 4 archivos de los 2 wizards estan en el PR, y son exactamente los mismos 4 que SH-942 habia tocado.
+    EVIDENCIA VISUAL AGREGADA 2026-08-25: la corrida manual en DevStage confirma en pantalla lo que el analisis de codigo
+    predijo, incluida la presencia de la columna Supplier que explica la divergencia de indices.'
 - testCaseId: 1972438a-4799-4e03-8d3d-b66b32bdc730
   testCaseKey: TC-72
   testCaseTitle: Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order
@@ -223,10 +230,19 @@ results:
   - order: 5
     status: passed
     actual: 'orderCost.value = itemCost.value * orderQuantity.value = 50 * 3 = 150. Salida de la sonda: orderCost 150. Los
-      TRES efectos del bloque eliminado estan restaurados: itemCost.value, itemRow[0].cost y el recomputo de orderCost.'
+      TRES efectos del bloque eliminado estan restaurados: itemCost.value, itemRow[0].cost y el recomputo de orderCost. CONFIRMADO
+      EN UI con tres cantidades distintas sobre el mismo item: 3 -> 224.00, 4 -> 298.67 y 66 -> 4928.10. Las tres cuadran
+      exactas con un costo subyacente de 74.668182 que la UI muestra redondeado a 74.67 (Cost__c tiene escala 6). Tomar el
+      74.67 literal habria hecho parecer que 66 x 74.67 = 4928.22 no cuadraba.'
     phase: then
     text: Order Cost is recomputed automatically to 150.00
-    attachments: *id002
+    attachments:
+    - name: 1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      path: attachments/tr-042-tc-72/ui/1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      mimeType: image/png
+    - name: 2-wizard2-status-received-complete.png
+      path: attachments/tr-042-tc-72/ui/2-wizard2-status-received-complete.png
+      mimeType: image/png
   - order: 6
     status: passed
     actual: 'No queda en blanco ni con valor viejo en el camino normal. El recomputo posterior ante edicion manual tambien
@@ -466,35 +482,73 @@ results:
   status: not-run
   stepResults:
   - order: 1
-    status: not-run
-    actual: 'PENDIENTE: seleccionar un Shop Item y confirmar que Item Cost se auto-completa en 25.00.'
+    status: passed
+    actual: 'CONFIRMADO EN UI (DevStage). El Item Cost se auto-completa al elegir el Shop Item: se observaron 74.67, 25.33,
+      3.03 y 100.00 en filas distintas, ninguna en blanco. El valor concreto difiere del 25.00 del guion pero el comportamiento
+      es el mismo. Capturas 1 y 3.'
     phase: given
     text: I selected a Shop Item and the Item Cost auto-populated to 25.00
-    attachments: *id002
+    attachments:
+    - name: 1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      path: attachments/tr-042-tc-72/ui/1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      mimeType: image/png
+    - name: 3-wizard2-guardado-success-cuatro-filas.png
+      path: attachments/tr-042-tc-72/ui/3-wizard2-guardado-success-cuatro-filas.png
+      mimeType: image/png
   - order: 2
     status: not-run
-    actual: 'PENDIENTE: sobrescribir Item Cost a 40.00, poner Order Quantity 2 y presionar Save All Stock Orders.'
+    actual: 'PENDIENTE. Angie confirmo que el 100.00 del registro se lleno SOLO al seleccionar el item, no lo escribio encima.
+      Es decir, la sobreescritura manual no se ejercito en esta corrida: no hubo un valor tecleado que compitiera contra el
+      auto-poblado.'
     phase: when
     text: I overwrite Item Cost with 40.00, set Order Quantity to 2, and click Save All Stock Orders
-    attachments: *id002
+    attachments:
+    - name: 3-wizard2-guardado-success-cuatro-filas.png
+      path: attachments/tr-042-tc-72/ui/3-wizard2-guardado-success-cuatro-filas.png
+      mimeType: image/png
   - order: 3
-    status: passed
-    actual: 'El recomputo previo al guardado SI es demostrable por fuente: handleChangeInput dispara cuando inputName coincide
-      con item-cost o order-quantity y escribe 40 * 2 = 80 en order-cost. Falta confirmarlo en pantalla.'
+    status: not-run
+    actual: 'PENDIENTE en su variante manual. El recomputo del Order Cost SI quedo confirmado en UI para valores auto-poblados:
+      con costo subyacente 74.668182 (se muestra redondeado a 74.67) las tres filas dan 224.00, 298.67 y 4928.10, exactas.
+      Lo que falta es el recomputo disparado por una EDICION manual del Item Cost, que por codigo existe en handleChangeInput
+      de ambos wizards pero no se ejercito aqui.'
     phase: then
     text: Order Cost updates to 80.00 before saving
-    attachments: *id002
+    attachments:
+    - name: 1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      path: attachments/tr-042-tc-72/ui/1-wizard2-autopoblado-74.67-status-sin-elegir.png
+      mimeType: image/png
+    - name: 2-wizard2-status-received-complete.png
+      path: attachments/tr-042-tc-72/ui/2-wizard2-status-received-complete.png
+      mimeType: image/png
   - order: 4
     status: not-run
-    actual: 'PENDIENTE Y NO DEMOSTRABLE POR FUENTE: que el registro quede persistido en Salesforce con el Item Cost manual
-      40.00 y no con el auto-poblado 25.00. Requiere un org con el hotfix desplegado y lectura del registro guardado.'
+    actual: 'PARCIAL. La PERSISTENCIA en Salesforce SI quedo probada: la captura 4 muestra el registro Auctifera__StockReplenishmentOrder__c
+      ''Adriana test A - Contacto and Contacto Family - 8/25/2026'' con Item Cost USD 100.00, Order Quantity 22 y Order Cost
+      USD 2,200.00 (= 100 x 22), Order Status ''Received - Complete''. Lo que NO queda probado es la afirmacion especifica
+      del AC4: que un valor MANUAL le gane al auto-poblado. El 100.00 guardado es el valor que el sistema auto-completo, no
+      uno tecleado por el usuario, asi que el riesgo que este escenario vigila (que el auto-relleno pise una entrada manual)
+      sigue sin ejercitarse.'
     phase: then
     text: the record is persisted in Salesforce with the manual Item Cost of 40.00, not the auto-populated 25.00
-    attachments: *id002
-  notes: 'UNICO escenario que no se puede cerrar sin org. Cubre el AC4, el unico AC cuya verificacion es de persistencia y
-    no de logica de cliente. El paso 3 (recomputo a 80) queda demostrado por fuente pero el escenario toma el estado mas debil
-    porque su assertion central — que el valor manual sobrevive al guardado — es de base de datos. PENDIENTE DE TU PARTE:
-    ver la seccion en el resumen. Guardar evidencia en attachments/tr-042-tc-72/ui/.'
+    attachments:
+    - name: 4-registro-salesforce-item-cost-100.png
+      path: attachments/tr-042-tc-72/ui/4-registro-salesforce-item-cost-100.png
+      mimeType: image/png
+  notes: 'ESCENARIO PARCIALMENTE EVIDENCIADO, se mantiene not-run. Corrida manual de Angie el 2026-08-25 en DevStage (veevartdevstage.lightning.force.com),
+    wizard 2 (ReplenishmentWizardFromStockReplenishmentView). PROBADO: el auto-relleno funciona y el valor del Item Cost se
+    persiste en el registro de Salesforce. NO PROBADO: que una sobreescritura manual sobreviva al guardado, que es la afirmacion
+    central del AC4 — Angie confirmo que el 100.00 se lleno solo al seleccionar el item. PARA CERRARLO hace falta un solo
+    caso: elegir un Shop Item, dejar que el costo se auto-complete, TECLEAR un valor distinto encima, poner una cantidad,
+    guardar y abrir el registro para confirmar que quedo el valor tecleado y no el auto-poblado. Evidencia a attachments/tr-042-tc-72/ui/.'
+summary:
+  total: 10
+  passed: 9
+  failed: 0
+  blocked: 0
+  skipped: 0
+  notRun: 1
+  passRate: 90
 history:
 - action: created
   timestamp: '2026-08-25T15:45:00.000Z'
@@ -506,6 +560,10 @@ history:
   from: planned
   to: in-progress
   reason: 'Verificar el revert de SH-942 sobre el merge 0af3106813 del PR #2604'
+- action: updated
+  timestamp: '2026-08-25T16:45:00.000Z'
+  user: angie.montenegro@veevart.com
+  reason: Cargada la evidencia UI de la corrida manual en DevStage y agregado el bloque summary que faltaba
 metadata:
   parentTicket: SH-1218
   qaSubTask: SH-1231
@@ -525,4 +583,11 @@ metadata:
     estrecho.'
   - 'OBS-3 (proceso): PR #2604 se mergeo con reviewDecision vacio y cero reviews, siendo un hotfix de prioridad Highest ya
     promovido a stable via PR #2621.'
+  - 'OBS-4: la invalidacion de cache de Aura queda probada de forma implicita — si el navegador siguiera sirviendo el codigo
+    de SH-942 el Item Cost apareceria EN BLANCO. Aparece poblado, luego el hotfix se esta ejecutando.'
   attachmentsPath: attachments/tr-042-tc-72
+  environment: DevStage (veevartdevstage.lightning.force.com)
+  manualRunBy: Angie Montenegro, 2026-08-25, wizard 2 (ReplenishmentWizardFromStockReplenishmentView)
+  uiEvidence: attachments/tr-042-tc-72/ui/ (4 capturas)
+  coverageGap: Sin evidencia visual del wizard 1 (ReplenishmentOrderWizard, sin columna Supplier, abierto desde un Purchase
+    Order); queda cubierto solo por codigo fuente. Tampoco se ejercito la seleccion de Variant en UI.
