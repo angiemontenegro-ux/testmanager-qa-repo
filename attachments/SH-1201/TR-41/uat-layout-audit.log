@@ -1,0 +1,11 @@
+# Auditoria del layout Inventory History en veevartmuseumdemo--uat
+# generado 2026-08-20T02:23:02Z via Tooling API
+
+Querying Data... done
+┌──────────────────────────┬─────────────────┬──────────────────────────────┬──────────────────────────────┬─────────────────────┐
+│ NAME                     │ MANAGEABLESTATE │ CREATEDDATE                  │ LASTMODIFIEDDATE             │ LASTMODIFIEDBY.NAME │
+├──────────────────────────┼─────────────────┼──────────────────────────────┼──────────────────────────────┼─────────────────────┤
+│ Inventory History Layout │ installed       │ 2025-09-23T13:36:52.000+0000 │ 2026-08-20T02:21:20.000+0000 │ Angie Montenegro    │
+└──────────────────────────┴─────────────────┴──────────────────────────────┴──────────────────────────────┴─────────────────────┘
+
+Total number of records retrieved: 1.

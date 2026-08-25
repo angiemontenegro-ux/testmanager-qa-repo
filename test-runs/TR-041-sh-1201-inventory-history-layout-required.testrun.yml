@@ -1,0 +1,168 @@
+schemaVersion: "1.0"
+id: 2c9202f8-2c62-4e77-af17-91e7bb88cf34
+key: TR-041
+title: "Run: Inventory History layout still marks Item per location as required in an existing subscriber org"
+status: completed
+environment:
+  name: qa
+  buildVersion: "UAT sandbox veevartmuseumdemo--uat (org 00DD7000000OCIrMAO), managed package Auctifera 8.337.0.1. First execution of TC-71 and the first run that reproduces SH-1201 through the Lightning UI rather than by comparing metadata. IMPORTANT — this run required temporarily undoing an environment remediation: the manual fix recorded in attachments/SH-1129/TR-38/scenario-6-layout/remediation-uat-2026-08-19/ had already set Item_per_location__c to Edit in this org, which removed the reproduction. The layout was reverted to Required (deploy 0AfD700003TOxRpKAL), the scenario was executed, and the remediation was re-applied afterwards (deploy 0AfD700003TOxRuKAL). The org ends this run exactly as it started, matching its own remediation record — see README-run-sequence.txt. Shop_Item__c was never touched and remains Required, so SH-1143's layout scenario stays validable in this org without contamination from this run."
+startedAt: "2026-08-20T02:00:00.000Z"
+completedAt: "2026-08-20T02:25:00.000Z"
+results:
+  - testCaseId: "db2389ab-c6cf-415a-9ac6-a5a3807d9838"
+    testCaseKey: TC-71
+    testCaseTitle: "Inventory History layout must not mark Item per location as required in existing subscriber orgs"
+    testCaseFilePath: test-cases/SH-1201/SH-1201-TC-71-inventory-history-layout-required-in-subscriber-orgs.testcase.yml
+    scenarioTitle: "The deployed layout renders Item per location as editable, not required"
+    scenarioIndex: 0
+    status: failed
+    executedAt: "2026-08-20T02:05:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Org UAT con Auctifera 8.337.0.1. La parte de CAMPO de SH-1129 si llego: Item_per_location__c describe como nillable=true. El paquete se actualizo, el layout no."
+        phase: given
+        text: "an existing subscriber org running a package build that contains SH-1129"
+        attachments:
+          - name: uat-package-version.log
+            path: attachments/SH-1201/TR-41/uat-package-version.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Retrieve con el nombre namespaced en AMBAS partes y comparacion contra origin/main."
+        phase: when
+        text: "the Inventory History Layout is retrieved from the org and compared against the layout on origin/main"
+        attachments:
+          - name: uat-layout-DURING-run-required.xml
+            path: attachments/SH-1201/TR-41/uat-layout-DURING-run-required.xml
+            mimeType: text/plain
+      - order: 3
+        status: failed
+        actual: "FAIL. El org reporta behavior=Required mientras origin/main dice Edit."
+        phase: then
+        text: "the layoutItem for Auctifera__Item_per_location__c reports behavior Edit, matching the repo"
+        attachments:
+          []
+      - order: 4
+        status: failed
+        actual: "FAIL. El layoutItem lo marca Required. Auditoria: layout con ManageableState=installed y CreatedDate 2025-09-23, intocado desde la instalacion hasta la remediacion manual de 2026-08-19."
+        phase: then
+        text: "no layoutItem in the org marks Auctifera__Item_per_location__c as Required"
+        attachments:
+          - name: uat-layout-audit.log
+            path: attachments/SH-1201/TR-41/uat-layout-audit.log
+            mimeType: text/plain
+    notes: "RESULT: FAIL - defecto reproducido. Prueba adicional recogida en esta corrida: el 2026-08-18 el org tomo un upgrade real del paquete (SetupAuditTrail, upgradedpackagingapp 'Upgraded AppExchange package: Auctifera') y ese upgrade NO modifico el layout; el layout solo cambio 26 horas despues por una edicion manual. Upgrade y cambio de layout separados en el tiempo, con el upgrade demostrablemente sin efecto sobre el layout. Eso eleva la causa raiz de deduccion a evidencia."
+    attachments: []
+    defects:
+      - SH-1201
+
+  - testCaseId: "db2389ab-c6cf-415a-9ac6-a5a3807d9838"
+    testCaseKey: TC-71
+    testCaseTitle: "Inventory History layout must not mark Item per location as required in existing subscriber orgs"
+    testCaseFilePath: test-cases/SH-1201/SH-1201-TC-71-inventory-history-layout-required-in-subscriber-orgs.testcase.yml
+    scenarioTitle: "An Inventory History record with no Item per location can be saved from Lightning"
+    scenarioIndex: 1
+    status: failed
+    executedAt: "2026-08-20T02:05:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Registro a4nD7000002QgrTIAS ('SH-1201 Layout Check - BORRAR'), unico del org con el lookup en null."
+        phase: given
+        text: "an Auctifera__Inventory_History__c record whose Auctifera__Item_per_location__c is null, which is the state SH-1129 deliberately produces"
+        attachments:
+          - name: record-state-unchanged.log
+            path: attachments/SH-1201/TR-41/record-state-unchanged.log
+            mimeType: text/plain
+      - order: 2
+        status: passed
+        actual: "Abierto en Lightning desde el menu del registro -> Edit. Modal 'Edit a4nD7000002QgrT'."
+        phase: when
+        text: "the record is opened in Lightning and put into edit mode"
+        attachments:
+          - name: ui-observation-transcript.txt
+            path: attachments/SH-1201/TR-41/ui-observation-transcript.txt
+            mimeType: text/plain
+      - order: 3
+        status: failed
+        actual: "FAIL. Se muestra la leyenda '* = Required Information' y el campo aparece como '* Item per location' con asterisco rojo, vacio. CONTROL INTERNO en la misma pantalla: 'Item Variant', tambien lookup opcional a nivel de campo pero con behavior=Edit en el layout, NO muestra asterisco. Eso aisla el layout como causa y descarta la metadata de campo."
+        phase: then
+        text: "the Item per location field renders WITHOUT the red required asterisk"
+        attachments:
+          []
+      - order: 4
+        status: failed
+        actual: "FAIL. Guardado bloqueado. No se produjo DML: tras cancelar, LastModifiedDate sigue en 2026-08-18T15:33:57Z y el lookup sigue null."
+        phase: then
+        text: "saving the record with Item per location left empty succeeds"
+        attachments:
+          []
+      - order: 5
+        status: failed
+        actual: "FAIL. Textos exactos: inline 'Complete this field.' bajo el campo en rojo, y toast 'We hit a snag. / Review the following fields / Item per location'."
+        phase: then
+        text: "no validation message asks the user to complete the Item per location field"
+        attachments:
+          []
+    notes: "RESULT: FAIL - este es el escenario que faltaba. Hasta ahora SH-1201 se sostenia en comparacion de metadata; aqui se reproduce en la UI, que es donde el defecto realmente afecta al usuario. CAPTURAS: las tres capturas de pantalla SI se tomaron (modo edicion con el asterisco, guardado bloqueado con el toast, y vista del registro con el campo vacio) y estan pendientes de subir al test manager; ver attachments/SH-1201/TR-41/screenshots/. Mientras tanto la evidencia textual equivalente y reproducible queda en ui-observation-transcript.txt con los textos exactos, mas el layout tal como estaba durante la corrida. Para recapturar imagenes hay que re-aplicar temporalmente behavior=Required sobre Item_per_location__c, porque el org ya volvio a Edit."
+    attachments: []
+    defects:
+      - SH-1201
+
+  - testCaseId: "db2389ab-c6cf-415a-9ac6-a5a3807d9838"
+    testCaseKey: TC-71
+    testCaseTitle: "Inventory History layout must not mark Item per location as required in existing subscriber orgs"
+    testCaseFilePath: test-cases/SH-1201/SH-1201-TC-71-inventory-history-layout-required-in-subscriber-orgs.testcase.yml
+    scenarioTitle: "The null Item per location lookup is accepted at the API level"
+    scenarioIndex: 2
+    status: passed
+    executedAt: "2026-08-20T02:05:00.000Z"
+    stepResults:
+      - order: 1
+        status: passed
+        actual: "Mismo org y misma version de paquete."
+        phase: given
+        text: "the same subscriber org"
+        attachments:
+          []
+      - order: 2
+        status: passed
+        actual: "No hizo falta ninguna escritura extra para demostrarlo."
+        phase: when
+        text: "an Auctifera__Inventory_History__c row with a null Auctifera__Item_per_location__c is written or read through the API"
+        attachments:
+          []
+      - order: 3
+        status: passed
+        actual: "PASS. La existencia misma del registro a4nD7000002QgrTIAS con el lookup en null lo prueba: si la restriccion fuera de API, ese registro no podria existir."
+        phase: then
+        text: "the operation succeeds, confirming the constraint is enforced only by the page layout and not by the field or the platform"
+        attachments:
+          - name: record-state-unchanged.log
+            path: attachments/SH-1201/TR-41/record-state-unchanged.log
+            mimeType: text/plain
+      - order: 4
+        status: passed
+        actual: "PASS. Consistente con TR-038, donde los escenarios de API pasan y solo el de layout falla."
+        phase: then
+        text: "this is what bounds the defect: every API-level scenario of the SH-1129 plan passes while the layout scenario fails"
+        attachments:
+          []
+    notes: "RESULT: PASS. Este escenario existe para acotar el defecto, no para validar una funcionalidad: al pasar, demuestra que SH-1201 es exclusivamente de UI. Su valor es delimitar el impacto real para producto — el dato queda corrupto en ningun momento, lo unico que se rompe es la edicion manual desde Lightning."
+    attachments: []
+    defects:
+      - SH-1201
+
+history:
+  - action: created
+    timestamp: "2026-08-20T02:00:00.000Z"
+    user: claude
+  - action: updated
+    timestamp: "2026-08-20T02:25:00.000Z"
+    user: claude
+    reason: "Primera ejecucion de TC-71 y primera reproduccion de SH-1201 en la UI. Resultado 1 passed / 2 failed, con el unico PASS sirviendo para acotar el defecto a la capa de UI. La corrida exigio revertir temporalmente la remediacion manual que ya existia en UAT (deploy 0AfD700003TOxRpKAL, Edit -> Required), porque esa remediacion habia eliminado la reproduccion; terminada la captura se re-aplico (deploy 0AfD700003TOxRuKAL, Required -> Edit) y se verifico releyendo el layout del org. El org termina identico a como empezo. Hallazgo adicional de esta corrida: el SetupAuditTrail muestra un upgrade real del paquete el 2026-08-18 que no toco el layout, y el layout cambiando 26 horas despues por edicion manual — dos eventos separados que convierten la causa raiz de SH-1201 en evidencia directa en vez de deduccion. Limitacion declarada: las capturas de pantalla no quedaron en disco; la evidencia de UI es la transcripcion con textos exactos."
+  - action: updated
+    timestamp: "2026-08-20T02:45:00.000Z"
+    user: claude
+    reason: "Segunda pasada de captura: se repitio la secuencia de ambiente (Edit -> Required, capturar, Required -> Edit) para obtener las tres imagenes de la UI, que en la primera pasada no habian quedado en disco. Estado final del org verificado releyendo el layout: Item_per_location__c = Edit, Shop_Item__c intacto en Required. El registro a4nD7000002QgrTIAS conserva su LastModifiedDate original del 2026-08-18, o sea que ninguna de las dos pasadas escribio datos. Las imagenes quedan pendientes de subir al test manager; la nota del escenario 2 se actualizo para reflejarlo en vez de seguir diciendo que no existian."
