@@ -1,0 +1,33 @@
+PLAN DE REGRESION (tecnica + seguridad) — SH-1218 / PR #2604
+============================================================
+Clasificacion: UI / Frontend-only (4 archivos Aura JS client-side, +39/-1).
+Sin SQL, sin pipeline, sin dependencias, sin metadata de permisos.
+
+REGRESION TECNICA
+| # | Item                                                              | Riesgo | Metodo de chequeo                                          | Veredicto |
+|---|-------------------------------------------------------------------|--------|------------------------------------------------------------|-----------|
+| T1| Indices de fila divergentes entre los 2 wizards                   | ALTO   | Enumerar inputsToUse por archivo y comparar con el codigo   | TBD       |
+| T2| splice de la columna Location desplaza indices                     | ALTO   | Leer la posicion de insercion del splice en ambos helpers    | TBD       |
+| T3| selectFields restaurado pero no consumido (revert cargo-cult)      | MEDIO  | grep del consumidor de selectFields en LWC/Aura              | TBD       |
+| T4| ShopInventoryWizard (3er wizard con Item_Cost__c) alterado         | MEDIO  | git show 6f221f5736 --name-only + diff del PR                | TBD       |
+| T5| Recomputo de Order Cost al cambiar cantidad manualmente            | MEDIO  | Leer handleChangeInput en ambos controllers                  | TBD       |
+| T6| Suite LWC del repo rota por el cambio                              | BAJO   | npm run test:unit completo                                   | TBD       |
+| T7| Order Cost con cantidad vacia (fila fresca) NaN o 0                | BAJO   | Sonda node reproduciendo el bloque restaurado                | TBD       |
+
+REGRESION DE SEGURIDAD
+| # | Item                                                              | Riesgo | Metodo de chequeo                                          | Veredicto |
+|---|-------------------------------------------------------------------|--------|------------------------------------------------------------|-----------|
+| S1| Concatenacion dinamica de SOQL/SQL en el diff                     | ALTO   | grep de SELECT/INSERT/UPDATE/DELETE con + o ${ en el diff    | TBD       |
+| S2| Secretos/credenciales introducidos                                | ALTO   | grep password/api_key/secret/token/bearer/BEGIN en el diff   | TBD       |
+| S3| PII en logs nuevos                                                | MEDIO  | grep console.log/logger/print en el diff                     | TBD       |
+| S4| Sinks XSS (innerHTML, eval, new Function, document.write)         | ALTO   | grep de sinks en el diff                                     | TBD       |
+| S5| Llamadas salientes nuevas (SSRF)                                  | MEDIO  | grep fetch/axios/XMLHttpRequest/http:// en el diff            | TBD       |
+| S6| Dependencias nuevas o actualizadas                                | MEDIO  | gh pr diff --name-only | grep package/requirements/lock      | TBD       |
+| S7| Metadata de permisos (permissionset/profile/sharing) tocada       | ALTO   | gh pr diff --name-only | grep permissionset/profile          | TBD       |
+| S8| CI/CD o deserializacion tocada                                    | MEDIO  | gh pr diff --name-only | grep .github/workflow/Dockerfile    | TBD       |
+
+NOTA DE METODO: todos los greps de seguridad se corren contra `gh pr diff 2604`
+(133 lineas), NO contra `git diff 6f221f5736..0af31068`. Ese segundo rango abarca
+dos meses de commits de main e inyecta falsos positivos (package.json, 6 permissionsets,
+Admin.profile) que NO pertenecen a este PR. Un primer intento uso ese rango
+equivocado y hubo que descartarlo.

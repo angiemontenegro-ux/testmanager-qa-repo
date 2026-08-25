@@ -1,0 +1,33 @@
+FIDELIDAD DEL REVERT — SH-1218 vs SH-942
+========================================
+Pregunta: el revert restaura EXACTAMENTE el estado previo a SH-942, o es una
+reconstruccion a mano que pudo introducir diferencias?
+
+COMMIT REVERTIDO
+  6f221f5736c914dd115a18eda00edfebc9ba282b
+  "feat(replenishment): item cost left blank when adding a stock replenishment order SH-942 (#2454)"
+  2026-06-24, 4 archivos, +1 -39
+
+COMMIT DEL REVERT
+  0af3106813c0e756cb3fee1481acf59bba206612  (merge del PR #2604)
+  2026-08-21T20:59:12Z, 4 archivos, +39 -1  <- inverso exacto en conteo
+
+PRUEBA DE RESTAURACION
+$ git diff 6f221f5736^ 0af3106813c0e756cb3fee1481acf59bba206612 -- \
+    force-app/main/default/aura/ReplenishmentOrderWizard/ \
+    force-app/main/default/aura/ReplenishmentWizardFromStockReplenishmentView/
+
+Resultado: los 4 archivos .js NO aparecen en el diff => contenido identico al
+estado inmediatamente ANTERIOR a SH-942. Restauracion perfecta.
+
+Lo unico que aparece son 2 archivos .cmp con un cambio ajeno:
+    -<ltng:require scripts="{!$Resource.LightningLibrary}" .../>
+    +<c:ResourceLoader scripts="LightningLibrary" .../>
+Ese cambio entro por otros commits entre junio y agosto, NO por este PR
+(gh pr diff 2604 --name-only lista solo los 4 .js). No es regresion de SH-1218.
+
+ALCANCE DEL REVERT — COMPLETO
+$ git show 6f221f5736 --name-only | grep -i wizard
+  -> exactamente los mismos 4 archivos de los 2 wizards.
+SH-942 nunca toco ShopInventoryWizard, por lo que ese tercer wizard no perdio la
+logica y no requiere revert. No hay punto de entrada olvidado.

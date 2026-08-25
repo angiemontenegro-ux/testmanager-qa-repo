@@ -1,0 +1,20 @@
+MATRIZ AC <-> COBERTURA — SH-1218 / TC-72
+=========================================
+ACs tomados del bloque gherkin de SH-1218 (5 ACs).
+
+| AC  | Enunciado                                              | Test unitario del dev | Cobertura QA aplicada                                    |
+|-----|--------------------------------------------------------|-----------------------|----------------------------------------------------------|
+| AC1 | Item Cost se auto-completa al elegir un Shop Item      | NINGUNO (Aura)        | Codigo fuente + sonda: esc. 1,2,5,6,7,9                  |
+| AC2 | Elegir un Variant sobrescribe con el costo del Variant| NINGUNO (Aura)        | Codigo fuente (controller ambos wizards): esc. 8         |
+| AC3 | Comportamiento restaurado en AMBOS wizards            | NINGUNO (Aura)        | Mapeo de indices probado archivo por archivo: esc. 2,3   |
+| AC4 | El valor manual se persiste al guardar                | NINGUNO (Aura)        | Recomputo probado por fuente; PERSISTENCIA -> org (esc.10)|
+| AC5 | Order Cost = Item Cost x Order Quantity               | NINGUNO (Aura)        | Sonda node de la rama restaurada: esc. 4                 |
+
+BRECHAS
+-------
+- Ningun AC tiene test unitario del dev. Causa raiz estructural (sfdx-lwc-jest no
+  cubre Aura), no omision. Ver tests-found.txt.
+- AC4 es el unico AC cuya verificacion NO se puede cerrar sin un org: la escritura
+  en Salesforce requiere UI + lectura del registro. Queda como escenario 10 not-run.
+- AC1/AC2/AC3/AC5 quedan cubiertos con evidencia de codigo fuente y sonda de
+  comportamiento, que es evidencia real aunque no sea navegador.

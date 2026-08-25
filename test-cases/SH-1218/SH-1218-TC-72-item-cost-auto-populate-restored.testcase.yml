@@ -1,8 +1,8 @@
 schemaVersion: "1.0"
 id: "1972438a-4799-4e03-8d3d-b66b32bdc730"
-key: "TC-71"
+key: "TC-72"
 title: "Item Cost auto-populates again when selecting a Shop Item or Variant in a Stock Replenishment Order"
-description: "QA coverage for SH-1218 (hotfix reverting SH-942). SH-942 removed the Item Cost auto-population from the Stock Replenishment Order wizards; production customers depend on it, so SH-1218 restores it. Implementation domain: Salesforce Shop 1.0 (Auctifera namespace), Aura wizards in the purchase-order / stock-replenishment flow. The change being reverted is commit 6f221f5736 (PR #2454, merged 2026-06-24) — a pure deletion of 39 lines across 4 Aura JS files, so this suite verifies restoration rather than new behavior. THREE structural risks drive the scenario set. (1) TWO INDEPENDENT ENTRY POINTS: the logic was duplicated in ReplenishmentOrderWizard{Controller,Helper}.js and ReplenishmentWizardFromStockReplenishmentView{Controller,Helper}.js, so a partial revert can restore one wizard and leave the other dead — every populate scenario is run against both entry points. (2) DIVERGENT ARRAY INDICES: the two copies address different row positions (wizard 1 uses itemRow[2]=itemCost, [3]=orderQuantity, [4]=orderCost; wizard 2 uses itemRow[3]=itemCost, [4]=orderQuantity, [5]=orderCost). A copy-paste revert that reuses one wizard's indices in the other writes the cost into the WRONG column and throws no error, so scenario 3 asserts column identity explicitly. (3) THREE EFFECTS, NOT ONE: the deleted block set itemCost.value, set itemRow[0].cost, and recomputed orderCost.value = itemCost.value * orderQuantity.value — restoring only the Item Cost field leaves Order Cost blank or stale, so the derived recompute is asserted separately. The deletion also removed selectFields: [\"Auctifera__Item_Cost__c\"] from the query config; without it shopItem.Auctifera__Item_Cost__c arrives undefined, the if (... !== undefined) guard skips the whole block, and the field stays blank with NO error — a silent no-op that scenario 5 is designed to catch. Note the guard tests !== undefined, so an Item Cost of 0 must populate (0 is not undefined) while a null cost must not — covered as separate edge cases. SUPERSEDES SH-942 / TC-1, which asserts the opposite behavior (Item Cost stays blank) and will fail by design once this hotfix ships."
+description: "QA coverage for SH-1218 (hotfix reverting SH-942), tracked under QA Sub-task SH-1231. SH-1218 is a Hotfix with no parent Story and no epic, so there is no epic key to reference. NOTE ON STATUS: SH-1218 was already transitioned to Done before this QA bundle was built, so this is post-merge validation, not a pre-merge gate. NOTE ON KEY: this case was originally written as TC-71 and renumbered to TC-72 because SH-1201 had already claimed TC-71 on an earlier pushed branch. SH-942 removed the Item Cost auto-population from the Stock Replenishment Order wizards; production customers depend on it, so SH-1218 restores it. Implementation domain: Salesforce Shop 1.0 (Auctifera namespace), Aura wizards in the purchase-order / stock-replenishment flow. The change being reverted is commit 6f221f5736 (PR #2454, merged 2026-06-24) — a pure deletion of 39 lines across 4 Aura JS files, so this suite verifies restoration rather than new behavior. THREE structural risks drive the scenario set. (1) TWO INDEPENDENT ENTRY POINTS: the logic was duplicated in ReplenishmentOrderWizard{Controller,Helper}.js and ReplenishmentWizardFromStockReplenishmentView{Controller,Helper}.js, so a partial revert can restore one wizard and leave the other dead — every populate scenario is run against both entry points. (2) DIVERGENT ARRAY INDICES: the two copies address different row positions (wizard 1 uses itemRow[2]=itemCost, [3]=orderQuantity, [4]=orderCost; wizard 2 uses itemRow[3]=itemCost, [4]=orderQuantity, [5]=orderCost). A copy-paste revert that reuses one wizard's indices in the other writes the cost into the WRONG column and throws no error, so scenario 3 asserts column identity explicitly. (3) THREE EFFECTS, NOT ONE: the deleted block set itemCost.value, set itemRow[0].cost, and recomputed orderCost.value = itemCost.value * orderQuantity.value — restoring only the Item Cost field leaves Order Cost blank or stale, so the derived recompute is asserted separately. The deletion also removed selectFields: [\"Auctifera__Item_Cost__c\"] from the query config; without it shopItem.Auctifera__Item_Cost__c arrives undefined, the if (... !== undefined) guard skips the whole block, and the field stays blank with NO error — a silent no-op that scenario 5 is designed to catch. Note the guard tests !== undefined, so an Item Cost of 0 must populate (0 is not undefined) while a null cost must not — covered as separate edge cases. SUPERSEDES SH-942 / TC-1, which asserts the opposite behavior (Item Cost stays blank) and will fail by design once this hotfix ships."
 type: "functional"
 priority: "high"
 status: "active"
@@ -33,6 +33,7 @@ scenarios:
   - title: "Item Cost auto-populates when selecting a Shop Item (wizard opened from the Stock Replenishment view)"
     tags:
       - "ac-1"
+      - "ac-3"
       - "happy-path"
       - "wizard-2"
       - "item-cost"
@@ -48,7 +49,7 @@ scenarios:
 
   - title: "The cost lands in the Item Cost column and no neighbouring column is mutated"
     tags:
-      - "ac-1"
+      - "ac-3"
       - "regression"
       - "critical"
       - "array-indices"
@@ -64,7 +65,7 @@ scenarios:
 
   - title: "Order Cost is recomputed as Item Cost x Order Quantity on auto-population"
     tags:
-      - "ac-2"
+      - "ac-5"
       - "happy-path"
       - "order-cost"
       - "derived-value"
@@ -121,7 +122,7 @@ scenarios:
 
   - title: "Selecting a Variant populates the Variant's own Item Cost"
     tags:
-      - "ac-1"
+      - "ac-2"
       - "happy-path"
       - "variant"
     given:
@@ -148,7 +149,7 @@ scenarios:
 
   - title: "A manual override of the auto-populated cost survives Save"
     tags:
-      - "ac-3"
+      - "ac-4"
       - "regression"
       - "manual-override"
     given:
@@ -160,6 +161,7 @@ scenarios:
       - "the record is persisted in Salesforce with the manual Item Cost of 40.00, not the auto-populated 25.00"
 tags:
   - "sh-1218"
+  - "sh-1231"
   - "sh-942"
   - "hotfix"
   - "revert"
@@ -175,6 +177,9 @@ links:
     - key: "SH-1218"
       url: "https://veevart.atlassian.net/browse/SH-1218"
       type: "bug"
+    - key: "SH-1231"
+      url: "https://veevart.atlassian.net/browse/SH-1231"
+      type: "qa-subtask"
     - key: "SH-942"
       url: "https://veevart.atlassian.net/browse/SH-942"
       type: "relates"
@@ -183,6 +188,6 @@ estimatedDuration: 75
 metadata:
   createdBy: "claude"
   createdAt: "2026-08-24T00:00:00Z"
-  updatedBy: "claude"
-  updatedAt: "2026-08-24T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-08-25T15:35:00Z"
   version: 1
