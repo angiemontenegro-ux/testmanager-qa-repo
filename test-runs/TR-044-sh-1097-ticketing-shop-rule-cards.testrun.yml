@@ -1,0 +1,955 @@
+schemaVersion: '1.0'
+id: tr-3c7a91e4-52d8-4f6b-9a10-7e4b28d5c063
+key: TR-044
+title: 'Run: Ticketing & Shop rule cards — fechas por regla, contadores, universal-rule lock, guarda de regla sin guardar,
+  Membership Program y scope Category/Item (TC-51 + TC-52 + TC-53 + TC-54 + TC-55 + TC-63) contra origin/develop 60f425fa
+  de VeevartFrontend, SH-1097 / QA Sub-task SH-1121'
+status: in-progress
+environment:
+  name: local-source
+  buildVersion: 'UI / Frontend-only. ENTORNO: NO se probo en navegador ni en una instancia desplegada. La verificacion se
+    hizo contra el CODIGO FUENTE de origin/develop en un worktree local + la suite del dev ejecutada localmente (87 archivos
+    / 2.750 tests / 2.748 pasan). REPO: Veevarts/VeevartFrontend, modulo packages/shop/src/discounts/discount-wizard. LA HISTORIA
+    NO TIENE PR PROPIA: SH-1097 se entrego repartida en PRs con clave HERMANA, todas mergeadas a develop — #463 (SH-1096,
+    rebuild del wizard v3, +36.245/-6.695), #500, #510 (''prepare the Ticketing rule card''), #513, #517, #522, #529, #539
+    y #568, todas rotuladas SH-1094. Se confirmo que el diff contiene el slice de SH-1097 (tarjetas de regla Ticketing y Shop,
+    fechas por regla, contadores, Membership Program, scope Category/Item). HEAD BAJO PRUEBA: 60f425fa (origin/develop, 2026-09-02).
+    BASE: merge-base(origin/main, origin/develop) = b0bf320e. ATENCION — EL CODIGO YA ESTA EN PRODUCCION: git ls-tree confirma
+    que origin/main (promocion #604 del 2026-08-25) ya contiene ShopRuleCardPreview.tsx, TicketingRuleCardPreview.tsx y rule-date-window-card-path.test.tsx.
+    Este QA corre POST-promocion, asi que todo hallazgo aqui ya es alcanzable en produccion. Sin SQL, sin pipeline, sin metadata
+    de Salesforce: no aplica safesql ni carga a sandbox. VEREDICTO: 6/20 PASS, 11 FAIL, 3 skipped. Regresion tecnica 7/7 PASS,
+    seguridad 6/6 PASS, OWASP 4 aplicables PASS / 6 N/A, 0 bloqueadores de seguridad. LECTURA CENTRAL DEL RUN: la mayoria
+    de los FAIL NO son defectos de codigo, son DERIVA ENTRE LOS TEST CASES Y EL DISENO VIGENTE. Los seis TC se escribieron
+    el 2026-07-27; los Fix 19, 24, 25, 28, 29 y 31 de SH-1097 se cerraron despues (Fix 29 y 31 el 2026-08-05) y cambiaron
+    el modelo: el auto-hide+banner de fechas por regla se reemplazo por un control segmentado explicito ''When does the discount
+    apply?'', el switch ''Members only'' se elimino (FP7) y los contadores de uso quedaron sin numerador por falta de productor
+    de ventas confirmadas. Hay 3 hallazgos que si son huecos reales frente al AC vigente (ver notes del run). LIMITE DIVULGADO:
+    `npm ci` no se pudo correr — E404 en el paquete privado @veevarts/veevart-checkout@1.11.0, que exige registry autenticado.
+    Se reuso node_modules del worktree hermano sh1096. Delta de lockfile auditado: de 131 deps root que difieren, TODAS son
+    ADICIONES de develop simplemente AUSENTES del arbol prestado, ninguna es un downgrade; react 19.2.5, react-aria 3.48.0,
+    @react-aria/utils 3.33.1, @heroui/react 2.8.10 y vitest 2.1.9 son IDENTICOS en ambos. Por eso `npm audit` no corrio y
+    A06 se resolvio por consulta al GitHub Advisory DB.'
+startedAt: '2026-09-03T13:30:00.000Z'
+results:
+- testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
+  testCaseKey: TC-51
+  testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml
+  scenarioTitle: Date & Time Range is editable when Event = All events and no Membership Program
+  scenarioIndex: 0
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: una regla de Ticketing con Program = All Ticketing Programs y sin Membership Program es un
+      estado legal de la tarjeta (computeTicketingWhenOptions cubre esa forma explicitamente).'
+    phase: given
+    text: a Ticketing rule has Event = All events and no Membership Program set
+  - order: 2
+    status: passed
+    actual: La tarjeta se renderiza. ticketing-rule-card-model.ts:206-229 define la matriz de opciones del control 'When does
+      the discount apply?' segun la forma de la regla.
+    phase: when
+    text: the rule card renders
+  - order: 3
+    status: failed
+    actual: 'NO se cumple TAL COMO ESTA ESCRITO. Fix 19 reemplazo el auto-hide por un control segmentado explicito. Para All
+      Programs sin gate las opciones son [NO_RESTRICTION, CUSTOM] y NO_RESTRICTION es el DEFAULT (el primer elemento; el comentario
+      dice ''the order is load-bearing''). El bloque Date & Time Range solo se pinta cuando dateScope es CUSTOM o CUSTOM_WITHIN_EVENT
+      (TicketingRuleCardPreview.tsx:1315), asi que al renderizar NO esta visible: el admin tiene que elegir primero ''Specific
+      date range''. Una vez elegido si es totalmente editable, y el input ''Add a single date'' del TC corresponde a exceptionDates
+      (rule-schedule-model.ts:29). O sea: la capacidad existe, la visibilidad-al-render no.'
+    phase: then
+    text: the Date & Time Range block and the Add a single date input are visible and user-editable
+    attachments:
+    - name: TC-51-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-51/evidence.txt
+      mimeType: text/plain
+      size: 6405
+  notes: 'FAILED por diseno superado, no por bug. El TC se escribio el 2026-07-27 y Fix 19 (documentado en la propia descripcion
+    de SH-1097) cambio el modelo a un toggle explicito. Accion: reescribir el escenario para que asuma el paso de elegir ''Specific
+    date range''.'
+- testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
+  testCaseKey: TC-51
+  testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml
+  scenarioTitle: Date & Time Range hides when a specific Event is selected
+  scenarioIndex: 1
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: seleccionar un Program concreto es la forma ''concrete programme, no gate'' de la matriz.'
+    phase: given
+    text: the admin selects one or more specific events on a Ticketing rule (Event not equal to All events)
+  - order: 2
+    status: passed
+    actual: 'La tarjeta re-renderiza y recalcula las opciones: computeTicketingWhenOptions devuelve [''EVENT_DERIVED'',''CUSTOM_WITHIN_EVENT'']
+      cuando programId no es null ni ALL_TICKETING_PROGRAMS_ID.'
+    phase: when
+    text: the rule card re-renders
+  - order: 3
+    status: failed
+    actual: 'PARCIAL, y por eso FAILED. La parte correcta: EVENT_DERIVED es el default y no pinta schedule, asi que el bloque
+      SI queda oculto por defecto. La parte que no se cumple: el ocultamiento NO es incondicional. CUSTOM_WITHIN_EVENT (''Specific
+      range within program'') vuelve a mostrar el bloque a proposito, para que el admin pueda acotar dentro de las fechas
+      del programa. El TC prohibe lo que Fix 19 exige.'
+    phase: then
+    text: the Date & Time Range block and the Add a single date input are hidden
+  - order: 4
+    status: failed
+    actual: 'El banner exigido NO EXISTE. grep de ''inherited from the selected event'' en todo el modulo: cero resultados.
+      El equivalente enviado es el helper de la opcion: when.helperEventDerived = ''Active exactly while the program runs.'''
+    phase: then
+    text: an info banner reads 'Dates are inherited from the selected event(s). No manual date restriction needed.'
+    attachments:
+    - name: TC-51-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-51/evidence.txt
+      mimeType: text/plain
+      size: 6405
+  notes: El mecanismo cambio de banner-informativo a opcion-de-un-toggle. Reescribir contra when.eventDerived / when.helperEventDerived
+    y aceptar que CUSTOM_WITHIN_EVENT es un camino valido.
+- testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
+  testCaseKey: TC-51
+  testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml
+  scenarioTitle: Date & Time Range hides when a Membership Program is set
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: existe el campo Membership Program por regla (scope.membershipProgram, ''Optional. Gates this
+      rule to one membership programme (Fix 13)'').'
+    phase: given
+    text: the admin sets Membership Program = Gold on a rule (Ticketing or Shop)
+  - order: 2
+    status: passed
+    actual: La tarjeta re-renderiza y evalua isTicketingRuleMembershipGated(value) (ticketing-rule-card-model.ts:190).
+    phase: when
+    text: the rule card re-renders
+  - order: 3
+    status: passed
+    actual: SE CUMPLE. TicketingRuleCardPreview.tsx:835 'const authorsDateWindow = !isGated', y computeTicketingWhenOptions
+      devuelve [] cuando la regla esta gated, asi que el toggle queda OCULTO y no deshabilitado — exactamente la intencion
+      del TC. Aplica igual en Shop (ShopRuleCardPreview).
+    phase: then
+    text: the Date & Time Range block is hidden
+  - order: 4
+    status: passed
+    actual: 'SE CUMPLE con copy distinto. El banner existe y nombra el programa: fix13.banner = ''Dates are inherited from
+      the {program} membership.'' Verificado por tests del dev: TicketingRuleCardPreview.test.tsx:554 y :905, ShopRuleCardPreview.test.tsx:641
+      y :2375. El fallback sin nombre (fix13.bannerUnnamed) se testea en :577 y :3026 para blindar el bug de doble espacio
+      ''from the  membership.'' DELTA DE COPY: el TC espera ''...from the selected Membership Program. No manual date restriction
+      needed.'''
+    phase: then
+    text: an info banner reads 'Dates are inherited from the selected Membership Program. No manual date restriction needed.'
+    attachments:
+    - name: TC-51-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-51/evidence.txt
+      mimeType: text/plain
+      size: 6405
+  notes: 'PASSED. Unica diferencia: la redaccion del banner. Si Product quiere el copy del TC hay que cambiar la cadena; el
+    comportamiento ya es el correcto.'
+- testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
+  testCaseKey: TC-51
+  testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml
+  scenarioTitle: Event and Membership Program together show the intersection banner
+  scenarioIndex: 3
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: Program concreto + Membership Program set es una combinacion alcanzable en la tarjeta.'
+    phase: given
+    text: a Ticketing rule has Event = Summer Exhibit AND Membership Program = Gold
+  - order: 2
+    status: passed
+    actual: La tarjeta se renderiza y evalua primero el gate.
+    phase: when
+    text: the rule card renders
+  - order: 3
+    status: failed
+    actual: 'El bloque SI queda oculto — pero por la razon del escenario 3, no por una interseccion. computeTicketingWhenOptions
+      corta en el gate: ''if (isTicketingRuleMembershipGated(value)) return []'' ANTES de mirar programId. El gate gana de
+      plano.'
+    phase: then
+    text: the Date & Time Range block is hidden
+  - order: 4
+    status: failed
+    actual: 'EL BANNER DE INTERSECCION NO EXISTE. grep de ''intersection'' en todo el modulo devuelve solo dos comentarios
+      ajenos sobre compatibilidad de wire (draft-utils.ts:1009 y draft-utils.test.ts:1250). No hay banner ni semantica de
+      interseccion: lo que se pinta es el banner de membresia del escenario 3.'
+    phase: then
+    text: the info banner reads 'Dates are inherited from the intersection of the selected event(s) and Membership Program.'
+    attachments:
+    - name: TC-51-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-51/evidence.txt
+      mimeType: text/plain
+      size: 6405
+  notes: 'FAILED: funcionalidad no construida. Decision de producto pendiente — o se implementa el banner de interseccion,
+    o se retira el escenario porque el gate tiene precedencia por diseno.'
+- testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
+  testCaseKey: TC-51
+  testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml
+  scenarioTitle: Custom dates are cleared when an Event or Membership Program is later selected
+  scenarioIndex: 4
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: el admin puede fijar un Date & Time Range propio eligiendo ''Specific date range''.'
+    phase: given
+    text: the admin had set custom Date & Time Range values on a rule
+  - order: 2
+    status: passed
+    actual: 'El admin luego selecciona un Event o un Membership Program: es el gesto exacto que cubre el test del dev ''survives
+      the gate being ADDED mid-session, with the scope still set''.'
+    phase: when
+    text: the admin then picks an Event or Membership Program
+  - order: 3
+    status: failed
+    actual: EL BLOQUE SI SE OCULTA (el gate lo oculta), PERO LA ADVERTENCIA DE BORRADO NO EXISTE — y no debe existir. Ver
+      el paso siguiente.
+    phase: then
+    text: the block hides and a warning surfaces that custom dates will be cleared on save
+  - order: 4
+    status: failed
+    actual: 'SE CUMPLE LO CONTRARIO, Y ES DELIBERADO. La ventana guardada SOBREVIVE al guardado. rule-date-window-card-path.test.tsx
+      existe unicamente para sostener esa invariante; su cabecera dice ''two shipped mapper tests were green over a Shop card
+      that DELETED every gated rule''s schedule on save'' y ''A dateWindow: null the card never asked for is therefore a PERMANENT
+      DELETE with no error anywhere''. RestrictionsStep.tsx:64-66 lo repite a nivel promocion: ''Deleting the fields ... would
+      wipe a window nobody asked to change.'' O sea: borrar las fechas del admin ES el bug que el equipo arreglo. Este escenario
+      esta pidiendo el defecto.'
+    phase: then
+    text: on Save the custom values are cleared
+    attachments:
+    - name: TC-51-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-51/evidence.txt
+      mimeType: text/plain
+      size: 6405
+  notes: 'NO ABRIR DEFECTO. El TC esta mal: afirma como esperado el comportamiento que el equipo clasifico como bug y corrigio
+    con un archivo de tests dedicado. Accion: reescribir TC-51.5 para que afirme PRESERVACION de las fechas custom.'
+- testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
+  testCaseKey: TC-51
+  testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml
+  scenarioTitle: Shop rule with no Membership Program shows the Date & Time Range block
+  scenarioIndex: 5
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: una regla de Shop sin Membership Program es el estado por defecto de una regla nueva.'
+    phase: given
+    text: a Shop rule has no Membership Program set
+  - order: 2
+    status: passed
+    actual: 'La tarjeta se renderiza. El equivalente Shop del toggle es ShopDateScope (ShopRuleCardPreview.tsx:99), de dos
+      miembros: ''NO_RESTRICTION'' | ''CUSTOM''.'
+    phase: when
+    text: the rule card renders
+  - order: 3
+    status: failed
+    actual: NO se cumple tal como esta escrito, por la misma causa que el escenario 1. applyShopRuleScopeChange:397-399 siembra
+      la tarjeta nueva en NO_RESTRICTION en cuanto el scope queda completo, asi que el bloque Date & Time Range es opt-in
+      detras de 'Specific date range' y no se muestra al renderizar.
+    phase: then
+    text: the Date & Time Range block and the Add a single date input are visible
+    attachments:
+    - name: TC-51-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-51/evidence.txt
+      mimeType: text/plain
+      size: 6405
+  notes: Mismo diseno superado que TC-51.1, lado Shop. Reescribir junto con el.
+- testCaseId: e8542d54-e05c-4554-8caf-64b277cc5f1a
+  testCaseKey: TC-52
+  testCaseTitle: Rule Collapsed Summary & Overall Usage
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-52-rule-collapsed-summary-overall-usage.testcase.yml
+  scenarioTitle: Overall Usage set to 500 shows 0/500 uses in the collapsed summary
+  scenarioIndex: 0
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: Overall Usage Limit existe como contador de la regla (overallUsageLimit).'
+    phase: given
+    text: the admin sets Overall Usage = 500 on a rule
+  - order: 2
+    status: passed
+    actual: El admin guarda la regla y la tarjeta colapsa a su resumen.
+    phase: when
+    text: the admin saves the rule
+  - order: 3
+    status: failed
+    actual: 'EL FORMATO EXIGIDO ESTA PROHIBIDO POR DISENO. formatTicketingLimitsSummary (ticketing-rule-card-model.ts:718-765)
+      arma el cuerpo con la clave limits.summaryEntry = ''{label} {value}'', unida por limits.summarySeparator; su propio
+      comentario da la forma real: ''Overall 500 - Discounted tickets 10 - Per person 2 - Per person/day 1''. Se pinta ''Overall
+      500'', nunca ''0 / 500 uses''. La regla de diseno esta escrita en RestrictionsStep.tsx:94-97: ''It must never grow a
+      remaining-count or an N of M used: there is no confirmed-sale producer, so EVERY USAGE COUNTER IN THIS SYSTEM READS
+      ZERO.'' No existe campo numerador en TicketingRuleCardValue ni productor backend para el.'
+    phase: then
+    text: the collapsed summary includes '0 / 500 uses'
+    attachments:
+    - name: TC-52-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-52/evidence.txt
+      mimeType: text/plain
+      size: 3156
+  notes: 'FAILED contra una prohibicion explicita de diseno, no contra un olvido. Un ''0 / 500'' seria un dato falso: nada
+    consume ventas confirmadas todavia. Accion: reescribir el escenario a ''Overall 500'' y mover el conteo real a la historia
+    que traiga el productor de uso.'
+- testCaseId: e8542d54-e05c-4554-8caf-64b277cc5f1a
+  testCaseKey: TC-52
+  testCaseTitle: Rule Collapsed Summary & Overall Usage
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-52-rule-collapsed-summary-overall-usage.testcase.yml
+  scenarioTitle: Collapsed summary reflects the derived date source
+  scenarioIndex: 1
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: se pueden tener dos reglas, una con Program concreto y otra con Membership Program.'
+    phase: given
+    text: rule A has Event = Summer Exhibit and rule B has Membership Program = Gold
+  - order: 2
+    status: passed
+    actual: El admin llega al Step 4 Review; el step existe y se renderiza.
+    phase: when
+    text: the admin reaches Step 4 Review
+  - order: 3
+    status: failed
+    actual: 'NO CONSTRUIDO. review-model.ts no referencia dateScope en ninguna linea (grep de dateScope | ''Dates from'' |
+      dateSource: cero resultados; su unica mencion de membresia es :211, el NOMBRE del gate para una linea de scope). El
+      catalogo del review solo tiene claves de alcance: review.shopRuleScope = ''{categories}; {items}; {memberships}'', review.shopMembershipProgram,
+      review.tiles.allTicketingPrograms, review.tiles.selectedTicketingProgram, review.tiles.selectedMembershipType, review.tiles.anyMembership.
+      No hay ninguna clave de origen de fechas, asi que el Step 4 no puede decir de donde vienen las fechas de una regla.'
+    phase: then
+    text: the summary shows each rule with its derived date source ('Dates from event Summer Exhibit' and 'Dates from Gold
+      membership')
+    attachments:
+    - name: TC-52-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-52/evidence.txt
+      mimeType: text/plain
+      size: 3156
+  notes: 'FAILED: no implementado. Es el hallazgo mas facil de cerrar de este run si Product lo quiere — los datos ya estan
+    en la regla, falta la linea en el Review.'
+- testCaseId: e8542d54-e05c-4554-8caf-64b277cc5f1a
+  testCaseKey: TC-52
+  testCaseTitle: Rule Collapsed Summary & Overall Usage
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-52-rule-collapsed-summary-overall-usage.testcase.yml
+  scenarioTitle: Overall Usage left empty is treated as unlimited in the summary
+  scenarioIndex: 2
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: dejar un contador vacio es el estado legal ''sin limite'' (null).'
+    phase: given
+    text: a rule has no Overall Usage value set
+  - order: 2
+    status: passed
+    actual: La regla se guarda y el resumen se pinta.
+    phase: when
+    text: the rule is saved and the summary renders
+  - order: 3
+    status: failed
+    actual: 'SE CUMPLE LO CONTRARIO A NIVEL DE CONTADOR. El contrato del modelo (ticketing-rule-card-model.ts:695) dice que
+      un contador sin valor ''is omitted rather than printed as Unlimited'', y el filtro de :751-757 descarta toda entrada
+      con amount null. ShopRuleCardPreview.tsx:496 da el motivo: ''stacking Unlimited words beside one number buries the one
+      [que si esta puesto]''. Cuando NO hay ningun contador puesto la tarjeta cae a prosa: limits.noneSet = ''No limits set.
+      Rule is unlimited for total redemptions, discounted tickets, per customer, and per day.'' Asi que la palabra ''unlimited''
+      aparece, pero como frase de estado-vacio total, no como sustituto por contador. Tambien se usa como placeholder del
+      input (counters.unlimitedPlaceholder) y en la validacion (counters.errorMin1 = ''Must be at least 1, or empty for Unlimited.'').'
+    phase: then
+    text: the summary shows 'Unlimited' instead of a numeric cap
+  - order: 4
+    status: failed
+    actual: IMPOSIBLE POR DISENO. No existe control 'Current Usage' en la tarjeta, y no puede existir mientras no haya productor
+      de ventas confirmadas (RestrictionsStep.tsx:94-97). Ver TC-52.1.
+    phase: then
+    text: Current Usage still displays its running count
+    attachments:
+    - name: TC-52-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-52/evidence.txt
+      mimeType: text/plain
+      size: 3156
+  notes: FAILED en ambas mitades. La primera es un delta de presentacion decidido a proposito; la segunda depende de una capacidad
+    backend que no existe.
+- testCaseId: 4f0d0a13-112a-4c50-93b5-7c413c2c0c36
+  testCaseKey: TC-53
+  testCaseTitle: Universal-Rule Lock on Add Rule Button
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-53-universal-rule-lock.testcase.yml
+  scenarioTitle: Add Rule is disabled when the only rule is fully universal
+  scenarioIndex: 0
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: una regla recien creada nace universal a proposito — createShopRule() siembra categoryScope
+      ''ALL'' e itemScope ''ALL'' (draft-utils.ts), y createMembershipRule() siembra all-programs.'
+    phase: given
+    text: the admin's only rule is fully universal (all scopes ALL, no membershipProgramId, no dateTimeRange)
+  - order: 2
+    status: passed
+    actual: 'Nota de pareo con SH-1095 TC-47 confirmada: esta es la capa de prevencion en UI y la del backend es la que rechaza
+      al guardar. Ambas se verificaron por separado.'
+    phase: given
+    text: this scenario covers the frontend/UI prevention layer for the universal-rule-must-be-only constraint; it is deliberately
+      paired with SH-1095 TC-47, which covers the backend/API enforcement layer for the same business rule — both layers are
+      required, this is not redundant test coverage
+  - order: 3
+    status: passed
+    actual: 'El admin mira el boton ''+ Add Rule''. En Shop y en Memberships el boton SI se deshabilita con el tooltip correcto:
+      isAddShopRuleBlockedByUniversal (draft-utils.ts:1281-1290) cableado en RulesLimitsStep.tsx:2067-2068 con shopUniversalRuleAddBlocked
+      = ''A catalog-wide Shop rule (all categories and all items) must be the only Shop rule. Narrow its scope or remove it
+      to add another.''; e isAddMembershipRuleBlockedByUniversal cableado en :1831-1832 con membershipUniversalRuleAddBlocked.'
+    phase: when
+    text: the admin looks at the '+ Add Rule' button
+  - order: 4
+    status: failed
+    actual: 'EN TICKETING NO HAY GUARDA, y la historia es ''Ticketing & Shop rule cards''. La omision es deliberada y esta
+      documentada textualmente en RulesLimitsStep.tsx:1626-1637: ''NO addBlockedReason. ... Ticketing has NO SUCH SHIPPED
+      GUARD — the backend''s all-events rule is gate-blind and blocks a near-opposite set — and inventing one here would be
+      a new lock, not a mirror of an existing one.'' grep confirma la ausencia: no existe isAddTicketing*, ni ticketingUniversalRuleAddBlocked,
+      ni predicado de allEventsExclusivity. CONSECUENCIA PARA EL ADMIN: con una regla all-events ya presente, ''+ Add ticketing
+      rule'' sigue habilitado, el admin autora una segunda regla y solo al GUARDAR el backend la rechaza con toast.apiErrors.ticketingAllEventsMustBeOnlyRule
+      = ''An all-events ticketing rule must be the only rule.'' Pierde el trabajo en un rechazo que Shop y Memberships si
+      previenen.'
+    phase: then
+    text: the button is disabled with the universal-rule tooltip
+    attachments:
+    - name: TC-53-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-53/evidence.txt
+      mimeType: text/plain
+      size: 4033
+  notes: 'FAILED por el lado Ticketing. NO es descuido del dev: su razon (espejar un predicado gate-blind crearia un candado
+    EQUIVOCADO) es solida y esta escrita. Lo que falta es una decision de Product/Design sobre que deberia decir exactamente
+    el candado de Ticketing. 2 de 3 modulos cumplen.'
+- testCaseId: 4f0d0a13-112a-4c50-93b5-7c413c2c0c36
+  testCaseKey: TC-53
+  testCaseTitle: Universal-Rule Lock on Add Rule Button
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-53-universal-rule-lock.testcase.yml
+  scenarioTitle: Add Rule re-enables once the universal rule is scoped down
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: una regla antes universal a la que se le pone una Category concreta (Shop) o un scope concreto
+      (Memberships).'
+    phase: given
+    text: a previously universal rule now has a specific Event or Category set
+  - order: 2
+    status: passed
+    actual: La regla se guarda.
+    phase: when
+    text: the rule is saved
+  - order: 3
+    status: passed
+    actual: 'SE CUMPLE. Los dos predicados son funciones puras sobre el arreglo ACTUAL de reglas — se reevaluan en cada render,
+      sin memo ni latch de un bloqueo anterior — asi que acotar el scope (o borrar la regla) limpia addBlockedReason y rehabilita
+      el boton de inmediato. El propio tooltip enuncia la salida: ''Narrow its scope or remove it to add another.'' El comentario
+      del camino Cancel (RulesLimitsStep.tsx:1139-1147) confirma que la guarda se evalua viva contra el draft.'
+    phase: then
+    text: the '+ Add Rule' button becomes enabled
+    attachments:
+    - name: TC-53-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-53/evidence.txt
+      mimeType: text/plain
+      size: 4033
+  notes: 'PASSED en Shop y Memberships. En Ticketing el escenario es vacuo: nunca hubo candado que rehabilitar (ver escenario
+    1).'
+- testCaseId: 728d7440-2dcd-4291-aa4b-2d0b17554ba3
+  testCaseKey: TC-54
+  testCaseTitle: Unsaved-Rule Guard on Step 2 Continue
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-54-unsaved-rule-guard.testcase.yml
+  scenarioTitle: Continue is blocked while any rule is unsaved
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: una regla recien agregada muestra su boton ''Save rule'' y se auto-marca ''Unsaved'' (copy
+      header.unsaved en las tres tarjetas).'
+    phase: given
+    text: a newly-added rule is showing its 'Save Rule' button and has not been saved
+  - order: 2
+    status: passed
+    actual: El admin intenta Continue en el Step 2.
+    phase: when
+    text: the admin attempts to click Continue on Step 2
+  - order: 3
+    status: passed
+    actual: 'SE CUMPLE, y de forma mas estricta que lo que pide el TC. El predicado es ruleCardBlocksExit = ''!isCommitted
+      || isDirty'' (RulesLimitsStep.tsx:1195-1200), el MISMO que decide si la tarjeta pinta su marca ''Unsaved''; findUncommittedRuleCard()
+      nombra la primera tarjeta infractora en orden de pantalla. Bloquea NEXT, PREVIOUS y SAVE. Tests del dev verdes en esta
+      corrida: ''refuses NEXT while a rule card holds uncommitted edits'', ''refuses PREVIOUS too — going back unmounts the
+      card just as completely'', ''refuses the discount save while a rule card holds uncommitted edits'', ''opens the discard
+      dialog when cancelling over a ticketing card the admin never saved'' y ''blocks forward navigation on the first invalid
+      wizard step''. El rechazo se ANUNCIA, nunca es silencioso.'
+    phase: then
+    text: Continue is blocked/disabled until the rule is saved
+    attachments:
+    - name: TC-54-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-54/evidence.txt
+      mimeType: text/plain
+      size: 2749
+  notes: 'PASSED. RulesLimitsStep.tsx:1186-1189 documenta el defecto que lo motivo: una regla recien agregada ''SAILED THROUGH
+    SAVE AND NEXT, shipping a rule nobody confirmed''. Ticketing se incorporo despues como cambio de comportamiento (:1192-1197):
+    antes flushPendingTicketingRows commiteaba por el admin.'
+- testCaseId: 728d7440-2dcd-4291-aa4b-2d0b17554ba3
+  testCaseKey: TC-54
+  testCaseTitle: Unsaved-Rule Guard on Step 2 Continue
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-54-unsaved-rule-guard.testcase.yml
+  scenarioTitle: Continue becomes available once the rule is saved
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: todas las reglas del Step 2 guardadas, sin ''Save Rule'' pendiente ni marca ''Unsaved''.'
+    phase: given
+    text: all rules on Step 2 have been saved (no pending 'Save Rule' button visible)
+  - order: 2
+    status: passed
+    actual: El admin hace clic en Continue.
+    phase: when
+    text: the admin clicks Continue
+  - order: 3
+    status: passed
+    actual: 'SE CUMPLE. Tests del dev verdes: ''lets NEXT through once the card is committed'', ''lets the same save through
+      once the rule is committed'' y ''retires the refusal toast when the admin answers it by saving the rule'' — es decir,
+      el rechazo se retira en cuanto el admin lo responde guardando, que es exactamente lo que pide este escenario.'
+    phase: then
+    text: the wizard advances to the next step
+    attachments:
+    - name: TC-54-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-54/evidence.txt
+      mimeType: text/plain
+      size: 2749
+  notes: 'PASSED. LIMITE CONOCIDO (documentado, no defecto): addedRuleIdsRef es un ref local del step y ''dies with this step,
+    so a rule added and then left uncommitted across a trip to another wizard step reads as committed when the admin comes
+    back'' (RulesLimitsStep.tsx:1159-1163). Si a Product le importa ese viaje de ida y vuelta, vale una prueba manual dedicada.'
+- testCaseId: 9d21fd58-0010-4845-9067-3ef18c20d4f6
+  testCaseKey: TC-55
+  testCaseTitle: Membership Program ↔ Members Only Reactive Lock
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-55-membership-gate-collapse.testcase.yml
+  scenarioTitle: Setting Membership Program locks Members Only to ON
+  scenarioIndex: 0
+  status: skipped
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: given
+    text: a rule has no Membership Program set and Members Only is OFF
+  - order: 2
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: when
+    text: the admin sets Membership Program to a valid program
+  - order: 3
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: then
+    text: Members Only switches to ON and becomes disabled/locked
+  - order: 4
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: then
+    text: a tooltip reads 'Members Only is required when the rule targets a Membership Program.'
+    attachments:
+    - name: TC-55-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-55/evidence.txt
+      mimeType: text/plain
+      size: 2315
+  notes: 'SKIPPED, no FAILED: el control bajo prueba fue ELIMINADO por decision FP7 y la gestion de membresia paso a ser POR
+    REGLA. Tres citas independientes: RestrictionsStep.tsx:68 ''**Members only stays gone** (FP7): membership gating is per-rule.'';
+    RestrictionsStep.tsx:285-287, justo donde vivia el switch: ''There is deliberately no Members only switch: membership
+    gating is PER-RULE, so a promotion-level flag would duplicate what the rule cards own. The DRAFT and WIRE field stays.'';
+    y wizard-steps.ts:79-83 sobre RULES_FIELDS: ''membershipsOnly is gone from this list with the Members only switch that
+    was its only authoring control.'' Confirmado tambien por ausencia: grep de membersOnly | members_only | memberOnly | ''Members
+    Only'' en todo el modulo no devuelve control, estado, handler ni tooltip — solo prosa y la cadena ''...can''t be set on
+    a members-only rule'' (fix13.passiveTile), que habla de una regla GATED por membresia, no del switch retirado. No hay
+    sujeto que bloquear, desbloquear ni dejar en ON, asi que marcar failed reportaria un defecto donde el producto cambio
+    de forma a proposito. ACCION: retirar TC-55 o reescribirlo contra el gate por regla, cuya cobertura ya vive en TC-51.3
+    y en los tests de fix13.'
+- testCaseId: 9d21fd58-0010-4845-9067-3ef18c20d4f6
+  testCaseKey: TC-55
+  testCaseTitle: Membership Program ↔ Members Only Reactive Lock
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-55-membership-gate-collapse.testcase.yml
+  scenarioTitle: Clearing Membership Program unlocks Members Only
+  scenarioIndex: 1
+  status: skipped
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: given
+    text: a rule has Membership Program set and Members Only locked ON
+  - order: 2
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: when
+    text: the admin clears the Membership Program field
+  - order: 3
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: then
+    text: Members Only becomes user-editable again
+  - order: 4
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: then
+    text: its value defaults back to OFF
+    attachments:
+    - name: TC-55-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-55/evidence.txt
+      mimeType: text/plain
+      size: 2315
+  notes: 'SKIPPED, no FAILED: el control bajo prueba fue ELIMINADO por decision FP7 y la gestion de membresia paso a ser POR
+    REGLA. Tres citas independientes: RestrictionsStep.tsx:68 ''**Members only stays gone** (FP7): membership gating is per-rule.'';
+    RestrictionsStep.tsx:285-287, justo donde vivia el switch: ''There is deliberately no Members only switch: membership
+    gating is PER-RULE, so a promotion-level flag would duplicate what the rule cards own. The DRAFT and WIRE field stays.'';
+    y wizard-steps.ts:79-83 sobre RULES_FIELDS: ''membershipsOnly is gone from this list with the Members only switch that
+    was its only authoring control.'' Confirmado tambien por ausencia: grep de membersOnly | members_only | memberOnly | ''Members
+    Only'' en todo el modulo no devuelve control, estado, handler ni tooltip — solo prosa y la cadena ''...can''t be set on
+    a members-only rule'' (fix13.passiveTile), que habla de una regla GATED por membresia, no del switch retirado. No hay
+    sujeto que bloquear, desbloquear ni dejar en ON, asi que marcar failed reportaria un defecto donde el producto cambio
+    de forma a proposito. ACCION: retirar TC-55 o reescribirlo contra el gate por regla, cuya cobertura ya vive en TC-51.3
+    y en los tests de fix13.'
+- testCaseId: 9d21fd58-0010-4845-9067-3ef18c20d4f6
+  testCaseKey: TC-55
+  testCaseTitle: Membership Program ↔ Members Only Reactive Lock
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-55-membership-gate-collapse.testcase.yml
+  scenarioTitle: Members Only cannot be manually turned off while a Membership Program is set
+  scenarioIndex: 2
+  status: skipped
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: given
+    text: a rule has Membership Program set and Members Only locked ON
+  - order: 2
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: when
+    text: the admin attempts to toggle Members Only off without clearing Membership Program
+  - order: 3
+    status: skipped
+    actual: 'No ejecutado: el control bajo prueba fue eliminado por FP7 (ver notes del escenario).'
+    phase: then
+    text: the toggle remains ON and the control stays disabled
+    attachments:
+    - name: TC-55-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-55/evidence.txt
+      mimeType: text/plain
+      size: 2315
+  notes: 'SKIPPED, no FAILED: el control bajo prueba fue ELIMINADO por decision FP7 y la gestion de membresia paso a ser POR
+    REGLA. Tres citas independientes: RestrictionsStep.tsx:68 ''**Members only stays gone** (FP7): membership gating is per-rule.'';
+    RestrictionsStep.tsx:285-287, justo donde vivia el switch: ''There is deliberately no Members only switch: membership
+    gating is PER-RULE, so a promotion-level flag would duplicate what the rule cards own. The DRAFT and WIRE field stays.'';
+    y wizard-steps.ts:79-83 sobre RULES_FIELDS: ''membershipsOnly is gone from this list with the Members only switch that
+    was its only authoring control.'' Confirmado tambien por ausencia: grep de membersOnly | members_only | memberOnly | ''Members
+    Only'' en todo el modulo no devuelve control, estado, handler ni tooltip — solo prosa y la cadena ''...can''t be set on
+    a members-only rule'' (fix13.passiveTile), que habla de una regla GATED por membresia, no del switch retirado. No hay
+    sujeto que bloquear, desbloquear ni dejar en ON, asi que marcar failed reportaria un defecto donde el producto cambio
+    de forma a proposito. ACCION: retirar TC-55 o reescribirlo contra el gate por regla, cuya cobertura ya vive en TC-51.3
+    y en los tests de fix13.'
+- testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
+  testCaseKey: TC-63
+  testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-63-shop-rule-card-category-item-type.testcase.yml
+  scenarioTitle: Qualifying Item Type is a fixed-option select, not free text
+  scenarioIndex: 0
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: el admin esta en una tarjeta de regla de Shop. La superficie viva es ShopRuleCardPreview —
+      RulesLimitsStep.tsx:48 la importa y la renderiza en :2124; de rule-editors.tsx solo se toma MembershipRuleEditor (:47).
+      El ShopRuleEditor legado (rule-editors.tsx:343) solo lo referencian index.ts:176 (re-export publico muerto) y sus propios
+      tests.'
+    phase: given
+    text: the admin is on a Shop rule card
+  - order: 2
+    status: passed
+    actual: El admin busca el campo Qualifying Item Type.
+    phase: when
+    text: the admin views the Qualifying Item Type field
+  - order: 3
+    status: failed
+    actual: 'EL CAMPO NO EXISTE. grep de ''Same item only'' | ''Same category only'' | ''Any qualifying item'' en todo el
+      modulo: cero resultados. grep de itemType | ''item type'' | qualifying en fuente no-test: cero coincidencias de campo
+      (las unicas cadenas con ''qualifying'' son prosa ajena: rules.preview.body.mixedLead, rules.allowStackingDescription,
+      rules.ticketingEmpty). ShopRuleCardPreviewValue (ShopRuleCardPreview.tsx:103-135) declara categoryId, itemId, membershipGateId,
+      dateScope y los contadores — no hay eje de tipo de item. El catalogo scope.* de la tarjeta tiene exactamente tres campos:
+      Category, Item y Membership Program.'
+    phase: then
+    text: 'exactly 3 options are offered: Any qualifying item / Same item only / Same category only'
+  - order: 4
+    status: failed
+    actual: 'La correccion que el TC hace sobre el AC escrito de SH-1097 (select en vez de texto libre) no se puede verificar:
+      no hay ni select ni texto libre.'
+    phase: then
+    text: this corrects SH-1097's written AC, which describes the field as free text — the real prototype confirms a select
+    attachments:
+    - name: TC-63-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-63/evidence.txt
+      mimeType: text/plain
+      size: 5723
+  notes: 'FAILED: no construido. NOTA PARA PRODUCT: el TC dice que este campo se ''corrigio dos veces contra el prototipo
+    real'', asi que el prototipo lo tenia. Dado que el escenario 4 registra que Product corto Minimum/Max Quantity de esta
+    MISMA tarjeta el 2026-07-22, lo mas probable es que Qualifying Item Type se cortara tambien y el TC no se actualizo —
+    pero a diferencia de Min/Max Quantity NO hay registro de decision, asi que no se puede cerrar como corte intencional sin
+    confirmacion.'
+- testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
+  testCaseKey: TC-63
+  testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-63-shop-rule-card-category-item-type.testcase.yml
+  scenarioTitle: Item selection cascades from Category scope, with an inline warning on narrowing
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable confirmado: cada regla de Shop acota por Category e Item con cascada, no por un toggle ''All
+      items in categories'' vs ''Specific items''. La premisa del TC es correcta.'
+    phase: given
+    text: each Shop rule scopes by Category and Item, not by an 'All items in categories' vs 'Specific items' toggle
+  - order: 2
+    status: passed
+    actual: El admin ve el selector de Item.
+    phase: given
+    text: the admin has selected one or more Categories and then picked specific Items in the Item selector
+  - order: 3
+    status: passed
+    actual: 'SE CUMPLE. ShopRuleCardPreview.tsx:229-240: ''Item options cascade from the chosen Category (rule-cards spec,
+      "Item options cascade from the chosen category"); All Items is always offered.'' computeShopItemOptions devuelve todos
+      los items cuando categoryId es null o ALL_CATEGORIES_ID, y en caso contrario ''itemOptions.filter((item) => item.categoryId
+      === categoryId)''. El centinela All Items queda siempre ofrecido. Cubierto por ShopRuleCardPreview.test.tsx.'
+    phase: when
+    text: the admin views the Item selector
+  - order: 4
+    status: passed
+    actual: 'SE CUMPLE. ShopRuleCardPreview.tsx:229-240: ''Item options cascade from the chosen Category (rule-cards spec,
+      "Item options cascade from the chosen category"); All Items is always offered.'' computeShopItemOptions devuelve todos
+      los items cuando categoryId es null o ALL_CATEGORIES_ID, y en caso contrario ''itemOptions.filter((item) => item.categoryId
+      === categoryId)''. El centinela All Items queda siempre ofrecido. Cubierto por ShopRuleCardPreview.test.tsx.'
+    phase: then
+    text: the Item selector only offers items belonging to the currently selected Categories
+    attachments:
+    - name: TC-63-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-63/evidence.txt
+      mimeType: text/plain
+      size: 5723
+  notes: 'PASSED. Ademas queda zanjada la pregunta abierta del TC: la seleccion de Item SI cascadea desde Category, citado
+    al spec de rule-cards en el propio codigo.'
+- testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
+  testCaseKey: TC-63
+  testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-63-shop-rule-card-category-item-type.testcase.yml
+  scenarioTitle: Narrowing Categories after picking Items shows an inline warning listing removed items
+  scenarioIndex: 2
+  status: failed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: el admin ya eligio un Item acotado a una Category.'
+    phase: given
+    text: the admin has already selected specific Items scoped to certain Categories
+  - order: 2
+    status: passed
+    actual: El admin acota la Category, dejando el Item fuera de alcance.
+    phase: when
+    text: the admin removes one or more of those Categories, narrowing the Category scope
+  - order: 3
+    status: failed
+    actual: 'LA TARJETA VIVA LO QUITA EN SILENCIO. applyShopRuleScopeChange (ShopRuleCardPreview.tsx:350-355) revalida y descarta
+      la seleccion sin ninguna senal al usuario: ''if (!stillValid) next.itemId = null;''. El propio comentario de :383 reconoce
+      el evento (''the next Category narrowing ORPHANS the Item'') pero solo para razonar sobre la pregunta de redencion,
+      no para avisarle al admin. SI existe una advertencia — en el editor RETIRADO, y es un CONTEO, no una lista: rule-editors.tsx:117
+      obtiene {keptItemIds, removedItemIds}, :129 descarta la lista con ''removedItemCount: removedItemIds.length'', y :566-568
+      pinta shopRule.itemsRemovedWarning = ''{count} selected item(s) were removed because they do not belong to the selected
+      category.'' Asi que ni el camino legado cumplia ''listing the specific Items'': los contaba. removeShopItemsOutsideCategoryScope
+      (draft-utils.ts:1207-1228) SI devuelve removedItemIds, o sea que el dato para la lista esta disponible y sin usar. Dos
+      desviaciones: ninguna advertencia en la tarjeta viva, y ninguna lista de items en el copy que si existe.'
+    phase: then
+    text: an inline warning appears listing the specific Items that were removed as a result
+    attachments:
+    - name: TC-63-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-63/evidence.txt
+      mimeType: text/plain
+      size: 5723
+  notes: 'FAILED. La INTEGRIDAD DE DATOS no esta en riesgo — ningun id huerfano puede llegar al payload (ver T5 en regression-results.txt);
+    el hueco es puramente ''no se le aviso al admin''. Nota de forma: el modelo vivo es Category UNICA + Item UNICO, asi que
+    la premisa en plural del TC (''one or more Categories'', ''the Items'') ya no calza.'
+- testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
+  testCaseKey: TC-63
+  testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
+  testCaseFilePath: test-cases/SH-1097/SH-1097-TC-63-shop-rule-card-category-item-type.testcase.yml
+  scenarioTitle: Minimum Quantity and Max Quantity fields are removed
+  scenarioIndex: 3
+  status: passed
+  executedAt: '2026-09-03T14:00:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Registro de decision confirmado: Product corto Minimum Quantity y Max Quantity de la tarjeta de Shop el 2026-07-22.'
+    phase: given
+    text: Product cut Minimum Quantity and Max Quantity from the Shop rule card on 2026-07-22, confirmed against the prototype
+  - order: 2
+    status: passed
+    actual: El admin ve la tarjeta de regla de Shop.
+    phase: when
+    text: the admin views the Shop rule card
+  - order: 3
+    status: passed
+    actual: 'SE CUMPLE. Test del dev escrito para fijar el corte, ShopRuleCardPreview.test.tsx:1179-1187: it(''never renders
+      "Max quantity" (reversed decision -- removed entirely), even with limits expanded'') con queryByLabelText(''Max quantity'')
+      y queryByText(/Max quantity/i) ambos not.toBeInTheDocument(). grep de minimumQuantity | maxQuantity en fuente no-test:
+      cero resultados.'
+    phase: then
+    text: neither Minimum Quantity nor Max Quantity fields are rendered
+  - order: 4
+    status: passed
+    actual: 'SE CUMPLE: no hace falta escenario de reemplazo, los campos no existen en ninguna capa.'
+    phase: then
+    text: no replacement scenario is needed for these fields
+    attachments:
+    - name: TC-63-evidence.txt
+      path: attachments/tr-044-sh-1097/tc-63/evidence.txt
+      mimeType: text/plain
+      size: 5723
+  notes: PASSED. El corte esta protegido por un test de regresion del dev, no solo por ausencia.
+summary:
+  total: 20
+  passed: 6
+  failed: 11
+  blocked: 0
+  skipped: 3
+  notRun: 0
+  passRate: 30
+history:
+- action: created
+  timestamp: '2026-09-03T13:30:00.000Z'
+  user: angie.montenegro@veevart.com
+  to: planned
+- action: status-changed
+  timestamp: '2026-09-03T13:35:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: planned
+  to: in-progress
+  reason: Ejecutar los seis test cases que cubre la QA Sub-task SH-1121 contra el codigo de origin/develop y la suite del
+    dev.
+notes: '## Solution understood
+
+
+  SH-1097 pone en el Step 2 del wizard de descuentos las tarjetas de regla de Ticketing y de Shop con alcance por regla. Lo
+  que estaba mal antes: el alcance y las fechas vivian a nivel PROMOCION, asi que no se podia decir ''este 20% aplica solo
+  a la categoria Libros entre el 1 y el 15'' sin afectar al resto del descuento. Lo que hace el cambio: cada regla lleva su
+  propio scope (Program/Events o Category/Item), su Membership Program opcional como GATE, sus cuatro contadores opcionales,
+  su modo de redencion y su ventana activa. Por que funciona: el gate de membresia es el eje que colapsa la tarjeta — isTicketingRuleMembershipGated
+  decide seis campos del payload de una sola vez, y ''authorsDateWindow = !isGated'' es a la vez la condicion de render de
+  la seccion ACTIVE WINDOW y lo que el guardado proyecta, asi que la tarjeta no puede ocultar un campo y despues escribirlo.
+  Efectos colaterales esperados y verificados: (a) una ventana guardada SOBREVIVE al guardado de una regla gated — invariante
+  defendida por un archivo de tests propio porque un bug previo la borraba; (b) el Item cascadea desde la Category y se descarta
+  si queda huerfano, de modo que ningun id fuera de alcance llega al payload; (c) los contadores se muestran marcados como
+  no-enforced en vez de prometer un limite que nada aplica.
+
+
+  ## Los 3 hallazgos que SI son huecos frente al AC vigente
+
+
+  1. TICKETING NO TIENE LA GUARDA PREVENTIVA DE ''+ Add Rule'' (TC-53.1). Shop y Memberships deshabilitan el boton cuando
+  ya existe una regla universal; Ticketing no. El admin autora una segunda regla y pierde el trabajo en un rechazo del backend
+  al guardar (ticketingAllEventsMustBeOnlyRule). La omision es deliberada y razonada en RulesLimitsStep.tsx:1626-1637 (el
+  predicado del backend es gate-blind, espejarlo crearia un candado equivocado), asi que necesita decision de Product, no
+  un fix mecanico.
+
+  2. LA TARJETA VIVA DE SHOP QUITA EL ITEM EN SILENCIO AL ACOTAR LA CATEGORY (TC-63.3). La advertencia existe solo en el editor
+  retirado y es un conteo, no una lista. Sin riesgo de datos; el admin simplemente no se entera.
+
+  3. EL STEP 4 REVIEW NO DICE DE DONDE VIENEN LAS FECHAS DE CADA REGLA (TC-52.2). No hay ninguna clave de origen de fechas
+  en el catalogo del review ni referencia a dateScope en review-model.ts. Los datos ya estan en la regla; falta la linea.
+
+
+  Aparte, dos campos que el TC da por existentes y no se construyeron: el banner de INTERSECCION evento+membresia (TC-51.4)
+  y el campo QUALIFYING ITEM TYPE de 3 opciones (TC-63.1). Este ultimo merece confirmacion de Product: el TC dice que se corrigio
+  dos veces contra el prototipo, y como Min/Max Quantity se corto de la misma tarjeta el 2026-07-22, lo mas probable es que
+  tambien se cortara — pero sin registro de decision no se puede cerrar como corte intencional.
+
+
+  ## Test cases que hay que arreglar, no defectos que abrir
+
+
+  TC-51.5 AFIRMA UN DEFECTO COMO ESPERADO: pide que las fechas custom se BORREN al elegir despues un evento o una membresia.
+  El comportamiento enviado es el contrario y es una invariante con archivo de tests dedicado (rule-date-window-card-path.test.tsx),
+  escrito precisamente porque un bug borraba la ventana de toda regla gated al guardar. NO abrir defecto: reescribir el escenario
+  para que afirme PRESERVACION.
+
+  TC-55 COMPLETO ESTA OBSOLETO: el switch ''Members only'' se elimino por FP7 y la gestion de membresia paso a ser por regla.
+  No hay control que bloquear, asi que los 3 escenarios van skipped y el TC hay que retirarlo o reescribirlo contra el gate
+  por regla.
+
+  TC-52.1 y TC-52.3 piden un formato prohibido por diseno (''0 / 500 uses'', ''Unlimited'' por contador). RestrictionsStep.tsx:94-97:
+  ''there is no confirmed-sale producer, so every usage counter in this system reads zero''. Un ''0 / 500'' seria un dato
+  falso.
+
+  TC-51.1, TC-51.2 y TC-51.6 asumen el auto-hide previo a Fix 19; hay que reescribirlos contra el toggle explicito.
+
+
+  ## Suite del dev
+
+
+  87 archivos, 2.750 tests, 2.748 pasan (99,93%). Los 2 fallos son ARTEFACTO DEL ENTORNO LOCAL, probado con un experimento
+  controlado de una sola variable: cada uno se re-corrio en el commit que lo INTRODUJO (232ab173 / PR #513 y ac94a31e / PR
+  #529) y falla tambien ahi, siendo que el CodeBuild CI de ambas PRs paso. Son aserciones de aria-invalid / aria-describedby
+  sobre ids generados por React-Aria. La cobertura del dev es densa y NO es el eslabon debil de este run.'
+metadata:
+  parentTicket: SH-1097
+  qaSubTask: SH-1121
+  repository: Veevarts/VeevartFrontend
+  pullRequest: 'sin PR propia — entregada en PRs con clave hermana SH-1094/SH-1096: #463, #500, #510, #513, #517, #522, #529,
+    #539, #568'
+  headUnderTest: 60f425fa27aa457df515ce79a6c58079361f79af
+  mergeBase: b0bf320efc416f8ef6175201134d2142ab5b71d8
+  alreadyPromotedToMain: true
+  mainPromotion: 'origin/main c4a17715 (promocion #604, 2026-08-25) ya contiene las tarjetas V3'
+  classification: UI / Frontend-only
+  testCasesExecuted:
+  - TC-51
+  - TC-52
+  - TC-53
+  - TC-54
+  - TC-55
+  - TC-63
+  devSuite: 87 archivos / 2.750 tests / 2.748 pasan — 2 fallos probados como artefacto del entorno local
+  technicalRegression: 7/7 PASS
+  securityRegression: 6/6 PASS
+  owasp: 4 aplicables PASS / 6 N/A / 0 FAIL
+  defectsRaised: []
+  pendingUserDecision: 'Filiar o no los 5 hallazgos de baja severidad (Regla 7b): TC-53.1 Ticketing add-guard, TC-63.3 item
+    quitado en silencio, TC-52.2 origen de fechas en Review, TC-51.4 banner de interseccion, TC-63.1 Qualifying Item Type'

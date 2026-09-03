@@ -1,0 +1,100 @@
+REGRESSION RESULTS  ·  SH-1097 / SH-1121  ·  TR-044
+Target: Veevarts/VeevartFrontend @ origin/develop 60f425fa
+Baseline: merge-base(origin/main, origin/develop) = b0bf320e
+Executed: 2026-09-03
+
+================ TECHNICAL ================
+
+T1  PASS (with finding)  RulesLimitsStep.tsx:48 imports ShopRuleCardPreview and
+    renders it at :2124. Only MembershipRuleEditor is still taken from
+    rule-editors.tsx (:47). So the LIVE Shop rule card is ShopRuleCardPreview;
+    the legacy ShopRuleEditor is not rendered by the wizard.
+    FINDING: this is what makes TC-63.3 fail -- the removed-items warning copy
+    (codes.wizard.rules.shopRule.itemsRemovedWarning) is only wired in the
+    retired editor.
+
+T2  PASS (with finding)  ShopRuleEditor is still re-exported from
+    discount-wizard/index.ts:176. Its only other references are its own tests.
+    Dead-but-public API; a host could adopt it and get the older behaviour.
+    Not a regression -- flagged as cleanup.
+
+T3  PASS  rule-date-window-card-path.test.tsx green:
+      - "a gated SHOP rule keeps its stored window across a save of an
+         unrelated field / survives a gated card save that only changes the
+         item scope"
+      - "a gated TICKETING rule ... survives a gated card save when the rule
+         was LOADED gated"
+      - "... survives the gate being ADDED mid-session, with the scope still set"
+    Every case renders the card, drives a real gesture, and only then calls the
+    mapper, so the emission is never hand-built.
+
+T4  PASS  Same file: "two rules carrying DIFFERENT windows do not swap them"
+    -- both through the rebuilding Ticketing adapter (positional fallback) and
+    through a gated card save that patches only the rule it was opened on.
+
+T5  PASS (behaviour confirmed, gap surfaced)  ShopRuleCardPreview.tsx:229-240
+    computeShopItemOptions filters items to the selected category and always
+    offers the All Items sentinel. applyShopRuleScopeChange:350-354 revalidates
+    the selected item on every categoryId patch and sets itemId = null when the
+    narrowing orphans it -- so NO orphan id can reach the payload (the
+    regression risk is closed). It does so SILENTLY, which is the TC-63.3
+    finding, not a data-integrity regression.
+
+T6  PASS (Ticketing gap surfaced)  Shop and Memberships both block a second
+    rule beside a universal one -- isAddShopRuleBlockedByUniversal (draft-utils
+    .ts:1286) wired at RulesLimitsStep.tsx:2067 with copy
+    shopUniversalRuleAddBlocked; isAddMembershipRuleBlockedByUniversal wired at
+    :1831. Ticketing deliberately has none, documented verbatim at
+    RulesLimitsStep.tsx:1626-1637: "Ticketing has NO SUCH SHIPPED GUARD -- the
+    backend's all-events rule is gate-blind and blocks a near-opposite set --
+    and inventing one here would be a new lock, not a mirror of an existing
+    one." The admin therefore learns at SAVE time via the backend error
+    ticketingAllEventsMustBeOnlyRule ("An all-events ticketing rule must be the
+    only rule."). Reasoned omission, but it is the TC-53 gap.
+
+T7  PASS  vitest run src/discounts/discount-wizard -> 87 files, 2750 tests,
+    2748 passed, 2 failed. Both failures proven environment-local by re-running
+    them at the commits that introduced them (232ab173 / ac94a31e), whose
+    CodeBuild CI was green. See scenario-0-unit-tests/tests-found.txt.
+
+================ SECURITY ================
+
+S1  PASS  No string-concatenated SQL in the diff. Grep over the added lines of
+    git diff b0bf320e..60f425fa -- packages/shop/src/discounts for
+    SELECT/INSERT/UPDATE/DELETE followed by concatenation returned nothing.
+    Expected: this is a React authoring surface with no query construction.
+
+S2  PASS  No secrets. The only grep hits on password|api_key|secret|token|
+    bearer|-----BEGIN are three PROSE occurrences of the word "token" in
+    comments about next-intl message placeholders ("the BARE {count}/{total}
+    tokens"). No credential, key, JWT or private-key material added.
+
+S3  PASS  No dangerous DOM sinks. Zero added lines matching
+    dangerouslySetInnerHTML | v-html | eval( | new Function( |
+    document.write | innerHTML. All rule-card copy goes through next-intl
+    t(...) into React text nodes, which escape by construction.
+
+S4  PASS  No PII logging. Zero added console.log/info/warn or logger.* calls in
+    the diff, so no email/phone/contact value can reach a log from this change.
+
+S5  PASS (scoped)  Dependency delta in packages/shop/package.json is: one new
+    export ("./pos") and four new PEER deps -- @dnd-kit/core >=6.3.1,
+    @dnd-kit/sortable >=10.0.0, @dnd-kit/modifiers >=9.0.0,
+    @dnd-kit/utilities >=3.2.2. GitHub Advisory DB (npm ecosystem) returns 0
+    advisories for all four. None is imported anywhere under
+    packages/shop/src/discounts, so none is reachable from this story's
+    surface -- they belong to the variant-library / POS work.
+    DISCLOSED LIMIT: `npm audit` could NOT be run. `npm ci` fails with
+    E404 on the private package @veevarts/veevart-checkout@1.11.0, which needs
+    authenticated registry access. This item is therefore an advisory-DB
+    lookup, not a full transitive audit.
+
+S6  PASS  No auth / RBAC surface touched. The 35 changed files under
+    packages/shop/src/discounts are all wizard components, models, mappers,
+    schemas, message catalogues and their tests. No profile, permission-set,
+    sharing-rule, route-guard or OAuth-scope file appears in the diff.
+
+================ TALLY ================
+Technical: 7/7 PASS (3 carry findings that surface as TC verdicts, not regressions)
+Security:  6/6 PASS (S5 scoped -- npm audit blocked, see above)
+Blockers:  0 High/Critical

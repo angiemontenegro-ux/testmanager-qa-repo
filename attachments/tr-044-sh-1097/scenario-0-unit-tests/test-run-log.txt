@@ -1,0 +1,1047 @@
+
+ RUN  v2.1.9 /Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop
+
+ ✓ src/discounts/discount-wizard/components/codes/ticketing-rule-adapters.test.ts (82 tests) 16ms
+stderr | src/discounts/discount-wizard/api/promotion-authoring-mappers.test.ts > promotion authoring mappers > round-trips a malformed stored endsOn instead of truncating it
+[discount-wizard] Unrecognised stored calendar date "31 December 2026"; passing it through unchanged
+
+stderr | src/discounts/discount-wizard/api/promotion-authoring-mappers.test.ts > promotion authoring mappers > round-trips a malformed stored date range instead of truncating it
+[discount-wizard] Unrecognised stored calendar date "1 January 2026"; passing it through unchanged
+[discount-wizard] Unrecognised stored calendar date "31 December 2026"; passing it through unchanged
+
+stderr | src/discounts/discount-wizard/api/promotion-authoring-mappers.test.ts > promotion authoring mappers — clearing a gate asks, on a RELOADED rule > loads a membership-gated Ticketing rule with its stored mode too
+[discount-wizard] Ticketing rule missing applicationMode; defaulting to manual
+
+ ✓ src/discounts/discount-wizard/api/promotion-authoring-mappers.test.ts (237 tests) 81ms
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep > keeps Add Shop Rule enabled for Membership Benefit even with a universal Shop rule (exempt)
+Select: Keys "program-gold" passed to "selectedKeys" are not present in the collection.
+Select: Keys "program-gold" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep > keeps Add Shop Rule enabled for a code kind when the only Shop rule is scoped (not universal)
+Select: Keys "cat-1" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-1" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep > keeps Add Membership Rule enabled when every Membership rule is narrowed (not universal)
+Select: Keys "program-gold" passed to "selectedKeys" are not present in the collection.
+Select: Keys "program-gold" passed to "selectedKeys" are not present in the collection.
+
+ ✓ src/discounts/discount-wizard/components/codes/draft-utils.test.ts (109 tests) 20ms
+stderr | src/discounts/discount-wizard/components/codes/wizard/BasicInfoStep.test.tsx > BasicInfoStep > does not show expired pre-selected when editing an expired discount
+Select: Keys "expired" passed to "selectedKeys" are not present in the collection.
+Select: Keys "expired" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/TicketingRuleCardPreview.test.tsx > TicketingRuleCardPreview — a membership gate collapses the card (Fix 13) > degrades to a generic sentence when the gate programme is not in the options
+Select: Keys "mpr-retired" passed to "selectedKeys" are not present in the collection.
+Select: Keys "mpr-retired" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > blocks saving if an open discount becomes archived before save
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > calls onSaved exactly once with the saved discount after successful save
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > reaches the save path for an amount-off discount instead of rejecting (SH-992)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > saves with a backend-shaped payload and closes on success
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > saves with a backend-shaped payload and closes on success
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > activates an existing inactive discount in the same PATCH, with no follow-up activate call
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > blocks saving if an open discount becomes archived before save
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > stays on the wizard after a successful EDIT save instead of returning to the list (SH-1094 UX polish)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > shows an alertdialog advisory and does not save until confirmed for a membership association
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/BasicInfoStep.test.tsx > BasicInfoStep — switching to Entire order > does not destroy rules on a keyboard hop, in create mode
+An update to HeroUI.RadioGroup inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to HeroUI.Radio inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to HeroUI.Radio inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/BasicInfoStep.test.tsx > BasicInfoStep — switching to Entire order > cannot desync the segment from the draft when an arrow-opened confirm is cancelled
+An update to HeroUI.RadioGroup inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to HeroUI.Radio inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to HeroUI.Radio inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > refreshes the header status chip from the saved promotion after an EDIT save
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > associates the advisory description via aria-describedby
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — rule card lifecycle > names the card an exit was refused over, and publishes it inline
+An update to RulesLimitsStep inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > keeps the response lifecycle on the chip when it differs from the authored status
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > renders the resolved program labels inside the advisory dialog body
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > renders the all-programs label inside the advisory when the draft is all-programs
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > does not submit twice when Save is clicked repeatedly
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > does not submit twice when Save is clicked repeatedly
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > confirms the advisory then saves exactly once and fires onSaved
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — what a collapsed row says the rule is > says a scope id is unresolvable rather than dropping it
+Select: Keys "itm-gone" passed to "selectedKeys" are not present in the collection.
+Select: Keys "itm-gone" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > cancels the advisory: no save, modal stays open, save not left pending
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/MembershipsRuleCardPreview.test.tsx (81 tests) 3713ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > checks code availability on save before submitting
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > checks code availability on save before submitting
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/BasicInfoStep.test.tsx (96 tests) 6467ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > checks code availability on save before submitting
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > re-derives the refused rule ORDINAL when a rule above it is deleted
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > re-derives the refused rule ORDINAL when a rule above it is deleted
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > re-derives the refused rule ORDINAL when a rule above it is deleted
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > keeps the modal open when dismissing over a ticketing card the admin never saved
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > re-derives the refused rule ORDINAL when a rule above it is deleted
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > hands the host the sentence on EVERY refusal, and keeps one copy on screen
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > hands the host the sentence on EVERY refusal, and keeps one copy on screen
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > hands the host the sentence on EVERY refusal, and keeps one copy on screen
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > tells the host the refusal is over once the card commits
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > tells the host the refusal is over once the card commits
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > tells the host the refusal is over once the card commits
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > tells the host the refusal is over once the card commits
+Select: Keys "cat-b" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > takes a rule the admin ADDED back out of the draft when they discard it
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > takes a rule the admin ADDED back out of the draft when they discard it
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > takes a rule the admin ADDED back out of the draft when they discard it
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — refusals and added rules > leaves Cancel a plain revert for a rule that was already stored
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+Select: Keys "cat-a" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > guards against a double-click: a second save while one is pending fires savePromotion once
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-card-draft-mapping.test.ts (79 tests) 14ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/wizard-validation.test.ts (80 tests) 18ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > surfaces the catalog-mapped error key from a backend error code on save failure (not generic)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > surfaces the catalog-mapped error key from a backend error code on save failure (not generic)
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — a membership-gated Shop rule reads the same everywhere > counts a gated TICKETING membership_benefit rule as automatic in the banner
+Select: Keys "mpr-gold" passed to "selectedKeys" are not present in the collection.
+Select: Keys "mpr-gold" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — a membership-gated Shop rule reads the same everywhere > leaves a MEMBERSHIPS rule on the same programme counted as code-required
+Select: Keys "mpr-gold" passed to "selectedKeys" are not present in the collection.
+Select: Keys "mpr-gold" passed to "selectedKeys" are not present in the collection.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — the Ticketing rule card list > refuses the exit over an uncommitted ticketing card instead of committing it
+An update to RulesLimitsStep inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ❯ src/discounts/discount-wizard/components/codes/wizard/TicketingRuleCardPreview.test.tsx (111 tests | 1 failed) 8325ms
+   × TicketingRuleCardPreview — `Benefit apply per` (Fix 25) > says plainly that the choice is not saved, and says it TO the control 59ms
+     → expected null to be '_r_1va_' // Object.is equality
+   ✓ TicketingRuleListPreview — a gate is a toggle, not a delete (T1) > restores the counter and the window after gate → save → reopen → ungate, and asks for the mode 432ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > states the save failure on Review, not only in a toast that disappears
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/codes/wizard/ShopRuleCardPreview.test.tsx > ShopRuleCardPreview — an unresolved gate programme degrades, never blanks > names no programme rather than leaving a gap, with no options loaded yet
+Select: Keys "mpr-not-in-the-list" passed to "selectedKeys" are not present in the collection.
+Select: Keys "mpr-not-in-the-list" passed to "selectedKeys" are not present in the collection.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/ShopRuleCardPreview.test.tsx (165 tests) 8711ms
+ ✓ src/discounts/discount-wizard/schemas/promotion-authoring.test.ts (64 tests) 20ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > surfaces an error toast (not a silent no-op) when the mapper throws on save
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/draft-reducer.test.ts (66 tests) 55ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/ticketing-rule-card-model.test.ts (96 tests) 28ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > returns to Restrictions and marks email domains invalid when backend rejects them
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > returns to Restrictions and marks email domains invalid when backend rejects them
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > skips the advisory for a non-membership association
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > blocks saving when the final availability response becomes stale
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > blocks saving when the final availability response becomes stale
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ❯ src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx (140 tests | 1 failed) 10074ms
+   ✓ RulesLimitsStep — a membership-gated Shop rule reads the same everywhere > a net-zero gate gesture asks the question, and ships the answer once given 397ms
+   × RulesLimitsStep — the Ticketing rule card list > joins the unanswered-redemption refusal to the control that answers it 54ms
+     → expect(element).toHaveAttribute("aria-invalid", "true") // element.getAttribute("aria-invalid") === "true"
+
+Expected the element to have attribute:
+  aria-invalid="true"
+Received:
+  null
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > blocks saving when the final availability response becomes stale
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > clears the inline missing-rule error after a ticketing rule is added in the modal
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/associated/context-draft.test.ts (40 tests) 16ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal > clears the inline missing-rule error after a ticketing rule is added in the modal
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/memberships-rule-card-model.test.ts (73 tests) 111ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > saves anyway when the final availability check has a network error
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > saves anyway when the final availability check has a network error
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/RestrictionsStep.test.tsx (38 tests) 1150ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-card-simulators.test.ts (58 tests) 20ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal — localized validation messages (bugfix) > blocks the walk to Review when both channels are switched off (FP8)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/_shared/rule-date-window.test.ts (20 tests) 25ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal — localized validation messages (bugfix) > renders the usage-limits card on Step 3 and blocks the walk to Review on a rejected cap (SH-1094)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > still blocks the save when the availability check answers taken
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > still blocks the save when the availability check answers taken
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > still blocks the save when the availability check answers taken
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/api/error-catalog.test.ts (123 tests) 16ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-date-scope-card-path.test.tsx (25 tests) 2310ms
+   ✓ Ticketing — an admin-authored dateScope reaches the wire declared > emits `dateScope` + `dateScopeAuthored: true` for an ungated rule the admin actually picked 318ms
+   ✓ Ticketing — an admin-authored dateScope reaches the wire declared > sends the value alone, never `dateScopeAuthored`, when the admin never touched the toggle 331ms
+   ✓ Ticketing — a programme edit AFTER authoring re-derives the scope and retracts authorship > emits the derived value undeclared when the programme narrows AFTER the `When` toggle was used 300ms
+   ✓ Ticketing — MEMBERSHIP_DERIVED is forced on the WIRE and never declared > a scope authored BEFORE the gate is added never reaches the wire authored 308ms
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal — localized validation messages (bugfix) > clears the domains with a naming warning when Online is switched off (FP9)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > DiscountCodeWizardModal — localized validation messages (bugfix) > shows the localized shop-membership-program-required message for an unrestricted Shop rule
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/codes/DiscountsTable.test.tsx > DiscountsTable > renders a block skeleton instead of an empty table while the initial fetch is in flight
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > BUG-08: audience-clear guard in modal save > fires audience-clear dialog when single-type shape has specific audience
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > BUG-08: audience-clear guard in modal save > fires save after user confirms the audience-clear dialog
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx > a stored past date range no longer interrupts the modal save > saves a promotion whose stored range is entirely in the past, with no dialog
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/codes/DiscountsTable.test.tsx (31 tests) 1456ms
+ ✓ src/discounts/discount-wizard/components/associated/DiscountCodeWizardModal.test.tsx (39 tests) 11584ms
+   ✓ DiscountCodeWizardModal > calls onSaved exactly once with the saved discount after successful save 789ms
+   ✓ DiscountCodeWizardModal > activates an existing inactive discount in the same PATCH, with no follow-up activate call 367ms
+   ✓ DiscountCodeWizardModal > shows an alertdialog advisory and does not save until confirmed for a membership association 459ms
+   ✓ DiscountCodeWizardModal > associates the advisory description via aria-describedby 424ms
+   ✓ DiscountCodeWizardModal > renders the resolved program labels inside the advisory dialog body 442ms
+   ✓ DiscountCodeWizardModal > renders the all-programs label inside the advisory when the draft is all-programs 519ms
+   ✓ DiscountCodeWizardModal > confirms the advisory then saves exactly once and fires onSaved 460ms
+   ✓ DiscountCodeWizardModal > cancels the advisory: no save, modal stays open, save not left pending 461ms
+   ✓ DiscountCodeWizardModal > guards against a double-click: a second save while one is pending fires savePromotion once 543ms
+   ✓ DiscountCodeWizardModal > surfaces the catalog-mapped error key from a backend error code on save failure (not generic) 581ms
+   ✓ DiscountCodeWizardModal > states the save failure on Review, not only in a toast that disappears 505ms
+   ✓ DiscountCodeWizardModal > surfaces an error toast (not a silent no-op) when the mapper throws on save 483ms
+   ✓ DiscountCodeWizardModal > returns to Restrictions and marks email domains invalid when backend rejects them 555ms
+   ✓ DiscountCodeWizardModal > skips the advisory for a non-membership association 482ms
+   ✓ DiscountCodeWizardModal > clears the inline missing-rule error after a ticketing rule is added in the modal 320ms
+   ✓ DiscountCodeWizardModal — localized validation messages (bugfix) > shows the localized percent-max message for an over-100 percent value 1078ms
+   ✓ DiscountCodeWizardModal — localized validation messages (bugfix) > renders the usage-limits card on Step 3 and blocks the walk to Review on a rejected cap (SH-1094) 338ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/DiscountWizardPage.test.tsx (28 tests) 782ms
+ ✓ src/discounts/discount-wizard/api/membership-program-discounts.test.ts (29 tests) 16ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/ticketing-rule-card-draft-mapping.test.ts (26 tests) 14ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > opens the discard dialog when cancelling over a ticketing card the admin never saved
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/RuleScheduleEditor.test.tsx (33 tests) 1767ms
+ ✓ src/discounts/discount-wizard/__tests__/redemption-mode-projection.test.ts (11 tests) 302ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > does not save a ticketing discount without at least one ticketing rule
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/api/promotion-authoring-client.test.ts (19 tests) 18ms
+ ✓ src/discounts/discount-wizard/messages/message-keys.test.ts (7 tests) 4ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > refuses the discount save while a rule card holds uncommitted edits
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > refuses NEXT while a rule card holds uncommitted edits
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-editors.test.tsx (27 tests) 629ms
+ ✓ src/discounts/discount-wizard/schemas/discount.test.ts (30 tests) 18ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-schedule-model.test.ts (49 tests) 47ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > refuses PREVIOUS too — going back unmounts the card just as completely
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > lets NEXT through once the card is committed
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > lets NEXT through once the card is committed
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/review-model.test.ts (22 tests) 22ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > retires the refusal toast when the admin answers it by saving the rule
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > lets the same save through once the rule is committed
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/ReviewStep.test.tsx (19 tests) 510ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/__tests__/DiscountWizardPage.a11y.test.tsx (10 tests) 632ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > clears the inline missing-rule error after a ticketing rule is added
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/detail/DiscountDetailView.test.tsx (12 tests) 471ms
+ ✓ src/discounts/discount-wizard/page/codes/sort-discounts.test.ts (18 tests) 18ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > saves an amount-off discount as AMOUNT_OFF (SH-992)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/__tests__/one-form-two-states.test.tsx (11 tests) 754ms
+   ✓ every Step-1 behaviour holds on a loaded promotion > demands the live-redemptions acknowledgement only on a loaded promotion 336ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/redemption-preview-model.test.ts (18 tests) 8ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-date-window-card-path.test.tsx (5 tests) 1273ms
+   ✓ a gated SHOP rule keeps its stored window across a save of an unrelated field > survives a gated card save that only changes the item scope 540ms
+ ✓ src/discounts/discount-wizard/ticketing/hooks/use-ticketing-limits-data.test.tsx (14 tests) 677ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-card-errored-counter-audit.test.ts (5 tests) 4ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > keeps the draft open when save fails
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > keeps the draft open when save fails
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/components/codes/wizard/shop-per-person-limit-card-path.test.tsx (8 tests) 597ms
+   ✓ a gated SHOP rule keeps its stored per-person cap across a save of an unrelated field > survives a gated card save that only changes the item scope 475ms
+ ✓ src/discounts/discount-wizard/page/detail/rule-metrics.test.ts (13 tests) 11ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/use-discount-save-controller.test.ts (11 tests) 56ms
+ ✓ src/discounts/discount-wizard/page/codes/use-discounts-list-view.test.ts (13 tests) 45ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/RedemptionPreviewBanner.test.tsx (14 tests) 236ms
+ ✓ src/discounts/discount-wizard/page/detail/CustomerCodeCard.test.tsx (10 tests) 493ms
+ ✓ src/discounts/discount-wizard/services/widget-http-client.test.ts (17 tests) 16ms
+ ✓ src/discounts/discount-wizard/page/detail/DiscountDetailHeader.test.tsx (11 tests) 483ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > returns to Restrictions and marks email domains invalid when backend requires Online
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > returns to Restrictions and marks email domains invalid when backend requires Online
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/detail/DisabledActionButton.test.tsx (9 tests) 477ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > returns to Restrictions and marks email domains invalid when backend requires Online
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > returns to Restrictions and marks email domains invalid when backend requires Online
+You are trying to animate borderColor from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+You are trying to animate color from "hsl(var(--heroui-primary))" to "rgb(156 163 175)". hsl(var(--heroui-primary)) is not an animatable value - to enable this animation set hsl(var(--heroui-primary)) to a value animatable to rgb(156 163 175) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/hooks/use-promotion-authoring.test.tsx (8 tests) 422ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/rule-counter-enforcement.test.ts (59 tests) 4ms
+stderr | src/discounts/discount-wizard/DiscountWizardWidget.test.tsx > DiscountWizardWidget > reinstalls the HTTP client with the new token when authToken changes
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at mountMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8777:23)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26216:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at updateMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8795:19)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26484:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/DiscountWizardWidget.test.tsx > DiscountWizardWidget > does not reinstall the HTTP client when no client input changed
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at mountMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8777:23)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26216:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at updateMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8795:19)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26484:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/DiscountWizardWidget.test.tsx > DiscountWizardWidget > renders the full Discount Code page when a tenantId is provided
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at mountMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8777:23)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26216:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/DiscountWizardWidget.test.tsx > DiscountWizardWidget > tells the page to leave the rule date window off the save payload
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at mountMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8777:23)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26216:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/DiscountWizardWidget.test.tsx > DiscountWizardWidget > tells the page to hide the breadcrumb, same seam as headingLevel="h2"
+IntlError: MISSING_MESSAGE: Could not resolve `common` in messages for locale `en`.
+    at getMessagesOrError (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:72:23)
+    at createBaseTranslator (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/initializeConfig-B5qJiBCm.js:77:27)
+    at file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:35
+    at mountMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:8777:23)
+    at Object.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react-dom/cjs/react-dom-client.development.js:26216:18)
+    at process.env.NODE_ENV.exports.useMemo (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/react/cjs/react.development.js:1251:34)
+    at useTranslationsImpl (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:88:21)
+    at useTranslations (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/use-intl/dist/esm/development/react.js:118:10)
+    at Module.<anonymous> (file:///Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1096/node_modules/next-intl/dist/esm/development/react-client/index.js:18:14)
+    at DiscountsTableSkeleton (/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097/packages/shop/src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.tsx:49:21) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Could not resolve `common` in messages for locale `en`.'
+}
+An aria-label or aria-labelledby prop is required for accessibility.
+
+ ✓ src/discounts/discount-wizard/DiscountWizardWidget.test.tsx (6 tests) 421ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > blocks Save and returns to Restrictions when both channels are switched off (FP8)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/detail/OverviewCard.test.tsx (14 tests) 95ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/__tests__/DiscountWizardPage.containment.test.tsx (7 tests) 1113ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > blocks Save and returns to Restrictions when both channels are switched off (FP8)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/detail/RuleCardsSection.test.tsx (8 tests) 94ms
+ ✓ src/discounts/discount-wizard/messages/codes-detail-keys.test.ts (5 tests) 5ms
+ ✓ src/discounts/discount-wizard/__tests__/no-kind-model.test.ts (17 tests) 38ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/discount-save-validation.test.ts (21 tests) 6ms
+ ✓ src/discounts/discount-wizard/page/codes/__tests__/DiscountsTable.a11y.test.tsx (4 tests) 212ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > renders the usage-limits card on Step 3 and blocks the walk to Review on a rejected cap (SH-1094)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > renders the usage-limits card on Step 3 and blocks the walk to Review on a rejected cap (SH-1094)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/codes/filter-discounts.test.ts (8 tests) 5ms
+ ✓ src/discounts/discount-wizard/page/detail/RestrictionsCard.test.tsx (8 tests) 77ms
+ ✓ src/discounts/discount-wizard/page/save-guard-utils.test.ts (11 tests) 6ms
+stderr | src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.test.tsx > DiscountsTableSkeleton — column parity with DiscountsTable > heads the same columns, in the same order, as the loaded table
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.test.tsx > DiscountsTableSkeleton — column parity with DiscountsTable > lays out the same number of cells per body row
+An aria-label or aria-labelledby prop is required for accessibility.
+
+stderr | src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.test.tsx > DiscountsTableSkeleton — column parity with DiscountsTable > stays in parity under a non-default visibleColumns set
+An aria-label or aria-labelledby prop is required for accessibility.
+
+ ✓ src/discounts/discount-wizard/page/codes/DiscountsTableSkeleton.test.tsx (3 tests) 189ms
+ ✓ src/discounts/discount-wizard/services/ticketing-widget-http-client.test.ts (7 tests) 8ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/wizard-steps.test.ts (10 tests) 3ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > hides the email-domains field and clears its value with a warning when Online goes off (FP9)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > hides the email-domains field and clears its value with a warning when Online goes off (FP9)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/codes/SortPopover.test.tsx (8 tests) 676ms
+ ✓ src/discounts/discount-wizard/page/detail/DiscountDetailTabs.test.tsx (5 tests) 225ms
+ ✓ src/discounts/discount-wizard/page/detail/RedemptionsStat.test.tsx (5 tests) 35ms
+ ✓ src/discounts/discount-wizard/page/detail/RuleTile.test.tsx (6 tests) 68ms
+ ✓ src/discounts/discount-wizard/page/codes/FiltersPopover.test.tsx (6 tests) 341ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > shows a safe generic description instead of leaking internal error messages
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > shows a safe generic description instead of leaking internal error messages
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/messages/messages-parity.test.ts (4 tests) 5ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/wizard-components.test.tsx (6 tests) 255ms
+ ✓ src/discounts/discount-wizard/page/detail/DetailSectionHeader.test.tsx (5 tests) 75ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/WizardSelect.test.tsx (6 tests) 182ms
+ ✓ src/discounts/discount-wizard/page/__tests__/DiscountsCodesPage.a11y.test.tsx (3 tests) 268ms
+ ✓ src/discounts/discount-wizard/components/codes/formatters.test.ts (4 tests) 28ms
+ ✓ src/discounts/discount-wizard/page/detail/SystemCard.test.tsx (4 tests) 131ms
+ ✓ src/discounts/discount-wizard/components/codes/wizard/numeric-guard.test.ts (7 tests) 4ms
+ ✓ src/discounts/discount-wizard/page/codes/ColumnsPopover.test.tsx (4 tests) 525ms
+ ✓ src/discounts/discount-wizard/page/__tests__/discount-route-state.test.ts (3 tests) 3ms
+ ✓ src/discounts/discount-wizard/components/codes/types.test.ts (2 tests) 2ms
+ ✓ src/discounts/discount-wizard/page/DeleteConfirmationDialog.test.tsx (2 tests) 122ms
+ ✓ src/discounts/discount-wizard/api/ticketing-http-client.test.ts (2 tests) 3ms
+ ✓ src/discounts/discount-wizard/_shared/ticketing-contract.test.ts (3 tests) 2ms
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > activates inactive → active in the same PATCH, with no follow-up activate call
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > sends status: Active on an expired-then-edited draft with no client-side expired branching
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > does not report success when saving mutable fields fails
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > shows a save-error toast and no success toast when the activating PATCH itself is rejected
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > enables the membership-types fetch only on the Rules step of a membership draft
+Encountered two children with the same key, `11111111-1111-4111-8111-111111111111`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > enables the membership-types fetch only on the Rules step of a membership draft
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > enables the membership-types fetch on the Rules step of a saved membership_benefit draft (applicableModules ticketing only)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > enables the membership-types fetch for a membership_benefit ROW whatever the kind scalar says
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > enables the membership-program fetch on the Rules step of a Discount Code + shop-only draft
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > populates the ticketing rule card membership-gate select for a ticketing-only draft with no gate
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage backend authoring wiring > does not block Next navigation when the inactive-advisory is shown (non-blocking)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage — a stored past date range no longer interrupts the save > saves a promotion whose stored range is entirely in the past, with no dialog
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage — BUG-08 audience-clear confirm dialog > shows a confirm dialog when a ticketing rule has both audience and ticketTypeIds set
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage — BUG-08 audience-clear confirm dialog > proceeds with save when user confirms the audience-clear dialog
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > DiscountsCodesPage — BUG-08 audience-clear confirm dialog > fires audience-clear dialog for the single-type shape (offerId set, ticketTypeIds undefined)
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+stderr | src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx > T6: save payload after audience-clear confirm on page > save mutation is called after confirming audience-clear dialog
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate borderColor from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+You are trying to animate color from "rgb(156 163 175)" to "hsl(var(--heroui-primary))". rgb(156 163 175) is not an animatable value - to enable this animation set rgb(156 163 175) to a value animatable to hsl(var(--heroui-primary)) via the `style` property.
+
+ ✓ src/discounts/discount-wizard/page/DiscountsCodesPage.test.tsx (117 tests) 32989ms
+   ✓ DiscountsCodesPage backend authoring wiring > refetches promotion detail before opening the edit wizard 325ms
+   ✓ DiscountsCodesPage backend authoring wiring > blocks saving if an open discount becomes archived before save 301ms
+   ✓ DiscountsCodesPage backend authoring wiring > saves with a backend-shaped payload and closes on success 997ms
+   ✓ DiscountsCodesPage backend authoring wiring > stays on the wizard after a successful EDIT save instead of returning to the list (SH-1094 UX polish) 511ms
+   ✓ DiscountsCodesPage backend authoring wiring > refreshes the header status chip from the saved promotion after an EDIT save 421ms
+   ✓ DiscountsCodesPage backend authoring wiring > keeps the response lifecycle on the chip when it differs from the authored status 452ms
+   ✓ DiscountsCodesPage backend authoring wiring > does not submit twice when Save is clicked repeatedly 990ms
+   ✓ DiscountsCodesPage backend authoring wiring > checks code availability on save before submitting 953ms
+   ✓ DiscountsCodesPage backend authoring wiring > checks code availability before leaving the basic step 856ms
+   ✓ DiscountsCodesPage backend authoring wiring > blocks forward navigation when the current code is already taken 468ms
+   ✓ DiscountsCodesPage backend authoring wiring > blocks forward navigation when the availability response becomes stale 927ms
+   ✓ DiscountsCodesPage backend authoring wiring > ignores stale code availability responses after the draft code changes 457ms
+   ✓ DiscountsCodesPage backend authoring wiring > blocks saving when the final availability response becomes stale 1210ms
+   ✓ DiscountsCodesPage backend authoring wiring > saves anyway when the final availability check has a network error 952ms
+   ✓ DiscountsCodesPage backend authoring wiring > still blocks the save when the availability check answers taken 911ms
+   ✓ DiscountsCodesPage backend authoring wiring > blocks forward navigation on the first invalid wizard step 1149ms
+   ✓ DiscountsCodesPage backend authoring wiring > shows discard confirmation for dirty drafts before closing 355ms
+   ✓ DiscountsCodesPage backend authoring wiring > opens the discard dialog when cancelling over a ticketing card the admin never saved 394ms
+   ✓ DiscountsCodesPage backend authoring wiring > refuses the discount save while a rule card holds uncommitted edits 360ms
+   ✓ DiscountsCodesPage backend authoring wiring > refuses NEXT while a rule card holds uncommitted edits 321ms
+   ✓ DiscountsCodesPage backend authoring wiring > refuses PREVIOUS too — going back unmounts the card just as completely 367ms
+   ✓ DiscountsCodesPage backend authoring wiring > lets NEXT through once the card is committed 318ms
+   ✓ DiscountsCodesPage backend authoring wiring > lets the same save through once the rule is committed 386ms
+   ✓ DiscountsCodesPage backend authoring wiring > saves an amount-off discount as AMOUNT_OFF (SH-992) 361ms
+   ✓ DiscountsCodesPage backend authoring wiring > keeps the draft open when save fails 1034ms
+   ✓ DiscountsCodesPage backend authoring wiring > shows the localized percent-max message for an over-100 percent value (localization unchanged) 1080ms
+   ✓ DiscountsCodesPage backend authoring wiring > returns to Restrictions and marks email domains invalid when backend requires Online 1159ms
+   ✓ DiscountsCodesPage backend authoring wiring > blocks Save and returns to Restrictions when both channels are switched off (FP8) 1018ms
+   ✓ DiscountsCodesPage backend authoring wiring > renders the usage-limits card on Step 3 and blocks the walk to Review on a rejected cap (SH-1094) 1276ms
+   ✓ DiscountsCodesPage backend authoring wiring > hides the email-domains field and clears its value with a warning when Online goes off (FP9) 1231ms
+   ✓ DiscountsCodesPage backend authoring wiring > shows a safe generic description instead of leaking internal error messages 1027ms
+   ✓ DiscountsCodesPage backend authoring wiring > does not fire the activate mutation when the activate dialog is cancelled 474ms
+   ✓ DiscountsCodesPage backend authoring wiring > renders the activate dialog with primary (non-danger) tone and delete dialog with danger tone 576ms
+   ✓ DiscountsCodesPage backend authoring wiring > activates inactive → active in the same PATCH, with no follow-up activate call 485ms
+   ✓ DiscountsCodesPage backend authoring wiring > enables the membership-types fetch only on the Rules step of a membership draft 461ms
+   ✓ DiscountsCodesPage backend authoring wiring > enables the membership-program fetch on the Rules step of a Discount Code + shop-only draft 491ms
+   ✓ DiscountsCodesPage backend authoring wiring > does not block Next navigation when the inactive-advisory is shown (non-blocking) 403ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx > RulesLimitsStep — the Ticketing rule card list > joins the unanswered-redemption refusal to the control that answers it
+Error: expect(element).toHaveAttribute("aria-invalid", "true") // element.getAttribute("aria-invalid") === "true"
+
+Expected the element to have attribute:
+  aria-invalid="true"
+Received:
+  null
+ ❯ src/discounts/discount-wizard/components/codes/wizard/RulesLimitsStep.test.tsx:3568:24
+    3566| 
+    3567|         const toggle = screen.getByTestId('ticketing-rule-card-redempt…
+    3568|         expect(toggle).toHaveAttribute('aria-invalid', 'true');
+       |                        ^
+    3569|         const describedBy = toggle.getAttribute('aria-describedby');
+    3570|         expect(describedBy).toBe('dw-rules-ticketing-redemption-0-erro…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/discounts/discount-wizard/components/codes/wizard/TicketingRuleCardPreview.test.tsx > TicketingRuleCardPreview — `Benefit apply per` (Fix 25) > says plainly that the choice is not saved, and says it TO the control
+AssertionError: expected null to be '_r_1va_' // Object.is equality
+
+- Expected: 
+"_r_1va_"
+
++ Received: 
+null
+
+ ❯ src/discounts/discount-wizard/components/codes/wizard/TicketingRuleCardPreview.test.tsx:854:11
+    852|                 .getByTestId('ticketing-rule-card-benefit-apply-per')
+    853|                 .getAttribute('aria-describedby'),
+    854|         ).toBe(note.getAttribute('id'));
+       |           ^
+    855|     });
+    856| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 85 passed (87)
+      Tests  2 failed | 2748 passed (2750)
+   Start at  08:50:46
+   Duration  35.73s (transform 3.61s, setup 3.54s, collect 65.33s, tests 103.24s, environment 23.81s, prepare 3.93s)
+

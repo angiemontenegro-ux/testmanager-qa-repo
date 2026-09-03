@@ -1,0 +1,49 @@
+TC-54 -- Unsaved-Rule Guard on Step 2 Continue
+Target: VeevartFrontend @ origin/develop 60f425fa
+VERDICT: BOTH SCENARIOS PASSED
+
+THE PREDICATE
+RulesLimitsStep.tsx:1195-1200
+  const blocksExit = (ruleId) => ruleCardBlocksExit({
+      isCommitted: !addedRuleIdsRef.current.has(ruleId),
+      isDirty: dirtyRuleIdsRef.current.has(ruleId),
+  });
+"Uncommitted" is `!isCommitted || isDirty` -- the cards' OWN predicate, and
+"the same one that decides whether a card renders its `Unsaved` marker"
+(:1172-1174). findUncommittedRuleCard() then names the first offending card, in
+on-screen order (Ticketing, Memberships, Shop) so the refusal points at the card
+an admin scrolling down would reach first.
+
+The guard is stricter than the TC asks for: it refuses NEXT, PREVIOUS and SAVE.
+:1186-1189 records the defect that motivated it --
+  "a rule from `+ Add Rule` enters the draft on the press, mounts uncommitted
+   and untouched, badges itself `Unsaved` -- and SAILED THROUGH SAVE AND NEXT,
+   shipping a rule nobody confirmed and then locking `+ Add Rule` through
+   universal exclusivity."
+:1192-1197 records that Ticketing was folded in as a behaviour change: its rows
+used to be committed FOR the admin by flushPendingTicketingRows on the way out;
+a ticketing card holding uncommitted edits is now refused like its siblings.
+
+SC 1  "Continue is blocked while any rule is unsaved"      -> PASSED
+SC 2  "Continue becomes available once the rule is saved"   -> PASSED
+
+DEV TESTS, ALL GREEN in this run (see scenario-0-unit-tests/test-run-log.txt):
+  DiscountsCodesPage backend authoring wiring >
+    - refuses NEXT while a rule card holds uncommitted edits
+    - refuses PREVIOUS too -- going back unmounts the card just as completely
+    - refuses the discount save while a rule card holds uncommitted edits
+    - lets NEXT through once the card is committed
+    - retires the refusal toast when the admin answers it by saving the rule
+    - lets the same save through once the rule is committed
+    - opens the discard dialog when cancelling over a ticketing card the admin
+      never saved
+    - blocks forward navigation on the first invalid wizard step
+The refusal is ANNOUNCED, never silent, and it retires itself the moment the
+admin answers it -- which is exactly SC 2's "becomes available once saved".
+The `Unsaved` badge copy is header.unsaved on all three cards.
+
+KNOWN BOUND (documented, not a defect): addedRuleIdsRef is a step-local ref and
+"dies with this step, so a rule added and then left uncommitted across a trip to
+another wizard step reads as committed when the admin comes back"
+(RulesLimitsStep.tsx:1159-1163). Narrowing it would need a marker on the draft.
+Worth a manual UI probe if Product cares about that specific round trip.

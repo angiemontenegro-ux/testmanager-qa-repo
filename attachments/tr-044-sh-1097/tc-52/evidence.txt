@@ -1,0 +1,52 @@
+TC-52 -- Rule Collapsed Summary & Overall/Current Usage
+Target: VeevartFrontend @ origin/develop 60f425fa
+
+THE GOVERNING DESIGN RULE
+RestrictionsStep.tsx:94-97 states the constraint this whole TC collides with:
+  "It must never grow a remaining-count or an 'N of M used': there is no
+   confirmed-sale producer, so EVERY USAGE COUNTER IN THIS SYSTEM READS ZERO."
+So a "current usage" numerator is not missing by accident -- rendering one is
+explicitly forbidden, because there is nothing on the backend producing it.
+
+SC 1  "Overall Usage = 500 -> the collapsed summary includes '0 / 500 uses'"
+VERDICT: FAILED (the asserted format is forbidden by design)
+formatTicketingLimitsSummary (ticketing-rule-card-model.ts:718-765) builds the
+collapsed body from the message key
+  limits.summaryEntry = "{label} {value}"
+joined by limits.summarySeparator. Its own doc comment gives the shipped shape:
+  "The collapsed OPTIONAL LIMITS body -- `Overall 500 · Discounted tickets 10 ·
+   Per person 2 · Per person/day 1`"
+So the rule renders "Overall 500", never "0 / 500 uses". There is no numerator
+field in TicketingRuleCardValue and no producer for one.
+
+SC 2  "Step 4 Review shows each rule with its derived date source
+       ('Dates from event Summer Exhibit' / 'Dates from Gold membership')"
+VERDICT: FAILED (not implemented)
+review-model.ts carries no dateScope reference at all (grep for
+dateScope|Dates from|dateSource returns nothing; its only membership mention is
+:211, the gate NAME for a scope line). The review message catalogue has scope
+keys only:
+  review.shopRuleScope            = {categories}; {items}; {memberships}
+  review.shopMembershipProgram    = Membership program: {value}
+  review.tiles.allTicketingPrograms / selectedTicketingProgram
+  review.tiles.selectedMembershipType / anyMembership
+There is no date-source key of any kind, so Step 4 cannot state where a rule's
+dates come from.
+
+SC 3  "Overall Usage left empty shows 'Unlimited' instead of a numeric cap,
+       and Current Usage still displays its running count"
+VERDICT: FAILED (both halves)
+(a) "Unlimited" per counter: the model's contract is the opposite. Its own doc
+    comment (ticketing-rule-card-model.ts:695) says an unset counter is
+    "omitted rather than printed as 'Unlimited'", and the filter at :751-757
+    drops every entry whose amount is null. ShopRuleCardPreview.tsx:496 gives
+    the reason: 'stacking "Unlimited" words beside one number buries the one
+    [that is set]'. When NOTHING is set the card falls back to prose instead:
+      limits.noneSet = "No limits set. Rule is unlimited for total redemptions,
+                        discounted tickets, per customer, and per day."
+    So the WORD "unlimited" appears, but as an all-unset sentence, not as a
+    per-counter substitute for a numeric cap. "Unlimited" is also used as the
+    input PLACEHOLDER (counters.unlimitedPlaceholder) and in the validation
+    message (counters.errorMin1 = "Must be at least 1, or empty for Unlimited.").
+(b) "Current Usage still displays its running count": impossible by design --
+    see the governing rule above. No Current Usage control exists on the card.

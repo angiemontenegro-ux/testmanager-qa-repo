@@ -1,0 +1,42 @@
+TC-55 -- Membership Program <-> Members Only Reactive Lock
+Target: VeevartFrontend @ origin/develop 60f425fa
+VERDICT: ALL THREE SCENARIOS SKIPPED -- THE TEST CASE IS OBSOLETE
+
+THE CONTROL UNDER TEST NO LONGER EXISTS. It was removed by decision FP7, which
+moved membership gating from a promotion-level switch onto the rule cards. Three
+independent citations:
+
+1) RestrictionsStep.tsx:68
+     "**`Members only` stays gone** (FP7): membership gating is per-rule."
+
+2) RestrictionsStep.tsx:285-287, at the exact place the switch used to render:
+     "/* There is deliberately no `Members only` switch: membership gating is
+         PER-RULE, so a promotion-level flag would duplicate what the rule cards
+         own. The DRAFT and WIRE field stays. */"
+
+3) wizard-steps.ts:79-83, on the RULES_FIELDS list:
+     "// `membershipsOnly` is gone from this list with the `Members only`
+      // switch that was its only authoring control. Membership gating is
+      // per-rule now, so no step renders anything a rejection on that path
+      // could focus. Nothing raises one either -- the schema only types the
+      // field, it never refines it."
+
+Also confirmed by absence: grep for membersOnly | members_only | memberOnly |
+"Members Only" across the whole module returns no control, no state, no handler
+and no tooltip -- only prose comments and the copy string
+"...can't be set on a members-only rule", which refers to a MEMBERSHIP-GATED
+rule (fix13.passiveTile), not to the removed switch.
+RestrictionsStep.tsx:98-100 adds that the step's old two-up grid was flattened
+to a column precisely because "`Members only` sat beside Eligibility".
+
+WHY SKIPPED AND NOT FAILED
+There is no control to lock, unlock or leave ON, so none of the three scenarios
+has a subject. The behaviour TC-55 wants is now delivered by a different
+mechanism (the per-rule Membership Program GATE), whose own coverage lives in
+TC-51.3 and in the fix13 gate tests. Marking these `failed` would report a
+product defect where the product intentionally changed shape.
+
+ACTION: retire TC-55, or rewrite it against the per-rule gate. The gate's
+"forced ON and locked" analogue is that a gated rule HIDES Redemption, the When
+toggle, and the Overall / Per-Person-Daily / Overall-Daily counters, replacing
+them with a passive tile -- already covered.

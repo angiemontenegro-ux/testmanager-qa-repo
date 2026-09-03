@@ -1,48 +1,57 @@
 schemaVersion: "1.0"
 id: "e8542d54-e05c-4554-8caf-64b277cc5f1a"
 key: "TC-52"
-title: "Rule Collapsed Summary & Overall Usage"
-description: "QA coverage for SH-1097: validates the rule card's collapsed saved-state summary, including the derived date source and the Overall/Current Usage fields, and their unlimited (empty) state."
+title: "Rule Collapsed Summary & Optional-Limit Enumeration"
+description: "QA coverage for SH-1097: validates the rule card's collapsed OPTIONAL LIMITS summary as it actually ships — an enumeration of the SET counters ('Overall 500 · Per person 2'), with unset counters OMITTED and an all-unset fallback sentence. REWRITTEN 2026-09-03 after TR-044: scenarios 1 and 3 asserted an 'N of M used' running counter and a per-counter 'Unlimited' label, both of which the module forbids by design — there is no confirmed-sale producer, so every usage counter in this system reads zero and rendering '0 / 500' would display a fabricated number. Scenario 2 is deliberately LEFT UNCHANGED: it reports a real product gap."
 type: "functional"
 priority: "low"
 status: "active"
 format: "gherkin"
 preconditions:
-  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the environment under test."
+  - "Step 1 has Apply to = Specific items, which is the only state that renders the rule cards."
 scenarios:
-  - title: "Overall Usage set to 500 shows 0/500 uses in the collapsed summary"
+  - title: "A set Overall Usage Limit is enumerated by label and value, with no usage numerator"
     tags:
       - "happy-path"
       - "usage-limits"
     given:
-      - "the admin sets Overall Usage = 500 on a rule"
+      - "the admin sets Overall Usage Limit = 500 on a rule and leaves the other counters empty"
     when:
-      - "the admin saves the rule"
+      - "the admin saves the rule and the card collapses"
     then:
-      - "the collapsed summary includes '0 / 500 uses'"
+      - "the collapsed OPTIONAL LIMITS summary reads 'Overall 500'"
+      - "no running-total numerator is rendered anywhere on the card — not '0 / 500', not '0 of 500 used', not a remaining count"
+      - "adding a second counter extends the same enumeration, e.g. 'Overall 500 · Per person 2', in the card's own separator"
+      - "a counter holding a rejected entry is excluded from the enumeration and reported as an error count beside it instead"
 
   - title: "Collapsed summary reflects the derived date source"
     tags:
       - "happy-path"
       - "derived-dates"
+      - "known-gap"
     given:
-      - "rule A has Event = Summer Exhibit and rule B has Membership Program = Gold"
+      - "rule A has Program / Events = Summer Exhibit and rule B has Membership Program = Gold"
+      - "NOTE: this scenario is a KNOWN PRODUCT GAP, not test-case drift. TR-044 confirmed the Step 4 Review carries no date-source line of any kind — no such key exists in its message catalogue and its model never references the rule's date scope. It is deliberately left asserting the designed behaviour so it keeps failing until Product decides. Do NOT rewrite this to match the code."
     when:
       - "the admin reaches Step 4 Review"
     then:
       - "the summary shows each rule with its derived date source ('Dates from event Summer Exhibit' and 'Dates from Gold membership')"
 
-  - title: "Overall Usage left empty is treated as unlimited in the summary"
+  - title: "Unset counters are omitted from the enumeration, and an all-unset rule falls back to one sentence"
     tags:
       - "edge-case"
       - "usage-limits"
     given:
-      - "a rule has no Overall Usage value set"
+      - "a rule has Overall Usage Limit left empty while another counter holds a value"
+      - "NOTE: rewritten 2026-09-03. This scenario previously expected the word 'Unlimited' to stand in for each unset cap and a 'Current Usage' running count. The card omits unset counters on purpose — stacking 'Unlimited' beside one real number buries the number that was actually set — and no Current Usage control exists, nor can it while nothing produces confirmed sales."
     when:
-      - "the rule is saved and the summary renders"
+      - "the rule is saved and the collapsed summary renders"
     then:
-      - "the summary shows 'Unlimited' instead of a numeric cap"
-      - "Current Usage still displays its running count"
+      - "the empty Overall Usage Limit is absent from the enumeration entirely, with no 'Unlimited' placeholder in its place"
+      - "only the counters holding a value are listed"
+      - "when NO counter holds a value the summary instead reads the fallback sentence 'No limits set. Rule is unlimited for total redemptions, discounted tickets, per customer, and per day.' — with the noun matching the module ('discounted items' on Shop)"
+      - "the word Unlimited still appears as the empty counter INPUT's placeholder and in the validation message 'Must be at least 1, or empty for Unlimited.'"
 tags:
   - "sh-1097"
   - "discount-wizard"
@@ -54,10 +63,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1097"
       type: "story"
   external: []
-estimatedDuration: 18
+estimatedDuration: 20
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  updatedAt: "2026-09-03T00:00:00Z"
+  version: 2

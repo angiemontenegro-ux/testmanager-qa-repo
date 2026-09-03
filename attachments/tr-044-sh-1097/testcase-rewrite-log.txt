@@ -1,0 +1,107 @@
+REGISTRO DE REESCRITURA DE TEST CASES  ·  SH-1097 / SH-1121  ·  2026-09-03
+Disparado por: TR-044 (6/20 PASS), donde 11 FAIL resultaron ser deriva entre los
+test cases (escritos 2026-07-27) y el diseno vigente (Fix 19/24/25/28/29/31,
+los dos ultimos cerrados 2026-08-05).
+
+PRINCIPIO APLICADO
+Se reescribio SOLO donde el TEST estaba equivocado. Los escenarios que reportan
+un hueco real del PRODUCTO se dejaron intactos y siguen fallando a proposito:
+reescribirlos para que pasen seria lavar el hallazgo. Cada uno lleva ahora una
+linea NOTE en su bloque `given` que dice explicitamente "KNOWN PRODUCT GAP ...
+Do NOT rewrite this to match the code", para que un futuro pase de limpieza no
+los alinee al codigo por descuido.
+
+------------------------------------------------------------------ REESCRITOS
+
+TC-51  v1 -> v2   "Per-Rule Date & Time Range — Conditional Visibility &
+                   Derivation"  ->  "Per-Rule Active Window — 'When does the
+                   discount apply?' Options & Derivation"
+  sc0  El bloque de fechas ya no aparece solo al renderizar. Fix 19 lo puso
+       detras del control segmentado explicito: All Programs sin gate ofrece
+       ['No date restriction' (default), 'Specific date range'].
+  sc1  Un Program concreto ofrece ['Full program schedule' (default),
+       'Specific range within program']. El banner que el TC exigia no existe;
+       el equivalente es el helper de la opcion. Y el ocultamiento NO es
+       incondicional: 'Specific range within program' vuelve a mostrar fechas
+       a proposito, cosa que el TC anterior prohibia.
+  sc2  Sin cambio de fondo (ya pasaba). Se precisa que las dos secciones son
+       ABSENT y no disabled, y se agrega el fallback sin nombre de programa.
+  sc3  SIN TOCAR — hueco real (banner de interseccion no construido).
+  sc4  INVERTIDO. Antes: "las fechas custom se BORRAN al elegir despues un
+       evento o membresia". Eso es el DEFECTO que el equipo arreglo: una
+       tarjeta que borraba la ventana de toda regla gated al guardar, un
+       borrado permanente sin error en ninguna parte. Ahora afirma
+       PRESERVACION, que es la invariante enviada y esta protegida por un
+       archivo de tests dedicado que maneja la tarjeta real en vez de armar la
+       emision a mano.
+  sc5  Igual que sc0, lado Shop (ShopDateScope tiene solo dos miembros; Shop no
+       tiene opcion event-derived).
+
+TC-52  v1 -> v2   "Rule Collapsed Summary & Overall Usage"  ->  "Rule Collapsed
+                   Summary & Optional-Limit Enumeration"
+  sc0  Antes exigia '0 / 500 uses'. El resumen colapsado enumera label+valor
+       ("Overall 500"). Un numerador de uso esta PROHIBIDO por diseno: no hay
+       productor de ventas confirmadas, asi que todo contador leeria cero y un
+       '0 / 500' seria un dato fabricado. Se agrego la exclusion de entradas
+       rechazadas, que viajan como conteo de error aparte.
+  sc1  SIN TOCAR — hueco real (el Step 4 Review no dice el origen de fechas).
+  sc2  Antes exigia 'Unlimited' por contador y un 'Current Usage' con conteo
+       corriente. Un contador sin valor se OMITE a proposito (apilar
+       "Unlimited" al lado de un numero real entierra el que si se puso), y no
+       existe control Current Usage ni puede existir todavia. Ahora afirma la
+       omision, la frase de fallback cuando no hay ninguno puesto, y los dos
+       lugares donde la palabra Unlimited SI aparece legitimamente
+       (placeholder del input y mensaje de validacion).
+
+TC-55  v1 -> v2   RETARGETEADO Y RENOMBRADO
+       "Membership Program <-> Members Only Reactive Lock"
+         -> "Per-Rule Membership Program Gate — Card Collapse & Reversal"
+       archivo: SH-1097-TC-55-membership-program-members-only-lock.testcase.yml
+             -> SH-1097-TC-55-membership-gate-collapse.testcase.yml
+       (mismo id 9d21fd58-0010-4845-9067-3ef18c20d4f6 y misma key TC-55, para
+        no romper la historia de ejecuciones)
+  El control que probaba fue ELIMINADO: decision FP7 quito el switch
+  'Members only' de nivel promocion y movio la gestion de membresia a las
+  tarjetas de regla. Los 3 escenarios originales no tenian sujeto -> skipped en
+  TR-044. Los 4 nuevos prueban el mecanismo que lo reemplazo:
+  sc0  Poner Membership Program quita REDEMPTION y ACTIVE WINDOW por completo
+       (absent, no disabled, ni en el arbol de accesibilidad), las reemplaza por
+       el banner que nombra el programa, tinta el select del gate, y deja de
+       exigir respuesta de Redemption al guardar.
+  sc1  Ticketing gated conserva DOS contadores editables: '# of available
+       discounted tickets' Y 'Per Person Limit'. Los otros tres pasan a la
+       tarjeta pasiva. Se revela 'Benefit apply per' con su nota de "no se
+       guarda todavia".
+  sc2  Shop gated conserva SOLO '# of available discounted items'. ASIMETRIA
+       DELIBERADA respecto a Ticketing, fijada aqui a proposito: Ticketing deja
+       Per Person editable porque el backend lo acepta ahi; Shop lo esconde
+       porque nada lo revisa en checkout todavia, y el guardado de Shop anula
+       los contadores escondidos del payload. La tarjeta pasiva de Shop ademas
+       aclara que un Per Person ya guardado se CONSERVA aunque no se muestre.
+       Sin 'Benefit apply per': ese campo es Ticketing y Memberships solamente.
+  sc3  Limpiar el gate devuelve las dos secciones, la grilla completa de cuatro
+       contadores, destinta el select, reaparece la ventana guardada intacta, y
+       vuelve a preguntar Redemption en vez de reusar o re-derivar la respuesta
+       previa al gate.
+
+--------------------------------------------------------------- NO REESCRITOS
+
+TC-53  intacto. Su sc0 reporta el hueco real de Ticketing (sin guarda
+       preventiva de '+ Add Rule'); su sc1 pasa.
+TC-54  intacto (v1). Ambos escenarios pasan, cubiertos por tests del dev.
+TC-63  intacto. sc0 (Qualifying Item Type) y sc2 (advertencia con lista de items
+       removidos) son huecos reales; sc1 y sc3 pasan.
+
+------------------------------------------------- EFECTO SOBRE TR-044 Y TP-19
+
+TR-044 NO se re-veredicto: sigue siendo el registro fiel de haber ejecutado el
+texto ANTERIOR de los TC. El esquema de test-run guarda una copia inline del
+`text` de cada paso, asi que el run queda auto-consistente aunque el .testcase
+cambie. Solo se actualizo `testCaseFilePath` de TC-55 al archivo renombrado
+(mismo test case, nombre nuevo). El `testCaseTitle` de TC-55 en TR-044 se DEJO
+con el titulo viejo a proposito: era el titulo al momento de ejecutar.
+Los proximos veredictos contra el texto nuevo van en un TR posterior (TR-045+),
+por la regla de un TR por sesion de ejecucion.
+
+TP-19 actualizado: filePath de TC-55 al nombre nuevo, y titulos de TC-51, TC-52
+y TC-55 sincronizados con los .testcase.

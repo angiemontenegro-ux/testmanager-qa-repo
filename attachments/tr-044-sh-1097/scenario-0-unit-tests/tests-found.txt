@@ -1,0 +1,55 @@
+UNIT / INTEGRATION TESTS SHIPPED WITH THE SH-1097 RULE CARDS
+Target: Veevarts/VeevartFrontend @ origin/develop 60f425fa (2026-09-02)
+Module: packages/shop/src/discounts/discount-wizard
+Runner: vitest 2.1.9  ·  Command: vitest run src/discounts/discount-wizard
+
+TEST FILES DIRECTLY COVERING THE RULE CARDS (lines)
+  4365  components/codes/wizard/RulesLimitsStep.test.tsx
+  3042  components/codes/wizard/ShopRuleCardPreview.test.tsx
+  2694  components/codes/wizard/TicketingRuleCardPreview.test.tsx
+  2183  components/codes/ticketing-rule-adapters.test.ts
+  1732  components/codes/draft-utils.test.ts
+  1582  components/codes/wizard/MembershipsRuleCardPreview.test.tsx
+  1506  components/codes/wizard/rule-card-draft-mapping.test.ts
+  1494  components/codes/wizard/wizard-validation.test.ts
+  1186  components/codes/wizard/ticketing-rule-card-model.test.ts
+  1031  components/codes/wizard/rule-date-scope-card-path.test.tsx
+   915  components/codes/wizard/memberships-rule-card-model.test.ts
+   867  components/codes/wizard/rule-card-simulators.test.ts
+   591  components/codes/wizard/RuleScheduleEditor.test.tsx
+   579  components/codes/wizard/rule-editors.test.tsx
+   522  components/codes/wizard/ticketing-rule-card-draft-mapping.test.ts
+   480  components/codes/wizard/review-model.test.ts
+   435  components/codes/wizard/rule-schedule-model.test.ts
+   404  components/codes/wizard/__tests__/DiscountWizardPage.a11y.test.tsx
+         + rule-date-window-card-path.test.tsx (per-rule ACTIVE WINDOW, card-driven)
+
+RESULT: 87 test files · 2750 tests · 2748 passed · 2 failed
+        => 99.93% pass rate
+
+THE 2 FAILURES ARE ENVIRONMENT-LOCAL, NOT DEVELOP REGRESSIONS. PROVEN:
+  F1  RulesLimitsStep.test.tsx > "joins the unanswered-redemption refusal to
+      the control that answers it"  -- expects aria-invalid="true", gets null.
+  F2  TicketingRuleCardPreview.test.tsx > "`Benefit apply per` (Fix 25) says
+      plainly that the choice is not saved, and says it TO the control"
+      -- expects aria-describedby to equal the note id, gets null.
+
+  CONTROLLED EXPERIMENT (one variable: the commit):
+    F1 re-run at 232ab173 (PR #513, the commit that INTRODUCED it) -> FAILS.
+       PR #513 CodeBuild CI: pass.
+    F2 re-run at ac94a31e (PR #529, the commit that INTRODUCED it) -> FAILS.
+       PR #529 CodeBuild CI: pass.
+  Both fail at commits whose CI was green => the cause is this local tree,
+  not code that landed on develop.
+
+  ENVIRONMENT CAVEAT (disclosed): `npm ci` in the QA worktree is BLOCKED --
+  @veevarts/veevart-checkout@1.11.0 is a private package (404 on the public
+  registry, needs authenticated registry access). node_modules was therefore
+  borrowed from the sibling worktree .../VeevartFrontend-worktrees/sh1096.
+  Lockfile delta audited: of 131 differing root-hoisted deps, ALL are
+  ADDITIONS on develop that are simply ABSENT from the borrowed tree -- no
+  version downgrade. react 19.2.5, react-aria 3.48.0, @react-aria/utils
+  3.33.1, @heroui/react 2.8.10 and vitest 2.1.9 are IDENTICAL in both, so the
+  tree is faithful for everything these two aria assertions touch. The only
+  shop-declared dep missing is jsbarcode (irrelevant: it would fail at import,
+  not on an aria attribute).

@@ -1,84 +1,102 @@
 schemaVersion: "1.0"
 id: "461f9f5d-088d-49e4-ba3f-79a71695d6f5"
 key: "TC-51"
-title: "Per-Rule Date & Time Range — Conditional Visibility & Derivation"
-description: "QA coverage for SH-1097: validates that the Date & Time Range block on a rule card is hidden and derived when the rule is already time-bounded by a specific Event or a Membership Program, shown and editable otherwise, and cleared with a warning when the admin switches from custom dates to a derived source."
+title: "Per-Rule Active Window — 'When does the discount apply?' Options & Derivation"
+description: "QA coverage for SH-1097: validates the per-rule ACTIVE WINDOW as Fix 19 actually shipped it — an explicit 'When does the discount apply?' segmented control whose option list is computed from the rule's shape, NOT the auto-hide-plus-banner model this test case originally described. REWRITTEN 2026-09-03 after TR-044: scenarios 1, 2, 5 and 6 asserted the pre-Fix-19 design and produced false FAILs. Scenario 5 in particular asserted that custom dates are CLEARED when an event or membership is picked later — that is the defect the team fixed, and the shipped invariant is preservation, so it has been inverted. Scenario 4 (the intersection banner) is deliberately LEFT UNCHANGED: it reports a real product gap awaiting a Product decision and must keep failing until that is resolved."
 type: "functional"
 priority: "medium"
 status: "active"
 format: "gherkin"
 preconditions:
-  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the QA/staging environment."
-  - "At least one Event with a defined schedule and one active Membership Program exist."
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the environment under test."
+  - "At least one Event/Program with a defined schedule and one active Membership Program exist."
+  - "Step 1 has Apply to = Specific items, which is the only state that renders the rule cards."
 scenarios:
-  - title: "Date & Time Range is editable when Event = All events and no Membership Program"
+  - title: "An all-programs rule defaults to No date restriction, and Specific date range reveals the editable block"
     tags:
       - "happy-path"
+      - "fix-19"
     given:
-      - "a Ticketing rule has Event = All events and no Membership Program set"
+      - "a Ticketing rule has Program / Events = All Ticketing Programs and no Membership Program set"
     when:
-      - "the rule card renders"
+      - "the rule card renders and the admin reads the 'When does the discount apply?' control"
     then:
-      - "the Date & Time Range block and the Add a single date input are visible and user-editable"
+      - "exactly two options are offered: 'No date restriction' and 'Specific date range'"
+      - "'No date restriction' is preselected, and no Date & Time Range block is rendered yet"
+      - "its helper text reads 'Active for as long as the discount is.'"
+      - "choosing 'Specific date range' reveals the Date & Time Range block with its start/end, days-of-week, time window and additive extra-date inputs, all editable"
 
-  - title: "Date & Time Range hides when a specific Event is selected"
+  - title: "A concrete programme offers the two event-scoped options, defaulting to the programme's own schedule"
     tags:
       - "happy-path"
       - "derived-dates"
+      - "fix-19"
     given:
-      - "the admin selects one or more specific events on a Ticketing rule (Event not equal to All events)"
+      - "the admin selects one specific Program / Events value on a Ticketing rule (not the All Programs sentinel) and sets no Membership Program"
     when:
-      - "the rule card re-renders"
+      - "the rule card re-renders and the admin reads the 'When does the discount apply?' control"
     then:
-      - "the Date & Time Range block and the Add a single date input are hidden"
-      - "an info banner reads 'Dates are inherited from the selected event(s). No manual date restriction needed.'"
+      - "exactly two options are offered: 'Full program schedule' and 'Specific range within program'"
+      - "'Full program schedule' is preselected and renders no Date & Time Range block"
+      - "its helper text reads 'Active exactly while the program runs.'"
+      - "choosing 'Specific range within program' reveals the Date & Time Range block, with helper 'Pick a shorter window inside the program's own dates.'"
 
-  - title: "Date & Time Range hides when a Membership Program is set"
+  - title: "Active window is replaced by the inheritance banner when a Membership Program is set"
     tags:
       - "happy-path"
       - "derived-dates"
+      - "fix-13"
     given:
-      - "the admin sets Membership Program = Gold on a rule (Ticketing or Shop)"
+      - "the admin sets Membership Program = Gold Circle on a rule (Ticketing or Shop)"
     when:
       - "the rule card re-renders"
     then:
-      - "the Date & Time Range block is hidden"
-      - "an info banner reads 'Dates are inherited from the selected Membership Program. No manual date restriction needed.'"
+      - "the whole ACTIVE WINDOW section is absent, not disabled, and the 'When does the discount apply?' control offers no options at all"
+      - "an info banner takes its place and names the programme: 'Dates are inherited from the Gold Circle membership.'"
+      - "when the programme name cannot be resolved the banner degrades to 'Dates are inherited from the membership.' with no double space"
 
   - title: "Event and Membership Program together show the intersection banner"
     tags:
       - "edge-case"
       - "derived-dates"
+      - "known-gap"
     given:
-      - "a Ticketing rule has Event = Summer Exhibit AND Membership Program = Gold"
+      - "a Ticketing rule has Program / Events = Summer Exhibit AND Membership Program = Gold"
+      - "NOTE: this scenario is a KNOWN PRODUCT GAP, not test-case drift. TR-044 confirmed no intersection banner exists anywhere in the module and that the membership gate takes precedence outright. It is deliberately left asserting the designed behaviour so it keeps failing until Product decides whether to build the banner or retire the requirement. Do NOT rewrite this to match the code."
     when:
       - "the rule card renders"
     then:
       - "the Date & Time Range block is hidden"
       - "the info banner reads 'Dates are inherited from the intersection of the selected event(s) and Membership Program.'"
 
-  - title: "Custom dates are cleared when an Event or Membership Program is later selected"
+  - title: "Custom dates already authored on a rule SURVIVE a later Membership Program gate and its save"
     tags:
       - "edge-case"
-      - "data-loss-warning"
+      - "regression-guard"
+      - "data-preservation"
     given:
-      - "the admin had set custom Date & Time Range values on a rule"
+      - "the admin had authored custom Date & Time Range values on a rule and saved it"
+      - "NOTE: this scenario was INVERTED on 2026-09-03. It previously asserted the values are CLEARED, which is the defect the team fixed — a card that deleted every gated rule's schedule on save, a permanent delete with no error anywhere. Preservation is the shipped invariant and is guarded by a dedicated test file that drives the real card rather than hand-building the emission."
     when:
-      - "the admin then picks an Event or Membership Program"
+      - "the admin then sets a Membership Program on that rule and saves a change to an unrelated field"
     then:
-      - "the block hides and a warning surfaces that custom dates will be cleared on save"
-      - "on Save the custom values are cleared"
+      - "the ACTIVE WINDOW section is hidden behind the inheritance banner, with no warning about clearing anything"
+      - "the previously stored date window is still intact after the save, not nulled out of the payload"
+      - "clearing the Membership Program again brings the same stored window back on screen unchanged"
 
-  - title: "Shop rule with no Membership Program shows the Date & Time Range block"
+  - title: "A Shop rule offers the two-option window control, defaulting to No date restriction"
     tags:
       - "happy-path"
       - "shop"
+      - "fix-19"
     given:
-      - "a Shop rule has no Membership Program set"
+      - "a Shop rule has Category and Item set and no Membership Program"
     when:
-      - "the rule card renders"
+      - "the rule card renders and the admin reads the 'When does the discount apply?' control"
     then:
-      - "the Date & Time Range block and the Add a single date input are visible"
+      - "exactly two options are offered: 'No date restriction' and 'Specific date range' — Shop has no event-derived option"
+      - "'No date restriction' is preselected once the scope is complete, so no Date & Time Range block is rendered yet"
+      - "choosing 'Specific date range' reveals the editable Date & Time Range block"
 tags:
   - "sh-1097"
   - "discount-wizard"
@@ -90,10 +108,10 @@ links:
       url: "https://veevart.atlassian.net/browse/SH-1097"
       type: "story"
   external: []
-estimatedDuration: 36
+estimatedDuration: 40
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-27T00:00:00Z"
   updatedBy: "codex"
-  updatedAt: "2026-07-27T00:00:00Z"
-  version: 1
+  updatedAt: "2026-09-03T00:00:00Z"
+  version: 2

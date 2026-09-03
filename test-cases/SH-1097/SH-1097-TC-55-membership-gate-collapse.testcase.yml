@@ -1,0 +1,93 @@
+schemaVersion: "1.0"
+id: "9d21fd58-0010-4845-9067-3ef18c20d4f6"
+key: "TC-55"
+title: "Per-Rule Membership Program Gate — Card Collapse & Reversal"
+description: "QA coverage for SH-1097: validates the Fix 13 collapse a per-rule Membership Program triggers on a rule card, and that clearing it restores the full card. REWRITTEN AND RETARGETED 2026-09-03 after TR-044. The original test case validated a 'Membership Program locks Members Only to ON' reactive lock; that switch NO LONGER EXISTS — decision FP7 removed the promotion-level 'Members only' control and moved membership gating onto the rule cards, so all three original scenarios had no subject and were skipped rather than failed. This version tests the mechanism that replaced it, including the deliberate Ticketing/Shop asymmetry over which counters survive a gate, so that nobody 'fixes' one module into the other by accident."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The Ticketing & Shop rule cards (SH-1097) are deployed to the environment under test."
+  - "At least one active Membership Program exists, resolvable by name."
+  - "Step 1 has Apply to = Specific items, which is the only state that renders the rule cards."
+scenarios:
+  - title: "Setting a Membership Program removes the Redemption and Active Window sections outright"
+    tags:
+      - "happy-path"
+      - "fix-13"
+    given:
+      - "a Ticketing rule has no Membership Program set, so its REDEMPTION and ACTIVE WINDOW sections are both on screen"
+    when:
+      - "the admin sets Membership Program to a valid program"
+    then:
+      - "both sections are ABSENT from the card, not merely disabled — neither the 'Redemption' nor the 'Active window' heading remains anywhere, including in the accessibility tree"
+      - "a single info banner takes their place and names the programme, e.g. 'Dates are inherited from the Gold Circle membership.'"
+      - "the Membership Program select itself is visually tinted to mark it as the field driving the collapse"
+      - "no Redemption answer is owed on save while the gate is set, so the card can be saved without one"
+
+  - title: "A gated Ticketing rule keeps its allocation cap AND its Per Person limit editable"
+    tags:
+      - "happy-path"
+      - "fix-13"
+      - "usage-limits"
+    given:
+      - "a Ticketing rule has a Membership Program set"
+    when:
+      - "the admin opens OPTIONAL LIMITS"
+    then:
+      - "'# of available discounted tickets' and 'Per Person Limit' both render as live, editable inputs"
+      - "Overall Usage Limit, Per Person Daily Limit and Overall Daily Usage Limit are replaced by one passive dashed tile reading 'Overall, Per Person Daily, and Overall Daily Usage limits can't be set on a members-only rule. The membership already identifies the customer.'"
+      - "a rejected entry in either surviving counter still blocks the save, naming the field on screen"
+      - "the 'Benefit apply per' control is revealed inside OPTIONAL LIMITS with the two options 'Per membership term' and 'Per program / per day', and carries a note stating the choice is not yet saved anywhere"
+
+  - title: "A gated Shop rule keeps ONLY its allocation cap — the documented Ticketing/Shop asymmetry"
+    tags:
+      - "edge-case"
+      - "fix-13"
+      - "shop"
+      - "cross-module-asymmetry"
+    given:
+      - "a Shop rule has a Membership Program set"
+      - "NOTE: the difference from the Ticketing scenario above is DELIBERATE, not a defect. Ticketing keeps Per Person Limit editable under a gate because the backend accepts it there; Shop hides it because nothing checks it at checkout yet, and the Shop save nulls the hidden counters out of the payload. Pinned here so a future change cannot quietly align one module to the other."
+    when:
+      - "the admin opens OPTIONAL LIMITS"
+    then:
+      - "'# of available discounted items' is the ONLY counter rendering as a live input"
+      - "Overall Usage Limit, Per Person Limit, Per Person Daily Limit and Overall Daily Usage Limit are all replaced by the passive tile"
+      - "the Shop passive tile additionally states that a Per Person limit already saved on the rule is KEPT even though it is not shown"
+      - "no 'Benefit apply per' control appears — that field is Ticketing and Memberships only"
+
+  - title: "Clearing the Membership Program restores the full card and its stored values"
+    tags:
+      - "edge-case"
+      - "fix-13"
+      - "reversal"
+    given:
+      - "a rule has a Membership Program set and is therefore collapsed"
+    when:
+      - "the admin clears the Membership Program field back to 'No membership gate'"
+    then:
+      - "the REDEMPTION and ACTIVE WINDOW sections return, and the full four-counter grid replaces the passive tile"
+      - "the tint on the Membership Program select is removed"
+      - "a date window stored on the rule before the gate was applied is shown again, unchanged"
+      - "the card asks the admin to answer Redemption again rather than silently reusing or re-deriving the pre-gate answer"
+tags:
+  - "sh-1097"
+  - "discount-wizard"
+  - "rule-card"
+  - "membership-program"
+parameters: []
+links:
+  jira:
+    - key: "SH-1097"
+      url: "https://veevart.atlassian.net/browse/SH-1097"
+      type: "story"
+  external: []
+estimatedDuration: 26
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-07-27T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-09-03T00:00:00Z"
+  version: 2

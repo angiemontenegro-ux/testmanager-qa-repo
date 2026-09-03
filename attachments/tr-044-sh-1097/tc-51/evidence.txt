@@ -1,0 +1,106 @@
+TC-51 -- Per-Rule Date & Time Range: Conditional Visibility & Derivation
+Target: VeevartFrontend @ origin/develop 60f425fa
+
+THE SHIPPED MODEL (what replaced the TC's assumption)
+TC-51 was written 2026-07-27 against an AUTO-HIDE + INFO-BANNER design: pick a
+specific event or a membership programme, and the date block disappears on its
+own with a sentence explaining where the dates now come from.
+
+Fix 19 replaced that with an EXPLICIT segmented control, "When does the discount
+apply?", whose option list is computed from the rule's shape.
+ticketing-rule-card-model.ts:206-229 states the table verbatim:
+
+  | shape                        | options                                   |
+  | membership gate set          | none -- the toggle is HIDDEN, not disabled |
+  | concrete programme, no gate  | EVENT_DERIVED · CUSTOM_WITHIN_EVENT       |
+  | All Ticketing Programs       | NO_RESTRICTION · CUSTOM                   |
+  "The first entry is that shape's DEFAULT -- the order is load-bearing."
+
+Shop is the two-member variant: ShopRuleCardPreview.tsx:99
+  export type ShopDateScope = 'NO_RESTRICTION' | 'CUSTOM';
+
+The schedule block renders only for a custom scope --
+TicketingRuleCardPreview.tsx:1315:
+  !isGated && (value.dateScope === 'CUSTOM' || value.dateScope === 'CUSTOM_WITHIN_EVENT')
+and the whole ACTIVE WINDOW section is gated at :835:
+  const authorsDateWindow = !isGated;
+
+The shipped option copy (messages/en.json):
+  when.label                 = When does the discount apply?
+  when.noRestriction         = No date restriction
+  when.custom                = Specific date range
+  when.eventDerived          = Full program schedule
+  when.customWithinEvent     = Specific range within program
+  when.membershipDerived     = Membership validity
+  when.helperEventDerived    = Active exactly while the program runs.
+  when.helperCustomWithinEvent = Pick a shorter window inside the program's own dates.
+  fix13.banner               = Dates are inherited from the {program} membership.
+  fix13.bannerUnnamed        = Dates are inherited from the membership.
+
+--------------------------------------------------------------------------
+SC 1  "Date & Time Range editable when Event = All events and no Membership"
+VERDICT: FAILED (as written -- superseded by Fix 19)
+All Programs + no gate yields [NO_RESTRICTION, CUSTOM] and NO_RESTRICTION is
+the default (first entry). So on render the block is NOT visible: the admin must
+first choose "Specific date range". The block IS then fully editable, and the TC's
+"Add a single date input" is the exceptionDates field on RuleSchedule
+(rule-schedule-model.ts:29 "Additive extra days, each active in full regardless
+of the time window"). Behaviour is reachable; the TC's "visible on render" is not.
+
+SC 2  "hides when a specific Event is selected" + banner "Dates are inherited
+       from the selected event(s). No manual date restriction needed."
+VERDICT: FAILED (partially correct, wrong mechanism and wrong copy)
+Correct part: a concrete programme yields [EVENT_DERIVED, CUSTOM_WITHIN_EVENT]
+with EVENT_DERIVED as default, and EVENT_DERIVED renders no schedule -- so the
+block IS hidden by default. Two divergences:
+  (a) the asserted banner does not exist. The equivalent is the option's helper
+      when.helperEventDerived = "Active exactly while the program runs."
+  (b) hiding is NOT unconditional -- CUSTOM_WITHIN_EVENT deliberately re-shows a
+      schedule so an admin can narrow inside the programme's own dates. The TC
+      forbids what Fix 19 requires.
+
+SC 3  "hides when a Membership Program is set" + inheritance banner
+VERDICT: PASSED (copy differs, behaviour matches)
+isTicketingRuleMembershipGated -> authorsDateWindow = false, and
+computeTicketingWhenOptions returns [] so the toggle is HIDDEN, not disabled --
+exactly the TC's intent. The banner exists and names the programme:
+"Dates are inherited from the {program} membership." Asserted by dev tests at
+TicketingRuleCardPreview.test.tsx:554 and :905 and ShopRuleCardPreview.test.tsx
+:641, :2375; the unnamed-programme fallback at :577 / :3026 guards the
+"Dates are inherited from the  membership." double-space bug class.
+Copy delta only: the TC expects "...from the selected Membership Program. No
+manual date restriction needed."
+
+SC 4  "Event AND Membership together show the intersection banner"
+VERDICT: FAILED (never implemented)
+Grep for "intersection" across the whole module returns only two unrelated
+comments in draft-utils.ts (:1009) and draft-utils.test.ts (:1250) about wire
+compatibility. There is no intersection banner and no intersection semantics.
+The gate WINS OUTRIGHT: computeTicketingWhenOptions returns [] as soon as
+isTicketingRuleMembershipGated is true, regardless of programId, and the
+membership banner is what renders. Product decision, but the TC is unmet.
+
+SC 5  "Custom dates are cleared when an Event or Membership Program is later
+       selected ... on Save the custom values are cleared"
+VERDICT: FAILED -- AND THE TEST CASE IS ASSERTING A KNOWN DEFECT
+The shipped invariant is the exact OPPOSITE, and it is one of the most heavily
+defended behaviours in the module. rule-date-window-card-path.test.tsx exists
+solely to hold this line; its header says:
+  "two shipped mapper tests were green over a Shop card that DELETED every
+   gated rule's schedule on save"
+  "A `dateWindow: null` the card never asked for is therefore a PERMANENT
+   DELETE with no error anywhere, which is why these are pinned at the card"
+Its green cases include "survives the gate being ADDED mid-session, with the
+scope still set" -- literally TC-51.5's trigger, asserting preservation.
+RestrictionsStep.tsx:64-66 states the same rule for the promotion level:
+  "Deleting the fields -- or emitting explicit nulls for them, which the write
+   mapper's own note says CLEARS rather than preserves -- would wipe a window
+   nobody asked to change."
+=> Do NOT file this as a product defect. Clearing the admin's dates is the bug
+   the team fixed. TC-51.5 must be rewritten to assert PRESERVATION.
+
+SC 6  "Shop rule with no Membership Program shows the Date & Time Range block"
+VERDICT: FAILED (as written -- same cause as SC 1)
+Shop's ShopDateScope is NO_RESTRICTION | CUSTOM and applyShopRuleScopeChange
+:397-399 seeds a brand-new card at NO_RESTRICTION once the scope is complete,
+so the block is opt-in behind "Specific date range" rather than shown on render.

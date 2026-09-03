@@ -1,0 +1,26 @@
+TECHNICAL + SECURITY REGRESSION PLAN  ·  SH-1097 / SH-1121  ·  TR-044
+Target: Veevarts/VeevartFrontend @ origin/develop 60f425fa
+Baseline: merge-base(origin/main, origin/develop) = b0bf320e
+Reviewed surface: packages/shop/src/discounts (35 changed files main..develop)
+
+CONTEXT THAT SHAPES THE PLAN: the SH-1097 rule cards are ALREADY IN
+origin/main (promotion #604, 2026-08-25). git ls-tree confirms
+ShopRuleCardPreview.tsx, TicketingRuleCardPreview.tsx and
+rule-date-window-card-path.test.tsx all exist on main. This QA therefore runs
+POST-promotion, so a regression here is already reachable in production.
+
+| # | Item | Type | Risk | Check method | Verdict |
+|---|------|------|------|--------------|---------|
+| T1 | RulesLimitsStep renders ShopRuleCardPreview, not the legacy ShopRuleEditor -- two Shop surfaces coexist and only one is wired | Technical | Medium | grep the import + render site in RulesLimitsStep.tsx; confirm ShopRuleEditor has no live consumer | PASS (with finding) |
+| T2 | rule-editors.tsx still exports ShopRuleEditor from the package index -- dead public API that can be re-adopted by a host | Technical | Low | grep ShopRuleEditor across packages/ | PASS (with finding) |
+| T3 | The per-rule ACTIVE WINDOW must survive a save of an unrelated field on a gated rule (a prior defect deleted it) | Technical | High | run rule-date-window-card-path.test.tsx, which drives the real card and only then calls the mapper | PASS |
+| T4 | Two rules carrying different windows must not swap them (positional-fallback hazard in the rebuilding Ticketing adapter) | Technical | High | same file, "two rules carrying DIFFERENT windows do not swap them" | PASS |
+| T5 | Category->Item cascade must not orphan an item id into the payload | Technical | Medium | read applyShopRuleScopeChange + computeShopItemOptions; run ShopRuleCardPreview.test.tsx | PASS (silent reset -- see TC-63.3) |
+| T6 | The universal-rule Add guard must mirror a REAL backend guard, never invent a lock | Technical | Medium | read isAddShopRuleBlockedByUniversal / isAddMembershipRuleBlockedByUniversal + the documented Ticketing omission | PASS (Ticketing gap surfaced) |
+| T7 | The whole wizard module must stay green | Technical | High | vitest run src/discounts/discount-wizard | PASS (2748/2750; 2 proven env-local) |
+| S1 | String-concatenated SQL introduced in the diff | Security | High | git diff baseline..HEAD -- packages/shop/src/discounts, grep SELECT/INSERT/UPDATE/DELETE with concat | PASS |
+| S2 | Secrets / keys / tokens / private keys added in the diff | Security | High | grep password/api_key/secret/token/bearer/-----BEGIN over the diff | PASS |
+| S3 | Unescaped HTML / script sinks (dangerouslySetInnerHTML, innerHTML, eval, new Function, document.write) | Security | High | grep the added lines of the diff | PASS |
+| S4 | PII reaching logs (console.*/logger.* over email/phone/contact) | Security | Medium | grep added log calls in the diff | PASS |
+| S5 | New or updated dependencies carrying advisories | Security | Medium | diff packages/shop/package.json and the root lockfile over the baseline | PASS |
+| S6 | Auth / RBAC / permission surface touched (profiles, permission sets, route guards, OAuth scopes) | Security | High | inspect the 35-file changed list for auth or permission files | PASS |

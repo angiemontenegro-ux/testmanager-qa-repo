@@ -1,0 +1,69 @@
+TC-53 -- Universal-Rule Lock on Add Rule Button
+(the frontend/UI prevention layer, paired with SH-1095 TC-47's backend layer)
+Target: VeevartFrontend @ origin/develop 60f425fa
+
+WHAT IS SHIPPED -- TWO OF THREE MODULES
+draft-utils.ts:1281-1290
+  export function isAddShopRuleBlockedByUniversal(kind, shopRules)
+  doc: "UI-guard predicate (R7): whether the 'Add Shop Rule' button must be
+        disabled. ... adding another Shop rule while a universal one already
+        exists would create the 2-rules-with-a-universal violation the save
+        guard blocks, so the button is disabled pre-emptively."
+draft-utils.ts:1296-1318
+  export function isAddMembershipRuleBlockedByUniversal(membershipRules)
+  doc: "UI-guard predicate (R11) ... Blocking the add pre-empts that, exactly
+        as the Shop predicate above does for R7."
+
+Wired into the step:
+  RulesLimitsStep.tsx:2067  isAddShopRuleBlockedByUniversal(draft.kind, draft.shopRules ?? [])
+                    :2068    ? t('shopUniversalRuleAddBlocked')
+  RulesLimitsStep.tsx:1831  isAddMembershipRuleBlockedByUniversal(membershipRules)
+                    :1832    ? t('membershipUniversalRuleAddBlocked')
+
+Tooltip copy (messages/en.json):
+  rules.shopUniversalRuleAddBlocked =
+    "A catalog-wide Shop rule (all categories and all items) must be the only
+     Shop rule. Narrow its scope or remove it to add another."
+  rules.membershipUniversalRuleAddBlocked =
+    "A membership rule covering all membership programs must be the only
+     Membership rule. Narrow its scope or remove it to add another."
+
+Universality predicate: isUniversalShopRule = categoryScope === 'ALL' &&
+itemScope === 'ALL' (draft-utils.ts:1240), the frontend mirror of the backend
+guardShopUniversalRuleExclusivity. Membership Benefit is exempt per SH-994.
+
+--------------------------------------------------------------------------
+SC 1  "Add Rule is disabled when the only rule is fully universal"
+VERDICT: FAILED -- holds on Shop and Memberships, ABSENT on TICKETING
+The story is "TICKETING & Shop rule cards", so the Ticketing half of the
+prevention layer this TC exists to verify is not shipped. The omission is
+deliberate and documented verbatim at RulesLimitsStep.tsx:1626-1637, on the
+Ticketing RuleSectionCard:
+  "// NO `addBlockedReason`. The Shop and Memberships lists block a second rule
+   // beside a universal one because their own guards
+   // (`isAddShopRuleBlockedByUniversal`,
+   // `isAddMembershipRuleBlockedByUniversal`) say the save would reject it.
+   // Ticketing has NO SUCH SHIPPED GUARD -- the backend's all-events rule is
+   // gate-blind and blocks a near-opposite set -- and inventing one here would
+   // be a new lock, not a mirror of an existing one."
+Grep confirms it: no isAddTicketing*, no ticketingUniversalRuleAddBlocked, no
+allEventsExclusivity predicate anywhere in the module.
+CONSEQUENCE FOR THE ADMIN: with an all-events Ticketing rule already present,
+"+ Add ticketing rule" stays enabled, the admin authors a second rule, and only
+at SAVE does the backend refuse -- surfaced as
+  toast.apiErrors.ticketingAllEventsMustBeOnlyRule =
+    "An all-events ticketing rule must be the only rule."
+i.e. work is lost to a server-side rejection that Shop and Memberships prevent
+up front. This is a real UX gap, not a code defect: the engineer's reason
+(mirroring a gate-blind backend predicate would create a WRONG lock) is sound
+and the fix is a Product/Design decision about what the Ticketing lock should
+actually say.
+
+SC 2  "Add Rule re-enables once the universal rule is scoped down"
+VERDICT: PASSED
+Both predicates are pure functions over the CURRENT rule array -- they re-run on
+every render with no memo of a prior lock -- so narrowing a rule's scope (or
+removing it) immediately clears addBlockedReason and re-enables the button. The
+tooltip copy itself states the escape ("Narrow its scope or remove it to add
+another"), and the Cancel-path comment at RulesLimitsStep.tsx:1139-1147 confirms
+the guard is evaluated live off the draft rather than latched.

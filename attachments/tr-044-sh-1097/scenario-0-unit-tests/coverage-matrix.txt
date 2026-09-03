@@ -1,0 +1,34 @@
+AC <-> DEV TEST COVERAGE MATRIX  ·  SH-1097 (QA Sub-task SH-1121)
+Target: Veevarts/VeevartFrontend @ origin/develop 60f425fa
+
+| TC / scenario                                        | Covered by a dev test? | Evidence |
+|------------------------------------------------------|------------------------|----------|
+| TC-51.1 window editable, All programs, no gate       | PARTIAL                | rule-schedule-model.test.ts + RuleScheduleEditor.test.tsx cover the editor; nothing asserts it renders on FIRST mount, because the shipped default is `No date restriction` |
+| TC-51.2 window hidden on a concrete programme        | YES (as shipped)       | ticketing-rule-card-model.test.ts asserts computeTicketingWhenOptions -> [EVENT_DERIVED, CUSTOM_WITHIN_EVENT]; no test asserts the TC's banner copy because that copy does not exist |
+| TC-51.3 window hidden under a membership gate        | YES                    | TicketingRuleCardPreview.test.tsx:554,905 + ShopRuleCardPreview.test.tsx:641,2375 assert the fix13 banner; unnamed-programme fallback asserted at :577 / :3026 |
+| TC-51.4 event+membership intersection banner         | NO                     | no test, and no implementation -- the gate wins outright |
+| TC-51.5 custom dates cleared on save                 | YES, INVERTED          | rule-date-window-card-path.test.tsx asserts the window SURVIVES ("survives the gate being ADDED mid-session, with the scope still set"). The TC asserts deletion, which is the defect that file was written to prevent |
+| TC-51.6 Shop window visible with no gate             | PARTIAL                | same as TC-51.1, Shop side |
+| TC-52.1 collapsed summary "0 / 500 uses"             | NO                     | ticketing-rule-card-model.test.ts covers formatTicketingLimitsSummary, which emits "{label} {value}". No current-usage numerator is tested because none exists |
+| TC-52.2 Review shows the derived date source          | NO                     | review-model.test.ts has no dateScope case; the review message catalogue has no date-source key |
+| TC-52.3 unset cap reads "Unlimited" + Current Usage  | NO / INVERTED          | the model's own contract is "omitted rather than printed as Unlimited"; all-unset renders limits.noneSet prose instead |
+| TC-53.1 Add Rule disabled on a universal rule        | PARTIAL (Shop/Memb yes, Ticketing NO) | draft-utils.test.ts covers isAddShopRuleBlockedByUniversal + isAddMembershipRuleBlockedByUniversal; there is NO ticketing predicate to test |
+| TC-53.2 Add Rule re-enables once scoped down         | YES                    | the predicates are pure over the current rule set, asserted in draft-utils.test.ts |
+| TC-54.1 Continue blocked while a rule is unsaved     | YES                    | DiscountWizardPage.test.tsx "refuses NEXT while a rule card holds uncommitted edits" + "refuses PREVIOUS too" + "refuses the discount save while a rule card holds uncommitted edits" |
+| TC-54.2 Continue available once saved                | YES                    | DiscountWizardPage.test.tsx "lets NEXT through once the card is committed" + "retires the refusal toast when the admin answers it by saving the rule" |
+| TC-55.1-3 Membership Program <-> Members Only lock    | N/A -- CONTROL REMOVED | RestrictionsStep.tsx:68 "`Members only` stays gone (FP7): membership gating is per-rule"; wizard-steps.ts:79 drops membershipsOnly from the rules field list |
+| TC-63.1 Qualifying Item Type = 3-option select       | NO                     | no such field; shop scope catalogue is category / item / membershipProgram only |
+| TC-63.2 Item options cascade from Category           | YES                    | ShopRuleCardPreview.tsx:229-240 computeShopItemOptions, cited to the rule-cards spec; covered in ShopRuleCardPreview.test.tsx |
+| TC-63.3 inline warning LISTING removed items         | NO (live surface)      | itemsRemovedWarning is a COUNT and lives in the retired ShopRuleEditor (rule-editors.tsx:566); the live ShopRuleCardPreview resets itemId silently |
+| TC-63.4 Minimum/Max Quantity removed                 | YES                    | ShopRuleCardPreview.test.tsx:1179-1187 'never renders "Max quantity" (reversed decision -- removed entirely), even with limits expanded' |
+
+GAPS THE DEV DID NOT COVER (QA compensated statically, see per-TC evidence):
+  - the event+membership intersection banner (TC-51.4) -- not implemented
+  - a Review-step derived-date-source line (TC-52.2) -- not implemented
+  - a Ticketing Add-Rule universal guard (TC-53.1) -- deliberately not shipped
+  - a Qualifying Item Type field (TC-63.1) -- not implemented
+  - a removed-items LIST warning on the live Shop card (TC-63.3) -- not implemented
+
+NOTE: the dev's coverage is unusually dense (2750 tests over the module) and is
+NOT the weak link here. The divergences below are spec-vs-test-case drift, not
+missing developer tests.

@@ -1,0 +1,92 @@
+TC-63 -- Shop Rule Card: Category, Item Scope & Item Type
+Target: VeevartFrontend @ origin/develop 60f425fa
+
+WHICH SHOP SURFACE IS LIVE (decides two of the four verdicts)
+Two Shop rule editors exist in the module. Only ONE is rendered:
+  RulesLimitsStep.tsx:48  import { formatShopTriggerChip, ShopRuleCardPreview } from './ShopRuleCardPreview';
+  RulesLimitsStep.tsx:2124 <ShopRuleCardPreview ... />
+  RulesLimitsStep.tsx:47  import { MembershipRuleEditor, selectedShopEntityValue } from './rule-editors';
+Only MembershipRuleEditor is still taken from rule-editors.tsx. The legacy
+ShopRuleEditor (rule-editors.tsx:343) is referenced ONLY by index.ts:176 (a
+dead public re-export) and its own tests. ShopRuleCardPreview.tsx:9 confirms it
+"replaces ShopRuleEditor, translating both ways through rule-card-draft-mapping".
+=> The V3 card is the surface under test.
+
+The live card's SCOPE catalogue (messages/en.json, shopRuleCardPreview.scope.*):
+  category / categoryRequired / categoryAll ("All Categories")
+  item / itemRequired / itemAll ("All Items")
+  membershipProgram / membershipProgramHint / noMembershipGate
+Three scope fields. That is the whole list.
+
+--------------------------------------------------------------------------
+SC 1  "Qualifying Item Type is a fixed-option select with exactly 3 options:
+       Any qualifying item / Same item only / Same category only"
+VERDICT: FAILED -- the field does not exist on the shipped card
+Grep for "Same item only" | "Same category only" | "Any qualifying item"
+across the module: zero hits. Grep for itemType | "item type" | qualifying in
+non-test source: zero hits on a field (the only "qualifying" strings are
+unrelated prose -- rules.preview.body.mixedLead, rules.allowStackingDescription,
+rules.ticketingEmpty). ShopRuleCardPreviewValue (ShopRuleCardPreview.tsx:103-135)
+declares categoryId, itemId, membershipGateId, dateScope and the counters --
+no item-type axis.
+NOTE FOR PRODUCT: the TC says this field was "corrected twice against the real
+prototype", so the prototype had it. It was not built. Given SC 4 records that
+Product cut Minimum/Max Quantity from the same card on 2026-07-22, the most
+likely explanation is that Qualifying Item Type was cut too and the TC was never
+updated -- but unlike Min/Max Quantity there is NO decision record for it, so it
+cannot be closed as an intentional cut without confirmation.
+
+SC 2  "the Item selector only offers items belonging to the selected Categories"
+VERDICT: PASSED
+ShopRuleCardPreview.tsx:229-240:
+  /** Item options cascade from the chosen Category (rule-cards spec, "Item
+      options cascade from the chosen category"); `All Items` is always offered. */
+  export function computeShopItemOptions(categoryId, itemOptions) {
+      if (categoryId === null || categoryId === ALL_CATEGORIES_ID) { ...all... }
+      return itemOptions.filter((item) => item.categoryId === categoryId);
+  }
+Cited to the spec, All Items pinned regardless, and covered by
+ShopRuleCardPreview.test.tsx. This also settles the TC's framing note: scope IS
+Category + Item with a cascade, not an "All items in categories vs Specific
+items" toggle.
+
+SC 3  "narrowing Categories after picking Items shows an inline warning LISTING
+       the specific Items that were removed"
+VERDICT: FAILED -- the live card removes the item SILENTLY
+On the live V3 card, applyShopRuleScopeChange (ShopRuleCardPreview.tsx:350-355)
+revalidates and drops the selection with no user-facing signal:
+  if ('categoryId' in patch && next.itemId !== null && next.itemId !== ALL_ITEMS_ID) {
+      const stillValid = computeShopItemOptions(next.categoryId, itemOptions)
+          .some((option) => option.id === next.itemId);
+      if (!stillValid) next.itemId = null;      // <-- no warning, no announcement
+  }
+The card's own comment at :383 acknowledges the event ("the next Category
+narrowing ORPHANS the Item") but only to reason about the redemption question,
+not to tell the admin.
+A warning DOES exist -- in the RETIRED editor, and it is a COUNT, not a list:
+  rule-editors.tsx:117   const { keptItemIds, removedItemIds } = removeShopItemsOutsideCategoryScope(...)
+  rule-editors.tsx:129   removedItemCount: removedItemIds.length     // list discarded here
+  rule-editors.tsx:566-568 {removedItemCount > 0 ? ... tShop('itemsRemovedWarning', { count: removedItemCount })}
+  messages/en.json  shopRule.itemsRemovedWarning =
+    "{count} selected item(s) were removed because they do not belong to the
+     selected category."
+So even the legacy path never satisfied "listing the specific Items" -- it
+counted them. removeShopItemsOutsideCategoryScope (draft-utils.ts:1207-1228)
+returns removedItemIds, so the DATA for a list is available and simply unused.
+Two deviations, then: no warning at all on the live card, and no item list in
+the copy that does exist.
+Data integrity is NOT at risk -- the orphan id cannot reach the payload (T5 in
+regression-results.txt). This is purely a "the admin was not told" gap.
+Also note the live model is SINGLE category + SINGLE item, so the TC's plural
+premise ("one or more Categories", "the Items") no longer matches the shape.
+
+SC 4  "Minimum Quantity and Max Quantity fields are removed"
+VERDICT: PASSED
+ShopRuleCardPreview.test.tsx:1179-1187, a dev test written to pin the cut:
+  it('never renders "Max quantity" (reversed decision -- removed entirely),
+      even with limits expanded', async () => {
+      expect(screen.queryByLabelText('Max quantity')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Max quantity/i)).not.toBeInTheDocument();
+  });
+Grep for minimumQuantity | maxQuantity in non-test source: zero hits. Neither
+field is rendered, and the TC's "no replacement scenario is needed" holds.

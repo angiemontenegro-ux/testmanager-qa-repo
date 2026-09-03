@@ -13,7 +13,7 @@ entries:
   - type: "testcase"
     id: "461f9f5d-088d-49e4-ba3f-79a71695d6f5"
     key: "TC-51"
-    title: "Per-Rule Date & Time Range — Conditional Visibility & Derivation"
+    title: "Per-Rule Active Window — 'When does the discount apply?' Options & Derivation"
     filePath: "test-cases/SH-1097/SH-1097-TC-51-per-rule-dates.testcase.yml"
     assignees:
       - username: "angiemontenegro-ux"
@@ -21,7 +21,7 @@ entries:
   - type: "testcase"
     id: "e8542d54-e05c-4554-8caf-64b277cc5f1a"
     key: "TC-52"
-    title: "Rule Collapsed Summary & Overall Usage"
+    title: "Rule Collapsed Summary & Optional-Limit Enumeration"
     filePath: "test-cases/SH-1097/SH-1097-TC-52-rule-collapsed-summary-overall-usage.testcase.yml"
     assignees:
       - username: "angiemontenegro-ux"
@@ -45,8 +45,8 @@ entries:
   - type: "testcase"
     id: "9d21fd58-0010-4845-9067-3ef18c20d4f6"
     key: "TC-55"
-    title: "Membership Program ↔ Members Only Reactive Lock"
-    filePath: "test-cases/SH-1097/SH-1097-TC-55-membership-program-members-only-lock.testcase.yml"
+    title: "Per-Rule Membership Program Gate — Card Collapse & Reversal"
+    filePath: "test-cases/SH-1097/SH-1097-TC-55-membership-gate-collapse.testcase.yml"
     assignees:
       - username: "angiemontenegro-ux"
         role: "owner"

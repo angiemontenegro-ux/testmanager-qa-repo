@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1097",
+  "qaSubtask": "SH-1121",
+  "tcKey": [
+    "TC-51",
+    "TC-52",
+    "TC-53",
+    "TC-54",
+    "TC-55",
+    "TC-63"
+  ],
+  "trKey": "TR-044",
+  "prNumber": null,
+  "startedAt": "2026-09-03T13:41:30.057477Z",
+  "lastUpdated": "2026-09-03T14:10:00Z",
+  "status": "in-progress",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "currentStep": 11,
+  "data": {
+    "repo": "Veevarts/VeevartFrontend",
+    "localClone": "/Users/veevart/Downloads/_clones/VeevartFrontend",
+    "scenarioCount": 20,
+    "tcScenarioCounts": {
+      "TC-51": 6,
+      "TC-52": 3,
+      "TC-53": 2,
+      "TC-54": 2,
+      "TC-55": 3,
+      "TC-63": 4
+    },
+    "classification": {
+      "category": "UI / Frontend-only",
+      "rationale": "Discount wizard v3 rule cards in Veevarts/VeevartFrontend packages/shop/src/discounts/discount-wizard; React/TSX only, no SQL/pipeline/SF surface. Story shipped across sibling-key PRs (SH-1094/SH-1096), all merged into develop."
+    },
+    "target": {
+      "repo": "Veevarts/VeevartFrontend",
+      "ref": "origin/develop",
+      "sha": "60f425fa",
+      "worktree": "/Users/veevart/Downloads/_clones/VeevartFrontend-worktrees/sh1097"
+    },
+    "prs": [
+      500,
+      510,
+      517,
+      522,
+      539,
+      568,
+      463
+    ],
+    "earlyFindings": [
+      "TC-55 obsolete: Members only switch removed by decision FP7 (RestrictionsStep.tsx:68)",
+      "TC-52 sc1/sc3 contradict deliberate design: no N-of-M usage display, unset counters omitted not 'Unlimited'"
+    ],
+    "devSuite": {
+      "files": 87,
+      "tests": 2750,
+      "passed": 2748,
+      "failed": 2,
+      "failuresProvenEnvLocal": true,
+      "proof": "re-ran each at introducing commit 232ab173 / ac94a31e; both fail there too, CI on PRs #513/#529 was green",
+      "npmCiBlocked": "E404 private @veevarts/veevart-checkout@1.11.0"
+    },
+    "summary": {
+      "total": 20,
+      "passed": 6,
+      "failed": 11,
+      "skipped": 3,
+      "passRate": 30
+    },
+    "technicalRegression": "7/7 PASS",
+    "securityRegression": "6/6 PASS",
+    "owasp": "4 applicable PASS / 6 N/A / 0 FAIL",
+    "trPath": "test-runs/TR-044-sh-1097-ticketing-shop-rule-cards.testrun.yml",
+    "defectsRaised": [],
+    "awaitingAdjudication": [
+      "TC-53.1 ticketing add-guard",
+      "TC-63.3 silent item drop",
+      "TC-52.2 review date source",
+      "TC-51.4 intersection banner",
+      "TC-63.1 qualifying item type"
+    ],
+    "commitHeld": "Rule 7b/10 \u2014 11 low-severity FAILs need Angie to decide filing before commit"
+  }
+}
