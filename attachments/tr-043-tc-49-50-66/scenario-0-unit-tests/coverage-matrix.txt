@@ -1,0 +1,102 @@
+MATRIZ DE COBERTURA: ESCENARIO DEL TEST CASE  <->  TEST DEL DEV
+================================================================
+Fuente: PR #463 @ 2a4d76abe7a35e9b74b453d5d283defb936a115f
+
+TC-50 — Step 1 Discount Type Toggle (% Off / $ Off)   [status: active]
+-----------------------------------------------------------------------
+S0 "Step 1 expone % Off y $ Off"
+   CUBIERTO -> BasicInfoStep.test.tsx
+     'shows amount-off as a discount type for a non-shop (ticketing) draft'
+   Fuente: BasicInfoStep.tsx:59 AUTHORING_DISCOUNT_TYPES = ['percent_off','dollar_off']
+           BasicInfoStep.tsx:803 getSupportedDiscountTypes() devuelve ambos SIEMPRE
+           messages/en.json  type.percent_off='% Off'  type.dollar_off='$ Off'
+
+S1 "Cambiar el tipo conserva el valor pero cambia la unidad"
+   BRECHA -> ningun test del dev cubre el cambio de tipo con un valor ya escrito.
+   Primera mitad (conserva el valor): PASA por fuente (BasicInfoStep.tsx:560-562,
+     el onChange despacha SOLO { discountType }, nunca toca `value`).
+   Segunda mitad (sufijo/label pasa de % a $): FALLA. Ver tc-50/hallazgo-sufijo.txt
+
+TC-66 — Step 3 Restrictions                            [status: draft]
+-----------------------------------------------------------------------
+S0 "Al menos un canal activo para poder guardar"
+   CUBIERTO x3 -> RestrictionsStep.test.tsx
+     'shows at-least-one-channel error when both channels are off in editable state'
+     'DOES show the channel at-least-one error on a Ticketing-only draft'
+   + integracion DiscountsCodesPage.test.tsx
+     'blocks Save and returns to Restrictions when both channels are switched off (FP8)'
+   Fuente: discount-save-validation.ts:66 'At least one channel must be enabled.'
+
+S1 "'Require Discount Reason' visible con POS activo"
+   CUBIERTO -> 'renders requireReasonAtPos on a Ticketing-only draft whose POS is authored ON'
+   Fuente: RestrictionsStep.tsx:127  {draft.availablePos && (...)}
+   BRECHA parcial: "POS staff must enter a reason at redemption" es comportamiento
+   del POS en runtime, fuera del alcance de esta PR de frontend.
+
+S2 "'Require Discount Reason' oculto con POS inactivo"
+   CUBIERTO -> 'POS-gated controls key off the AUTHORED channel:
+                requireReasonAtPos hidden when POS is off'
+   + 'dispatches availablePos update and resets requireReasonAtPos when pos switch
+      is toggled off (editable)'
+
+S3 "Allowed email domains disponible para descuentos Online"
+   CUBIERTO -> describe 'Allowed email domains follow the Online channel (FP9)'
+     'renders the field when Online is on'
+     'parses comma-separated allowed email domains'
+     'clears previously entered domains in the same update that turns Online off'
+
+S4 "Allowed email domains OCULTO cuando POS tambien esta activo"
+   NO CUBIERTO, Y CONTRADICHO POR LA IMPLEMENTACION.
+   Ver tc-66/hallazgo-email-domains-pos.txt
+
+TC-49 — Step 4 Review                                  [status: draft]
+-----------------------------------------------------------------------
+S0 "Fila 'Redemption: Automatic (membership benefit)', guarda sin codigo"
+   NO CUBIERTO. No existe la cadena 'Redemption:' en todo el modulo.
+   Ademas la decision "always-a-code" contradice "guarda sin codigo".
+   Ver tc-49/hallazgo-review-no-construido.txt
+
+S1 "Save bloqueado con banner CUSTOMER_FACING_CODE_REQUIRED_FOR_CODE_MODE"
+   CUBIERTO EN MECANISMO -> ReviewStep.test.tsx
+     'states the reason in an alert and offers the step that can fix it'
+     'shows save-gated validation issues in a polite status region'
+   El identificador literal del TC no existe en el cliente; el equivalente es el
+   error de backend CUSTOMER_FACING_CODE_REQUIRED -> toast.apiErrors.customerFacingCodeRequired
+
+S2 "Order-level sin codigo bloqueado + link 'Go to Step 1'"
+   CUBIERTO EN MECANISMO -> BasicInfoStep.test.tsx
+     'states on Entire order that the code is always required at checkout'
+   + messages saveErrorGoToBasic='Go to step 1', ReviewStep.tsx:125 onGoToStep
+   + wizard-validation.ts:192 getWizardStepForIssue() enruta el issue a su paso
+
+S3 "Order-level con codigo -> fila 'Redemption: Code Required (Entire Order)'"
+   NO CUBIERTO (misma fila inexistente que S0). La mitad "Save persiste" si esta cubierta.
+
+S4 "Archive excluye de evaluacion y conserva historial"
+   PARCIAL. La mitad de UI existe y esta cubierta (kebab 'Archive {name}',
+   deleteDialog, useArchivePromotion, estado archived, filas archived read-only).
+   Las dos afirmaciones de backend (excluida de evaluacion / historial intacto)
+   NO son verificables en una PR de frontend.
+
+S5 "Duplicate crea un Draft nuevo con todos los campos copiados"
+   NO CUBIERTO Y NO IMPLEMENTADO. Ver tc-49/hallazgo-duplicate-ausente.txt
+
+S6 "Colision de codigo bloquea el Save en Review"
+   CUBIERTO EN MECANISMO -> BasicInfoStep.test.tsx
+     'shows code availability errors as field errors'
+   + toast.apiErrors.customerFacingCodeTaken
+     = 'This code is already in use by an active discount.'
+   El texto difiere del que pide el TC ('Code already in use.') pero la semantica
+   y el link 'Go to step 1' coinciden.
+
+S7 "Edicion concurrente: el segundo Save se rechaza por conflicto"
+   NO CUBIERTO Y NO IMPLEMENTADO. Ver tc-49/hallazgo-concurrencia-ausente.txt
+
+RESUMEN DE BRECHAS DE COBERTURA DEL DEV
+----------------------------------------
+Brechas reales (el dev no cubrio, QA compensa por fuente):
+  - TC-50 S1: cambio de tipo con valor ya escrito
+  - TC-66 S4: combinacion email domains + POS
+  - TC-49 S5, S7: Duplicate y concurrencia (no hay nada que cubrir: no existen)
+No hay ninguna AC de la historia sin cobertura: las brechas estan todas en
+escenarios que los TC en `draft` escribieron contra un diseno que no se construyo.

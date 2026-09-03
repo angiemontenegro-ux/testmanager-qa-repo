@@ -1,0 +1,79 @@
+TC-66 / S4 — HALLAZGO: "Allowed email domains" sigue visible con POS activo
+============================================================================
+Veredicto del escenario: FAILED
+
+LO QUE PIDE EL TEST CASE
+-------------------------
+Given  Available Online activo Y Available at POS TAMBIEN activo (WIZ-32, OPS-05)
+When   el admin mira el Step 3
+Then   la seccion 'Allowed email domains' NO es visible
+
+LO QUE HACE LA IMPLEMENTACION
+------------------------------
+RestrictionsStep.tsx:152
+    {draft.availableOnline && (
+        <Textarea label={t('emailDomains')} ... />
+    )}
+
+La condicion mira SOLO availableOnline. No mira availablePos. Con Online=on y
+POS=on la seccion SI se renderiza y el admin puede escribir dominios.
+
+Y NO ES UN DESCUIDO: el dev lo documento explicitamente
+--------------------------------------------------------
+RestrictionsStep.tsx:141-145, comentario en el propio archivo:
+
+    "The gate matches what the server already enforces
+     (`EMAIL_DOMAINS_REQUIRE_ONLINE`): domain restrictions REQUIRE the
+     Online channel. It is Online-requiring, not Online-only — listing
+     domains does not disable POS."
+
+O sea: la decision consciente fue replicar UNA regla del servidor
+(EMAIL_DOMAINS_REQUIRE_ONLINE) y no la otra.
+
+POR QUE IGUAL ES UN DEFECTO
+----------------------------
+El servidor tiene DOS reglas, no una. La segunda esta en el catalogo de errores
+del propio cliente:
+
+  api/error-catalog.ts:34
+    EMAIL_DOMAINS_NOT_ALLOWED_WITH_POS: 'toast.apiErrors.emailDomainsNotAllowedWithPos'
+
+  messages/en.json:52
+    "emailDomainsNotAllowedWithPos": "Email domain restrictions cannot be used
+     when POS is enabled. Disable POS or remove the email domain filter."
+
+Las dos reglas juntas (requiere Online + prohibe POS) equivalen exactamente a
+"Online-only", que es lo que pide el TC. El frontend implementa la primera y
+deja la segunda al servidor.
+
+Resultado para el admin: con Online+POS activos escribe dominios, llena el
+formulario, le da Save, y RECIEN AHI se entera — despues del round trip — de que
+esa combinacion es invalida.
+
+Lo mas fuerte: ese comentario del dev, cuatro lineas mas abajo, se queja de ese
+mismo patron para el caso hermano (FP8):
+
+    "...so the invalid Online-off-with-domains state became reachable and was
+     caught only by the server, after a round trip."
+
+Para Online-off lo arreglaron en el cliente. Para POS-on lo dejaron en el
+servidor. Es la misma clase de problema resuelta de dos maneras distintas en el
+mismo archivo.
+
+SEVERIDAD SUGERIDA: Medium
+Sin perdida de datos ni impacto de seguridad, pero es validacion tardia sobre un
+estado que la UI deja construir, y hay inconsistencia interna declarada en el
+propio codigo.
+
+ARREGLO MINIMO SUGERIDO (para el dev, no aplicado por QA)
+  RestrictionsStep.tsx:152
+  -  {draft.availableOnline && (
+  +  {draft.availableOnline && !draft.availablePos && (
+  ...mas el mismo aviso de "se limpiaron estos dominios" que ya existe para el
+  caso Online-off, para no perder en silencio lo que el admin habia escrito.
+
+COBERTURA DEL DEV: ninguna para esta combinacion. El describe
+'Allowed email domains follow the Online channel (FP9)' cubre Online on/off,
+nunca POS on con Online on. El unico test que menciona
+emailDomainsNotAllowedWithPos es DiscountCodeWizardModal.test.tsx:975, y prueba
+el MAPEO del error del backend, no la prevencion en el cliente.

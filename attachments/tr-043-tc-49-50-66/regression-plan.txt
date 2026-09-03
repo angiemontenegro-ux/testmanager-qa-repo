@@ -1,0 +1,77 @@
+PLAN DE REGRESION — TECNICA Y DE SEGURIDAD
+===========================================
+PR #463 Veevarts/VeevartFrontend @ 2a4d76abe7a35e9b74b453d5d283defb936a115f
+Clasificacion: UI / Frontend-only.
+Superficie: 132 archivos (63 ts, 60 tsx, 7 json, 2 cjs).
+Sin SQL, sin pipeline, sin metadata de Salesforce -> no aplica safesql ni carga
+a sandbox. La regresion se resuelve con la suite del repo + lectura de fuente.
+
+REGRESION TECNICA — que mas toca esta PR
+-----------------------------------------
+T1  El wizard "asociado" (DiscountCodeWizardModal) comparte los mismos pasos
+    que el wizard standalone. Un cambio en BasicInfoStep/RestrictionsStep/
+    ReviewStep lo afecta tambien.            Riesgo: Alto
+    Metodo: correr DiscountCodeWizardModal.test.tsx + context-draft.test.ts
+
+T2  DiscountsCodesPage (listado) cambia junto con el wizard: nueva tabla,
+    kebab, filtros, guardas de save.          Riesgo: Alto
+    Metodo: DiscountsCodesPage.test.tsx + a11y + DiscountsTable.test.tsx
+
+T3  Se elimina el kind picker (DiscountKindChooser). Cualquier consumidor que
+    todavia asuma `kind` se rompe.            Riesgo: Alto
+    Metodo: __tests__/no-kind-model.test.ts + one-form-two-states.test.tsx
+
+T4  Mappers de la API: el save ahora manda `code` siempre y ya no manda `kind`.
+    Toca el contrato con el backend.          Riesgo: Alto
+    Metodo: promotion-authoring-mappers.test.ts + promotion-authoring-client.test.ts
+            + schemas/promotion-authoring.test.ts
+
+T5  Componentes compartidos de packages/ui modificados (ConfirmDialog,
+    ScheduleRangeEditor, SegmentedControl) — los usa mas gente que Discounts.
+    Riesgo: Medio
+    Metodo: correr las suites de packages/ui de esos tres componentes
+
+T6  Paridad de catalogos i18n en/fr: la PR agrega y borra claves.
+    Riesgo: Medio
+    Metodo: messages-parity.test.ts + message-keys.test.ts
+
+T7  Widget de descuentos en Membership Programs (fundraising) — consume el
+    mismo modulo.                             Riesgo: Medio
+    Metodo: MembershipDiscountsPanel.test.tsx + use-membership-program-discounts.test.tsx
+            + AssociatedDiscountsWidget.test.tsx
+
+T8  Accesibilidad: la PR reescribe la cabecera, el Review y la tabla.
+    Riesgo: Medio
+    Metodo: las 4 suites *.a11y.test.tsx del modulo
+
+REGRESION DE SEGURIDAD — que introduce el diff
+-----------------------------------------------
+S1  Inyeccion de HTML/JS en los componentes nuevos.        Riesgo: Alto si aparece
+    Metodo: grep del diff por dangerouslySetInnerHTML, v-html, eval(,
+            new Function(, document.write
+
+S2  Secretos en el diff.                                    Riesgo: Alto si aparece
+    Metodo: grep por password/api_key/secret/bearer/-----BEGIN/AKIA
+
+S3  PII en logs. El wizard maneja dominios de email y codigos de descuento.
+    Riesgo: Medio
+    Metodo: revisar cada console.* agregado y que dato imprime
+
+S4  Dependencia nueva: qrcode.react ^4.2.0 (el Review dibuja un QR).
+    Riesgo: Medio hasta auditar
+    Metodo: npm audit --json y ver si qrcode.react o su arbol aparece
+
+S5  Inyeccion de comandos.                                  Riesgo: Bajo
+    Metodo: grep por child_process/execSync/spawn(
+
+S6  SSRF: el QR y el cliente HTTP podrian construir URLs con input del usuario.
+    Riesgo: Medio
+    Metodo: revisar api/ por fetch/axios/new URL con datos del draft
+
+S7  Auth / RBAC: la PR podria tocar guardas de ruta o permisos.
+    Riesgo: Alto si aparece
+    Metodo: listar archivos del diff que toquen auth/permission/role/middleware
+
+S8  Observabilidad: que la PR no haya borrado logging existente.
+    Riesgo: Bajo
+    Metodo: contar lineas console.* eliminadas en el diff

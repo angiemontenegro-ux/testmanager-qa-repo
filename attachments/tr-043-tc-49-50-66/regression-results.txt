@@ -1,0 +1,84 @@
+RESULTADOS DE REGRESION
+========================
+PR #463 @ 2a4d76abe7a35e9b74b453d5d283defb936a115f — UI / Frontend-only
+
+TECNICA — 8/8 PASS
+-------------------
+| Id | Item                              | Riesgo | Metodo                              | Resultado |
+|----|-----------------------------------|--------|-------------------------------------|-----------|
+| T1 | Wizard asociado (modal)           | Alto   | vitest components/associated        | PASS 2 archivos / 77 tests |
+| T2 | Listado DiscountsCodesPage        | Alto   | vitest page/                        | PASS 8 archivos / 134 tests |
+| T3 | Remocion del kind picker          | Alto   | vitest __tests__/ (no-kind-model)   | PASS 2 archivos / 27 tests |
+| T4 | Mappers y schemas de la API       | Alto   | vitest api/ + schemas/              | PASS 7 archivos / 262 tests |
+| T5 | packages/ui compartidos           | Medio  | vitest confirm-dialog, schedule-    | PASS 3 archivos / 75 tests |
+|    |                                   |        | range-editor, segmented-control     |           |
+| T6 | Paridad i18n en/fr                | Medio  | vitest messages/                    | PASS 2 archivos / 9 tests |
+| T7 | Widget de Membership Programs     | Medio  | ANALISIS ESTATICO (ver nota)        | PASS |
+| T8 | Accesibilidad del modulo          | Medio  | 3 suites *.a11y.test.tsx            | PASS 17 tests |
+
+NOTA T7 — la suite NO se pudo correr, y digo con que la reemplace
+------------------------------------------------------------------
+El workspace apps/shared/portal no instala en esta maquina: E404 en el scope
+privado @veevarts (falta token) y sin autoprefixer vitest ni arranca. NO afirmo
+que esos tests pasen: no los corri.
+
+Lo que si verifique, que es la superficie de acoplamiento real:
+  a) El barrel packages/shop/.../discount-wizard/index.ts elimina 3 exports:
+       areChannelsLocked, deriveChannels, resolveChannels
+     Busqueda global de call sites vivos: NINGUNO. Las unicas menciones que
+     quedan son comentarios y — mejor aun — tests guardianes que verifican que
+     ya NO se exporten (draft-utils.test.ts:410-412). El dev blindo la remocion.
+  b) El portal importa por deep path use-effective-membership-benefits y el
+     schema effective-membership-benefits. Ninguno de los dos fue tocado por la
+     PR y ambos siguen existiendo.
+  c) El resto del consumo del portal entra por el barrel, cuyo unico cambio
+     restante son esos 3 exports muertos.
+Conclusion: no hay ruptura de contrato hacia el portal. Veredicto PASS por
+analisis estatico, no por ejecucion.
+
+NOTA T8 — el conteo de suites a11y bajo de 4 a 3 A PROPOSITO
+-------------------------------------------------------------
+DiscountKindChooser.a11y.test.tsx ya no existe porque la PR BORRA
+DiscountKindChooser.tsx. Es exactamente lo que pide SH-1096 ("remove kind
+picker"). No es una suite perdida.
+
+SEGURIDAD — 8/8 PASS, 0 bloqueantes
+------------------------------------
+| Id | Item                        | Riesgo | Resultado | Evidencia |
+|----|-----------------------------|--------|-----------|-----------|
+| S1 | Inyeccion HTML/JS           | Alto   | PASS | 0 hits de dangerouslySetInnerHTML, v-html, eval(, new Function(, document.write en las lineas agregadas |
+| S2 | Secretos en el diff         | Alto   | PASS | 0 hits de password/api_key/secret/bearer/-----BEGIN/AKIA |
+| S3 | PII en logs                 | Medio  | PASS | 2 console.warn agregados, ambos revisados uno por uno (detalle abajo) |
+| S4 | Dependencia nueva           | Medio  | PASS | qrcode.react ^4.2.0 — npm audit: 0 advisories para el paquete y su arbol |
+| S5 | Inyeccion de comandos       | Bajo   | PASS | 0 hits de child_process/execSync/spawn( |
+| S6 | SSRF                        | Medio  | PASS | api/ no construye URLs; usa getHttpClient() con base fija inyectada por config |
+| S7 | Auth / RBAC                 | Alto   | PASS | ningun archivo de auth/permiso/rol/middleware en el diff (los hits del grep eran falsos positivos: "guard" de save-guards y numeric-guard, "author" de promotion-authoring) |
+| S8 | Logging eliminado           | Bajo   | PASS | 0 lineas console.* borradas |
+
+Detalle S3 — los dos console.warn, textualmente:
+  wizard-components.tsx:474
+    `WizardSelect received an unknown option key: ${String(first)}`
+      -> imprime el value de una opcion de select. No es dato de persona.
+  promotion-authoring-mappers.ts:315
+    `[discount-wizard] Unrecognised stored calendar date "${value}"; passing it through unchanged`
+      -> imprime una fecha de calendario. No es PII.
+  promotion-authoring-mappers.ts:681
+    '[discount-wizard] Ticketing rule missing applicationMode; defaulting to manual'
+      -> string estatico, sin interpolacion.
+Ninguno toca email, telefono, nombre, ni el codigo del descuento.
+
+Detalle S4 — el arbol tiene 51 advisories (1 critical, 10 high), y NO son de esta PR:
+  critical: vitest
+  high: brace-expansion, fast-uri, form-data, linkify-it, nanoid, next,
+        postcss, sharp, vite, ws
+Son deuda preexistente del monorepo, casi toda de tooling de build/test.
+El unico paquete que ESTA PR agrega es qrcode.react, y no aparece en el reporte.
+Marcar esto como defecto de SH-1096 seria injusto y ademas ruido: es un item de
+mantenimiento del repo, no un hallazgo de esta historia.
+
+OBSERVACION POSITIVA ENCONTRADA DE PASO
+----------------------------------------
+promotion-authoring-mappers.ts:679-681 elige el default seguro y lo justifica:
+  "Default to the LEAST-permissive mode ('manual') rather than the most
+   permissive ('both') so a data gap never silently grants auto-apply + code."
+Un hueco de datos no termina en un descuento auto-aplicable. Bien resuelto.

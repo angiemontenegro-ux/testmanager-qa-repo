@@ -1,0 +1,49 @@
+TC-49 / S5 — HALLAZGO: la accion "Duplicate" no existe
+=======================================================
+Veredicto del escenario: FAILED
+
+QUE PIDE
+---------
+Given  existe una promocion (WIZ-51; SC-53)
+When   el admin abre el menu '...' y elige Duplicate
+Then   se crea un Draft nuevo con todos los campos copiados
+And    el admin aterriza en el Step 1 del draft nuevo
+
+QUE HAY EN EL MENU REALMENTE
+-----------------------------
+Catalogo completo de acciones de fila (messages/en.json, codes.table.actionLabels):
+
+  menu                      'More actions for {name}'
+  report                    'View usage report for {name}'
+  edit                      'Edit {name}'
+  editArchivedDisabled      'Archived discounts cannot be edited: {name}'
+  toggle                    'Activate {name}'
+  deactivate                'Deactivate {name}'
+  expiredToggleDisabled     'Edit {name} to extend its dates before reactivating it'
+  archivedToggleDisabled    'Archived discounts cannot be activated from this list: {name}'
+  delete                    'Archive {name}'
+  archiveDisabled           '{name} is already archived'
+
+Son 10 claves. Ninguna es Duplicate.
+
+BUSQUEDA EXHAUSTIVA
+--------------------
+  $ grep -rni "duplicate" packages/shop/src/discounts/discount-wizard/
+Solo aparece en:
+  messages/en.json:1035   "duplicate": "Duplicate code"
+    -> es un mensaje de VALIDACION sobre un codigo repetido, no una accion.
+  fr.json:1035            "duplicate": "Code en doublon"
+    -> misma clave, confirma que es "codigo duplicado", no "duplicar".
+  4 comentarios de codigo que usan la palabra en su sentido comun
+    ("does NOT duplicate them", "duplicate sr-only copy", etc.)
+
+No hay handler, no hay mutacion, no hay item de menu, no hay test.
+
+SEVERIDAD SUGERIDA: Low como defecto contra ESTA PR
+La PR #463 es "rebuild the discount wizard ui for the v3 rules model". Duplicate
+es una feature nueva de gestion de listado, no algo que la PR rompio. Lo mas
+probable es que WIZ-51 / SC-53 nunca entro al alcance de SH-1096.
+
+Antes de abrir defecto conviene confirmar con Producto si WIZ-51 estaba
+comprometido para esta historia o quedo para otra. Si nunca estuvo en alcance,
+lo correcto es sacar el escenario de TC-49, no abrir un bug.

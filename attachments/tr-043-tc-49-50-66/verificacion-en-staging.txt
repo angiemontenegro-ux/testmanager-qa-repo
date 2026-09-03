@@ -1,0 +1,59 @@
+RE-VERIFICACION CONTRA STAGING (2026-09-02)
+============================================
+Motivo: Angie pregunto en que instancia se probo. La respuesta honesta es que la
+corrida NO se hizo en Dev ni en stage, sino contra el codigo fuente del head de
+la PR + la suite del dev ejecutada localmente. Como el head probado (2026-08-05)
+tiene meses de commits encima, se re-verificaron los dos hallazgos vivos contra
+el codigo que HOY esta desplegado.
+
+ESTADO REAL DE LAS RAMAS (via API de GitHub, no via clon local)
+----------------------------------------------------------------
+develop  ad9306a2fe  2026-09-02  "fix(programs): show reservation guest names NOXSCRUM-1590 (#670)"
+staging  00548c1eb8  2026-08-31  "chore(release): promote shop, pos and discounts develop -> staging SH-1241 (#654)"
+main     c4a17715c7  2026-08-26  "chore(release): promote staging -> main (prod) (#604)"
+
+El merge de la PR #463 (133f3bf6be5e55612b141b642d8e5058eb3b2f6b) esta CONTENIDO
+en develop, que va 200 commits mas adelante. El wizard llego a staging por la
+PR #578 (2026-08-24) y sigue ahi tras la promocion #654 (2026-08-31).
+
+ADVERTENCIA DE HERRAMIENTA: el clon local ~/Downloads/_clones/VeevartFrontend
+tiene los remote-tracking refs CONGELADOS (origin/develop marcaba 2026-08-03 y
+origin/staging 2026-07-22) y no se movian ni con git fetch --unshallow. Leer el
+estado de las ramas desde ese clon da un resultado FALSO — parecia que staging
+todavia tenia el codigo viejo con canales bloqueados. La lectura correcta se
+obtuvo con `gh api repos/.../branches/<b>` y `gh api .../contents/<path>?ref=staging`.
+Mismo patron ya visto antes en este repo: no confiar en refs de un clon parcial.
+
+HALLAZGO TC-66 S4 — SIGUE VIVO EN STAGING
+------------------------------------------
+Archivo traido de staging: 377 lineas (el head probado tenia otra estructura).
+  staging RestrictionsStep.tsx:347   {draft.availableOnline && (
+La guarda de "Allowed email domains" sigue mirando UNICAMENTE availableOnline.
+Nada consulta availablePos. Con Online=on y POS=on la seccion se renderiza igual.
+  staging RestrictionsStep.tsx:322   {draft.availablePos && (   <- requireReasonAtPos, correcto
+  staging RestrictionsStep.tsx:369   clearedDomains && !availableOnline          <- aviso de limpieza, correcto
+CONCLUSION: el hallazgo NO es un artefacto de un head viejo. Esta en produccion-staging.
+
+HALLAZGO TC-50 S1 — SIGUE VIVO EN STAGING
+------------------------------------------
+Archivo traido de staging: 847 lineas.
+  grep endContent|startContent|suffix -> CERO resultados
+  staging BasicInfoStep.tsx:594   label={t('value')}                    <- label constante
+  staging BasicInfoStep.tsx:596-598  placeholder cambia por discountType
+  staging BasicInfoStep.tsx:603-604  min/max cambian por discountType
+  staging BasicInfoStep.tsx:61    AUTHORING_DISCOUNT_TYPES = ['percent_off','dollar_off']
+  staging BasicInfoStep.tsx:830   return AUTHORING_DISCOUNT_TYPES
+Identico al head probado: ambos tipos se ofrecen (TC-50 S0 PASA) y el campo sigue
+sin sufijo ni label variable (TC-50 S1 FALLA).
+CONCLUSION: el hallazgo tambien sigue vivo en staging.
+
+QUE SIGNIFICA PARA LA VERIFICACION MANUAL
+------------------------------------------
+Las capturas de ui/README-que-capturar.txt se pueden tomar en STAGING, que es
+donde el wizard esta desplegado. La alternativa sin backend sigue siendo la ruta
+/sandbox/discount-wizard que dejo la propia PR.
+
+LIMITE QUE QUEDA DECLARADO
+---------------------------
+Esta re-verificacion es de CODIGO desplegado, leido del ref staging. Sigue sin
+haber corrida en navegador. Los escenarios not-run del TR siguen not-run.

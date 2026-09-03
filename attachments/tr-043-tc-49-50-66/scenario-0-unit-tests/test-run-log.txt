@@ -1,0 +1,60 @@
+LOG DE EJECUCION DE LA SUITE DEL DEV
+=====================================
+La suite SI se corrio localmente sobre el head real de la PR.
+No es evidencia de CI reciclada: el CI de esta PR no corre tests.
+
+Worktree: ~/Downloads/_clones/VeevartFrontend-worktrees/sh1096
+Commit:   2a4d76abe7a35e9b74b453d5d283defb936a115f
+          "feat(discounts): rebuild the list table and Review, and always carry a code"
+
+--- CORRIDA 1: suite completa del modulo ---
+$ vitest run src/discounts/discount-wizard --reporter=basic
+ Test Files  56 passed (56)
+      Tests  1658 passed (1658)
+   Duration  26.90s
+ exit=0
+
+--- CORRIDA 2: suites dirigidas a los tres TC ---
+$ vitest run BasicInfoStep.test.tsx RestrictionsStep.test.tsx ReviewStep.test.tsx \
+            discount-save-validation.test.ts page/DiscountsCodesPage.test.tsx --reporter=verbose
+ Test Files  5 passed (5)
+      Tests  242 passed (242)
+   Duration  17.85s
+ exit=0
+ (salida completa en targeted-suites.log)
+
+--- ESTADO DEL CI DE LA PR ---
+$ gh pr checks 463 --repo Veevarts/VeevartFrontend
+ AWS CodeBuild us-east-1 (veevart-latest)   pass
+ lint                                        pass
+ cleanup-membership / Resolve issue key      pass
+ cleanup-membership / SST remove sh-1096     pass
+ cleanup-pay-by-link / Resolve issue key     pass
+ cleanup-pay-by-link / SST remove sh-1096    pass
+ cleanup-programs / Resolve issue key        pass
+ cleanup-programs / SST remove sh-1096       pass
+ cleanup-shells / Resolve issue key          pass
+ cleanup-shells / SST remove sh-1096         pass
+
+ 10 checks, 10 en verde, PERO NINGUNO ejecuta vitest.
+ Observacion para el equipo: una PR de 36k lineas con 1.658 tests propios
+ mergeada sin que el CI los corra. Los tests existen y pasan — nadie los
+ estaba mirando en el pipeline. No es un defecto de SH-1096; es una brecha
+ de pipeline que vale la pena levantar aparte.
+
+--- FALSO NEGATIVO QUE HAY QUE CONOCER ---
+Primera corrida, antes de agregar packages/tsconfig al sparse-checkout:
+ Test Files  56 failed (56)
+      Tests  no tests
+ TSConfckParseError: failed to resolve "extends":"@veevart/tsconfig/react-lib.json"
+
+56 archivos "fallando" sin haber ejecutado un solo test. Es resolucion de
+tsconfig, no codigo roto. Mismo patron que ya habiamos visto en SH-844
+(fallos falsos de vitest por configuracion de raiz).
+
+ALCANCE DE LA VERIFICACION
+---------------------------
+Todo lo que sigue se verifico por CODIGO FUENTE + TESTS UNITARIOS DEL DEV.
+NO se abrio navegador. Las afirmaciones visuales/de comportamiento en vivo
+(spinners, foco, teclado, render real de un control) quedan `not-run` y estan
+listadas en la seccion "Pendiente de tu parte" del resumen.

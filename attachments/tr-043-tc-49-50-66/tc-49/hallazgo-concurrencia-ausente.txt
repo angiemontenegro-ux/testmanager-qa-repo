@@ -1,0 +1,46 @@
+TC-49 / S7 — HALLAZGO: no hay control de edicion concurrente
+=============================================================
+Veredicto del escenario: FAILED
+
+QUE PIDE
+---------
+Given  dos admins abren LA MISMA promocion en el wizard completo (WIZ-50; SC-61)
+When   ambos editan y guardan, uno despues del otro
+Then   el primer Save funciona
+And    el segundo falla con 'The promotion was updated by someone else.
+       Reload to see the latest and try again.'
+
+QUE HAY
+--------
+Nada de eso. Busqueda en todo el modulo:
+
+  $ grep -rni "conflict|updated by someone" packages/shop/src/discounts/discount-wizard/
+  page/save-guard-utils.ts:35   hasDraftAudienceClearConflict()
+      -> conflicto de FORMA del draft (una regla con audience type y ticket type
+         a la vez). Es validacion local, nada que ver con concurrencia.
+  messages/en.json:56           dateModeConflict
+      -> "A date range and specific dates cannot be combined."
+  messages/en.json:462          exclusiveConflict
+      -> misma familia que save-guard-utils.
+  schemas/promotion-authoring.ts:210  DATE_MODE_CONFLICT
+  schemas/promotion-authoring.ts:436  conflictsWith (campo opcional de un issue)
+
+Los cinco usos de la palabra "conflict" son validacion de forma del propio draft.
+Ninguno es bloqueo optimista.
+
+Ademas, lo que confirma la ausencia: no existe en el modelo ningun portador de
+version. No hay `version`, ni `etag`, ni `updatedAt` enviado de vuelta en el
+save, ni un 409 mapeado. El catalogo de errores del cliente (api/error-catalog.ts)
+no tiene entrada de conflicto de concurrencia.
+
+Sin un token de version viajando en el request no se puede detectar
+"alguien mas lo edito": el segundo Save simplemente pisa al primero, en silencio.
+
+SEVERIDAD SUGERIDA: Medium como riesgo de producto, pero probablemente
+fuera de alcance de esta PR.
+El bloqueo optimista es un contrato cliente+servidor. No se puede implementar
+solo en el frontend de SH-1096; el backend tiene que devolver y exigir la version.
+Igual que S5, conviene confirmar si WIZ-50 estaba comprometido para esta historia.
+
+NOTA: la perdida silenciosa de una edicion concurrente es un riesgo real de
+datos. Vale levantarlo aunque no sea defecto de esta PR.

@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1096",
+  "qaSubtask": "SH-1120",
+  "tcKey": "TC-49,TC-50,TC-66",
+  "trKey": "TR-043",
+  "prNumber": 463,
+  "prRepo": "Veevarts/VeevartFrontend",
+  "startedAt": "2026-09-02T19:00:00Z",
+  "lastUpdated": "2026-09-02T19:35:00Z",
+  "status": "completed",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "currentStep": 12,
+  "data": {
+    "classification": {
+      "category": "UI / Frontend-only",
+      "rationale": "132 files: 63 ts, 60 tsx, 7 json, 2 cjs. No SQL, no pipeline, no SF metadata, no deps added."
+    },
+    "worktree": "~/Downloads/_clones/VeevartFrontend-worktrees/sh1096 @ 2a4d76abe7a35e9b74b453d5d283defb936a115f",
+    "unitTests": {
+      "runResult": "PASS",
+      "full": "56 files / 1658 tests passed",
+      "targeted": "5 files / 242 tests passed",
+      "envFix": "npm install --workspace packages/shop --ignore-scripts + sparse-checkout add packages/tsconfig"
+    },
+    "ciNote": "PR CI has NO unit-test job: only lint, AWS CodeBuild and SST cleanup. Local run is the real evidence.",
+    "findings": {
+      "TC-50-S2": "failed - no % / $ suffix or label change; only placeholder+min/max switch, placeholder invisible once value entered",
+      "TC-66-S5": "failed - email domains gated only on availableOnline; dev comment 'Online-requiring, not Online-only'; server EMAIL_DOMAINS_NOT_ALLOWED_WITH_POS caught only after round trip",
+      "TC-49-S1-S4": "skipped - Redemption row not built (D10); also always-a-code contradicts 'saves without a code'",
+      "TC-49-S6": "failed - no Duplicate action exists",
+      "TC-49-S8": "failed - no optimistic-locking conflict handling"
+    },
+    "testrunPath": "test-runs/TR-043-sh-1096-unified-wizard-shell.testrun.yml",
+    "summary": {
+      "total": 15,
+      "passed": 8,
+      "failed": 4,
+      "skipped": 2,
+      "notRun": 1,
+      "passRate": 53
+    },
+    "technicalRegression": "8/8 PASS (T7 estatico)",
+    "securityRegression": "8/8 PASS",
+    "owasp": {
+      "applicable": [
+        "A03",
+        "A04",
+        "A06",
+        "A09"
+      ],
+      "allPass": true,
+      "na": [
+        "A01",
+        "A02",
+        "A05",
+        "A07",
+        "A08",
+        "A10"
+      ]
+    },
+    "defectsRaised": [],
+    "blockedOn": "Rule 7b: 4 FAIL de severidad Low/Medium esperan decision de Angie antes de crear defectos en Jira; commit en pausa hasta esa decision."
+  }
+}

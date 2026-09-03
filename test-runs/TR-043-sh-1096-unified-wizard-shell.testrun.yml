@@ -1,0 +1,785 @@
+schemaVersion: '1.0'
+id: tr-9f4c2e71-6b38-4d05-a7e2-51c8b03fd946
+key: TR-043
+title: 'Run: Unified wizard shell — Step 1 Discount Type, Step 3 Restrictions and Step 4 Review (TC-49 + TC-50 + TC-66) contra
+  la PR #463 de VeevartFrontend, SH-1096 / QA Sub-task SH-1120'
+status: in-progress
+environment:
+  name: local-source
+  buildVersion: 'UI / Frontend-only. ENTORNO: NO se probo en Dev ni en stage. La verificacion se hizo contra el CODIGO FUENTE del
+    head de la PR en un worktree local + la suite del dev ejecutada localmente (56 archivos / 1.658 tests, 0 fallos). Sin navegador
+    y sin instancia desplegada. PR Veevarts/VeevartFrontend#463 "feat(discounts): rebuild the discount wizard ui for the v3 rules
+    model SH-1096", rama story/discount-wizard-v3-ui-SH-1096 -> develop, MERGEADA 2026-08-05T13:14:38Z, head bajo prueba 2a4d76abe7a35e9b74b453d5d283defb936a115f,
+    base 4742b249ab8fd92c35a5c888123d812d8c37e60b. Diff: 132 archivos (63 .ts, 60 .tsx, 7 .json, 2 .cjs), +36.245 / -6.695. Sin
+    SQL, sin pipeline, sin metadata de Salesforce: no aplica safesql ni carga a sandbox. VERIFICACION POR CODIGO FUENTE + SUITE
+    REAL DEL DEV EJECUTADA LOCALMENTE (56 archivos / 1.658 tests, 0 fallos), NO por navegador. VEREDICTO: 8/15 PASS, 4 FAIL, 2
+    skipped, 1 not-run. Regresion tecnica 8/8 PASS, seguridad 8/8 PASS, OWASP 4 aplicables PASS / 6 N/A, 0 bloqueadores. 4 defectos
+    creados y linkeados a SH-1096: SH-1261 (Low), SH-1262 (Medium), SH-1263 (Low), SH-1264 (Medium). RE-VERIFICADO CONTRA STAGING
+    el 2026-09-02: los dos hallazgos vivos (TC-50 S1 y TC-66 S4) siguen presentes en el codigo desplegado en staging (00548c1eb8,
+    promocion #654 del 2026-08-31). Ver verificacion-en-staging.txt.'
+startedAt: '2026-09-02T19:00:00.000Z'
+results:
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Step 4 shows Automatic (Membership Benefit) and saves without a code
+  scenarioIndex: 0
+  status: skipped
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable: las reglas de membresia existen y el Step 2 las gestiona.'
+    phase: given
+    text: Step 2 has a rule with a Membership Program selected
+  - order: 2
+    status: passed
+    actual: El Step 4 Review existe y se renderiza (ReviewStep.tsx, 19 tests del dev).
+    phase: when
+    text: the admin reaches Step 4
+  - order: 3
+    status: skipped
+    actual: 'NO CONSTRUIDO. grep de "Redemption:" en todo el modulo (.ts, .tsx, en.json, fr.json): CERO resultados. Ninguno de
+      los 19 tests de ReviewStep.test.tsx menciona una fila de redencion. El Review que si se construyo es otra cosa: tarjeta de
+      cabecera con el valor en grande, chip de estado, el codigo como control copiable, un QR y un tile por regla. Ya estaba anticipado:
+      la decision D10 del Taller establecio que el Step 4 actual no lleva fila de Redemption Mode y que este escenario describe
+      el rediseno RECOMENDADO. SKIPPED y no FAILED: no hay nada roto, hay un TC escrito contra un diseno que no se eligio.'
+    phase: then
+    text: 'the redemption row reads ''Redemption: Automatic (membership benefit)'''
+    attachments:
+    - name: hallazgo-review-no-construido.txt
+      path: attachments/tr-043-tc-49-50-66/tc-49/hallazgo-review-no-construido.txt
+      mimeType: text/plain
+  - order: 4
+    status: skipped
+    actual: 'ADEMAS, ESTA PREMISA QUEDO DEROGADA — y esto es informacion NUEVA, posterior a la nota del taller. El commit head
+      se llama literalmente "...and always carry a code". discount-save-validation.ts:22-27 lo explica: "the save sends draft.code
+      unconditionally and no longer sends kind"; y en las lineas 40-43: "every promotion carries a code". Confirmado por tres tests
+      del dev: ''shows the code and its QR even when every rule is automatic'', ''always renders an editable customer-facing code
+      field with Generate'' y ''renders an empty required field, with Generate, for a promotion that has no code yet''. Guardar
+      sin codigo ya no es un camino posible del producto, ni siquiera para la automatica de membresia.'
+    phase: then
+    text: and saves without a code
+  notes: 'SKIPPED, no FAILED: el TC-49 esta en status draft y el propio TC declara estos escenarios como cobertura forward-looking
+    del rediseno D10. Accion recomendada: reescribir TC-49 contra el Review que si existe. Hoy mezcla cuatro capas — diseno descartado
+    (S0, S3), premisa derogada por always-a-code (S0), escenarios validos y verificables (S1, S2, S6) y features inexistentes (S5,
+    S7) — y eso lo vuelve inejecutable tal como esta.'
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Step 4 blocks Save with an error banner when code-required mode has no code
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Draft sin gate de membresia: modo code-required en el vocabulario del TC.'
+    phase: given
+    text: no rule on Step 2 has a Membership Program selected
+  - order: 2
+    status: passed
+    actual: Bajo always-a-code el campo de codigo del Step 1 es requerido, asi que el draft es invalido antes de llegar al Save.
+    phase: when
+    text: the admin clicks Save without a code
+  - order: 3
+    status: passed
+    actual: 'PASA EN MECANISMO, con una salvedad de nomenclatura que dejo explicita. El identificador literal del TC no existe
+      en el cliente; el equivalente real es el error de backend CUSTOMER_FACING_CODE_REQUIRED mapeado a toast.apiErrors.customerFacingCodeRequired
+      = "A customer-facing code is required for this discount kind." El banner y el link SI existen tal cual los pide el TC: messages
+      saveErrorGoToBasic = "Go to step 1" y ReviewStep.tsx:125 {onGoToStep && (...)}. Tests del dev: ''states the reason in an
+      alert and offers the step that can fix it'' y ''shows save-gated validation issues in a polite status region''. El enrutado
+      no es a ciegas: wizard-validation.ts:192 getWizardStepForIssue() calcula que paso puede resolver cada issue.'
+    phase: then
+    text: an error banner cites CUSTOMER_FACING_CODE_REQUIRED_FOR_CODE_MODE with a 'Go to step 1' link
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  notes: 'PASSED. Unica desviacion: el nombre del codigo de error. El TC cita CUSTOMER_FACING_CODE_REQUIRED_FOR_CODE_MODE (vocabulario
+    del modelo de kinds, que esta PR retira) y el sistema usa CUSTOMER_FACING_CODE_REQUIRED. Es deuda de redaccion del TC, no un
+    defecto: el comportamiento observable — Save bloqueado, banner con la razon, link al Step 1 — se cumple entero.'
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Order-level discount without a code is blocked on Review
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'El control Apply to existe con dos opciones. Test: ''offers exactly Entire order and Specific items, defaulting to
+      Specific items''.'
+    phase: given
+    text: Step 1 has Apply to = Entire order and no customer-facing code was entered
+  - order: 2
+    status: passed
+    actual: El Save del Review corre la validacion completa del draft.
+    phase: when
+    text: the admin clicks Save on the Review step
+  - order: 3
+    status: passed
+    actual: 'PASA EN MECANISMO, misma salvedad de nombre. El wizard es explicito con el admin en order-level: test del dev ''states
+      on Entire order that the code is always required at checkout''. Bajo always-a-code el codigo es obligatorio en todos los
+      casos, asi que el bloqueo ocurre incluso antes que lo que el TC describe.'
+    phase: then
+    text: an error banner cites CUSTOMER_FACING_CODE_REQUIRED_FOR_ORDER_LEVEL
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: PASA. saveErrorGoToBasic = "Go to step 1"; ReviewStep.tsx:125 expone onGoToStep, cableado en DiscountsCodesPage.tsx:1076
+      y en DiscountCodeWizardModal.tsx:699 (los dos hosts del wizard, no uno solo). getWizardStepForIssue() (wizard-validation.ts:192)
+      resuelve el paso destino a partir del issue, asi que el salto apunta al paso que realmente contiene el campo.
+    phase: then
+    text: a 'Go to Step 1' link jumps to the code field
+  notes: 'PASSED. Misma desviacion de nomenclatura que el escenario 1: el identificador citado no existe, el comportamiento si.'
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Order-level discount with a code saves and shows the Code Required (Entire Order) redemption row
+  scenarioIndex: 3
+  status: skipped
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Estado autorable y valido.
+    phase: given
+    text: Step 1 has Apply to = Entire order and a customer-facing code is set
+  - order: 2
+    status: passed
+    actual: El Review se renderiza.
+    phase: when
+    text: the admin reaches Step 4 Review
+  - order: 3
+    status: skipped
+    actual: NO CONSTRUIDO, misma fila inexistente del escenario 0. Lo que el Review SI muestra en order-level esta cubierto por
+      'confirms all three modules at order level and the authored ones at item level' y 'never blames the omitted step at order
+      level'.
+    phase: then
+    text: 'the Redemption row reads ''Redemption: Code Required (Entire Order)'''
+    attachments:
+    - name: hallazgo-review-no-construido.txt
+      path: attachments/tr-043-tc-49-50-66/tc-49/hallazgo-review-no-construido.txt
+      mimeType: text/plain
+  - order: 4
+    status: not-run
+    actual: La mitad verificable de este escenario. La ruta de guardado existe y esta cubierta por los 262 tests de api/ + schemas/,
+      pero la persistencia real end-to-end necesita backend y no se ejercito en esta corrida.
+    phase: then
+    text: Save persists the discount
+  notes: 'SKIPPED por la fila de redencion (D10). La afirmacion de persistencia queda not-run y es cerrable con la app corriendo:
+    ver ui/README-que-capturar.txt.'
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Archiving an Active promotion excludes it from evaluation but keeps redemption history
+  scenarioIndex: 4
+  status: not-run
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Estado alcanzable desde el listado.
+    phase: given
+    text: an Active promotion exists and the admin is editing it (WIZ-04; SC-52)
+  - order: 2
+    status: passed
+    actual: 'PASA. El flujo completo existe: kebab (codes.table.actionLabels.menu = "More actions for {name}"), item de archivado
+      (actionLabels.delete = "Archive {name}"), dialogo de confirmacion (codes.deleteDialog.title = "Archive discount code?", .confirm
+      = "Archive discount") y la mutacion en DiscountsCodesPage.tsx:271 useArchivePromotion() / :948 archivePromotion.mutateAsync(deleteCandidate.id).'
+    phase: when
+    text: the admin opens the '...' overflow menu, selects Archive, and confirms in the confirmation dialog
+  - order: 3
+    status: passed
+    actual: 'PASA por fuente. Existe el estado archived con su etiqueta (codes.table.labels.status.archived = "Archived") y es
+      filtrable (FiltersPopover.tsx:25). Ademas las filas archived quedan read-only de forma coherente: DiscountsCodesPage.tsx:498
+      y :814 bloquean la edicion con toast, y actionLabels.archivedToggleDisabled impide reactivarlas desde el listado.'
+    phase: then
+    text: the status pill flips to Archived
+  - order: 4
+    status: not-run
+    actual: NO VERIFICABLE EN ESTA PR. Que el motor de descuentos deje de evaluar una promocion archivada es comportamiento de
+      backend. El frontend solo marca el estado.
+    phase: then
+    text: the promotion is excluded from future evaluation
+  - order: 5
+    status: not-run
+    actual: NO VERIFICABLE EN ESTA PR. Es persistencia de backend. Se valida consultando el motor despues de archivar, no mirando
+      la UI.
+    phase: then
+    text: historical redemption records for the promotion remain intact
+  notes: NOT-RUN a nivel escenario porque dos de sus tres afirmaciones son de backend y son centrales al escenario. La mitad de
+    UI quedo PASSED y esta probada por fuente — se ve en el detalle por paso. Para cerrarlo hace falta archivar una promocion real
+    y consultar el motor.
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Duplicating a promotion creates a new Draft with all fields copied
+  scenarioIndex: 5
+  status: failed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Estado trivial de alcanzar.
+    phase: given
+    text: an existing promotion exists (WIZ-51; SC-53)
+  - order: 2
+    status: failed
+    actual: 'FALLA: la accion no existe. El catalogo completo de acciones de fila tiene 10 claves (codes.table.actionLabels): menu,
+      report, edit, editArchivedDisabled, toggle, deactivate, expiredToggleDisabled, archivedToggleDisabled, delete, archiveDisabled.
+      Ninguna es Duplicate. Busqueda exhaustiva de "duplicate" en el modulo: solo aparece como messages.duplicate = "Duplicate
+      code" (mensaje de VALIDACION de codigo repetido, confirmado por el frances "Code en doublon") y en 4 comentarios que usan
+      la palabra en su sentido comun. No hay handler, ni mutacion, ni item de menu, ni test.'
+    phase: when
+    text: the admin opens the '...' overflow menu and selects Duplicate
+    attachments:
+    - name: hallazgo-duplicate-ausente.txt
+      path: attachments/tr-043-tc-49-50-66/tc-49/hallazgo-duplicate-ausente.txt
+      mimeType: text/plain
+  - order: 3
+    status: failed
+    actual: 'Inalcanzable: no hay accion que lo dispare.'
+    phase: then
+    text: a new Draft promotion is created with all fields copied from the original
+  - order: 4
+    status: failed
+    actual: Inalcanzable por lo mismo.
+    phase: then
+    text: the admin lands on Step 1 of the new draft
+  notes: 'FAILED. ANTES DE ABRIR DEFECTO conviene confirmar alcance con Producto: la PR #463 es "rebuild the discount wizard ui
+    for the v3 rules model" y Duplicate es una feature nueva de gestion de listado, no algo que la PR haya roto. Lo mas probable
+    es que WIZ-51 / SC-53 nunca entro al alcance de SH-1096. Si nunca estuvo comprometido, lo correcto es sacar el escenario de
+    TC-49, no abrir un bug. DEFECTO CREADO: SH-1263 (severidad Low), linkeado a SH-1096 con tipo "Defect" y a SH-1120 con "Relates".'
+  defects:
+  - jiraKey: SH-1263
+    url: https://veevart.atlassian.net/browse/SH-1263
+    severity: Low
+    summary: '[QA SH-1096] The promotion Duplicate action (WIZ-51 / SC-53) does not exist in the row overflow menu'
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: Save on the Review step fails when the customer-facing code collides with another Active promotion
+  scenarioIndex: 6
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado alcanzable y ademas detectado temprano: shouldProbeCodeAvailability() (discount-save-validation.ts) dispara
+      la sonda de unicidad para todo codigo no vacio, y bajo always-a-code eso es toda promocion.'
+    phase: given
+    text: the admin is on the Review step with a customer-facing code that is already used by another Active promotion (WIZ-41;
+      SC-60)
+  - order: 2
+    status: passed
+    actual: El Save corre la validacion y el mapeo de errores del backend.
+    phase: when
+    text: the admin clicks Save
+  - order: 3
+    status: passed
+    actual: 'PASA. Cubierto en dos capas: como error de campo en el Step 1 (test ''shows code availability errors as field errors'')
+      y como error de API en el guardado (toast.apiErrors.customerFacingCodeTaken). El listado tambien lo respeta: DiscountsCodesPage.test.tsx
+      ''keeps a flushed pending ticketing row when header Save is blocked by code availability''.'
+    phase: then
+    text: Save fails
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: 'PASA EN SEMANTICA, con el texto distinto: el sistema dice "This code is already in use by an active discount." y el
+      TC pide "Code already in use." El mensaje real es mas informativo (aclara que la colision es contra un descuento ACTIVO).
+      El link es el mismo saveErrorGoToBasic = "Go to step 1" de los escenarios 1 y 2.'
+    phase: then
+    text: an error banner reads 'Code already in use.' with a 'Go to Step 1' link
+  - order: 5
+    status: not-run
+    actual: La no-persistencia necesita backend para comprobarse. Por diseno el Save se aborta antes del commit, pero eso no lo
+      verifique contra una base real.
+    phase: then
+    text: no record is persisted
+  notes: PASSED. Desviacion de texto, no de comportamiento. El paso 5 queda not-run por requerir backend.
+- testCaseId: 464733d7-04b0-461d-8b19-c8674b153b47
+  testCaseKey: TC-49
+  testCaseTitle: Step 4 Review — Redemption Mode Row & Error Banner
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-49-step4-review-redemption-mode-row.testcase.yml
+  scenarioTitle: 'Concurrent full-wizard edits on the same promotion: the second Save is rejected as a conflict'
+  scenarioIndex: 7
+  status: failed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado alcanzable: nada impide dos sesiones sobre el mismo registro.'
+    phase: given
+    text: two admins independently open the SAME promotion in the full wizard edit mode (not the Membership Program rules-only
+      editor) (WIZ-50; SC-61)
+  - order: 2
+    status: passed
+    actual: Ambos Saves se ejecutan.
+    phase: when
+    text: both admins make changes and click Save, one after the other
+  - order: 3
+    status: passed
+    actual: El primero guarda normalmente.
+    phase: then
+    text: the first Save succeeds
+  - order: 4
+    status: failed
+    actual: 'FALLA: no existe control de concurrencia. Los cinco usos de "conflict" en el modulo son validacion de forma del propio
+      draft, no bloqueo optimista: hasDraftAudienceClearConflict (save-guard-utils.ts:35), dateModeConflict, exclusiveConflict,
+      DATE_MODE_CONFLICT y el campo opcional conflictsWith. Lo que lo confirma de raiz: el modelo no tiene NINGUN portador de version
+      — no hay version, ni etag, ni updatedAt devuelto en el save, y api/error-catalog.ts no tiene entrada de conflicto de concurrencia.
+      Sin un token de version viajando en el request es imposible detectar "alguien mas lo edito": el segundo Save simplemente
+      pisa al primero, en silencio.'
+    phase: then
+    text: the second Save fails with 'The promotion was updated by someone else. Reload to see the latest and try again.'
+    attachments:
+    - name: hallazgo-concurrencia-ausente.txt
+      path: attachments/tr-043-tc-49-50-66/tc-49/hallazgo-concurrencia-ausente.txt
+      mimeType: text/plain
+  notes: 'FAILED. Igual que Duplicate, conviene confirmar alcance antes de abrir defecto: el bloqueo optimista es un contrato cliente+servidor
+    y no se puede implementar solo en el frontend de SH-1096 — el backend tiene que devolver y exigir la version. Dicho eso, la
+    perdida silenciosa de una edicion concurrente es un riesgo real de datos y vale levantarlo aunque no sea defecto de esta PR.
+    DEFECTO CREADO: SH-1264 (severidad Medium), linkeado a SH-1096 con tipo "Defect" y a SH-1120 con "Relates".'
+  defects:
+  - jiraKey: SH-1264
+    url: https://veevart.atlassian.net/browse/SH-1264
+    severity: Medium
+    summary: '[QA SH-1096] Concurrent full-wizard edits silently overwrite each other — no optimistic locking (WIZ-50 / SC-61)'
+- testCaseId: dac71215-10bb-4d43-83da-a2e3c7895902
+  testCaseKey: TC-50
+  testCaseTitle: Step 1 Discount Type Toggle (% Off / $ Off)
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-50-step1-discount-type-toggle.testcase.yml
+  scenarioTitle: Step 1 exposes % Off and $ Off
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'El control existe: BasicInfoStep.tsx:552-563 renderiza un WizardSelect con label t(''type'') enlazado a draft.discountType.'
+    phase: given
+    text: the admin views the Discount Type control on Step 1
+  - order: 2
+    status: passed
+    actual: Las opciones salen de DISCOUNT_TYPES filtrado por supportedDiscountTypes (BasicInfoStep.tsx:554-555).
+    phase: when
+    text: the admin opens the control
+  - order: 3
+    status: passed
+    actual: 'PASA. getSupportedDiscountTypes() (BasicInfoStep.tsx:802-804) devuelve AUTHORING_DISCOUNT_TYPES = [''percent_off'',''dollar_off'']
+      SIEMPRE, sin mirar el scope. El comentario de las lineas 56-58 lo confirma: "$ Off is selectable regardless of the promotion''s
+      scope". Etiquetas en messages/en.json: type.percent_off=''% Off'', type.dollar_off=''$ Off''. Test del dev que lo cubre:
+      ''shows amount-off as a discount type for a non-shop (ticketing) draft''.'
+    phase: then
+    text: both '% Off' and '$ Off' are selectable
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: 'Confirmado en codigo, no solo de palabra: ambos tipos se ofrecen incondicionalmente y el campo Value ajusta min/max
+      por tipo (min 0.01 para dollar_off, max 100 para percent_off, BasicInfoStep.tsx:576-577).'
+    phase: then
+    text: 'RESOLVED: Cesar confirmed 2026-07-23 that $ Off is already applied and supported end-to-end'
+  notes: Escenario cubierto en su totalidad por fuente + test del dev. Sin browser, pero es un contrato de datos, no comportamiento
+    visual.
+- testCaseId: dac71215-10bb-4d43-83da-a2e3c7895902
+  testCaseKey: TC-50
+  testCaseTitle: Step 1 Discount Type Toggle (% Off / $ Off)
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-50-step1-discount-type-toggle.testcase.yml
+  scenarioTitle: Switching Discount Type after entering a value keeps the numeric value but changes its unit
+  scenarioIndex: 1
+  status: failed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado alcanzable: el campo Value escribe draft.value via onValueChange (BasicInfoStep.tsx:580-592).'
+    phase: given
+    text: the admin has entered Discount Value = 20 with Discount Type = % Off
+  - order: 2
+    status: passed
+    actual: 'BasicInfoStep.tsx:560-562 despacha { type: ''setField'', patch: { discountType } }.'
+    phase: when
+    text: the admin switches Discount Type to $ Off
+  - order: 3
+    status: passed
+    actual: PASA. El patch lleva UNICAMENTE discountType. `value` no se resetea ni se re-parsea en ninguna rama de ese onChange.
+      El 20 sobrevive.
+    phase: then
+    text: Discount Value remains 20
+  - order: 4
+    status: failed
+    actual: 'FALLA. No existe sufijo ni adorno de unidad: grep de endContent/startContent/suffix en BasicInfoStep.tsx devuelve
+      CERO resultados. El label es constante t(''value'') = ''Value'' (messages/en.json codes.wizard.basic.value), identico con
+      % Off y con $ Off. Lo unico que reacciona al tipo es el placeholder (''e.g. 25'' vs ''e.g. 10.50'', lineas 568-572) y min/max
+      — y el placeholder esta OCULTO justo cuando el campo tiene el 20 escrito, que es el estado exacto del escenario. Resultado:
+      el admin ve el mismo campo ''Value'' con 20 adentro y nada le dice si son 20 por ciento o 20 dolares.'
+    phase: then
+    text: the field's suffix/label updates from % to $
+    attachments:
+    - name: hallazgo-sufijo.txt
+      path: attachments/tr-043-tc-49-50-66/tc-50/hallazgo-sufijo.txt
+      mimeType: text/plain
+  notes: 'FAILED por la segunda afirmacion. Severidad Low: no hay perdida de datos ni error de calculo — el valor se persiste con
+    el tipo correcto. Es claridad de UI. Brecha de cobertura del dev: ninguno de los 86 tests de BasicInfoStep.test.tsx cambia
+    el tipo con un valor ya escrito. La convencion de unidad SI existe en el producto (codes.table.valueFormats.percent = ''{value}%''
+    en el listado), lo que refuerza que aqui falta. DEFECTO CREADO: SH-1261 (severidad Low), linkeado a SH-1096 con tipo "Defect"
+    y a SH-1120 con "Relates".'
+  defects:
+  - jiraKey: SH-1261
+    url: https://veevart.atlassian.net/browse/SH-1261
+    severity: Low
+    summary: '[QA SH-1096] The Discount Value field gives no unit affordance when switching between % Off and $ Off'
+- testCaseId: 0359fef0-72fe-44c8-a23d-0bf3ae8c843b
+  testCaseKey: TC-66
+  testCaseTitle: 'Step 3 — Restrictions: channels, POS reason, email domains'
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-66-step3-restrictions-channels-pos-reason-email-domains.testcase.yml
+  scenarioTitle: At least one channel must be enabled to Save
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'PASA y ademas es lo que esta PR arreglo. RestrictionsStep.tsx:96-101 documenta: "The two channel switches are ALWAYS
+      editable — no lock predicate, no isDisabled, no derived value, no inert writer". La PR borro areChannelsLocked/deriveChannels/resolveChannels
+      del barrel. Tests: ''renders channel switches EDITABLE when there are no rules at all'', ''...when a membership rule exists'',
+      ''...with no lock helper text when only Ticketing rules exist''.'
+    phase: given
+    text: Available Online and Available at POS are independently toggleable on Step 3 (WIZ-30)
+  - order: 2
+    status: passed
+    actual: 'Alcanzable justamente porque los switches quedaron editables. Test: ''dispatches a channel update from a Ticketing-only
+      draft, where the control used to be inert''.'
+    phase: when
+    text: the admin turns both Available Online and Available at POS off and attempts to Save
+  - order: 3
+    status: passed
+    actual: 'PASA. Integracion end-to-end del dev: ''blocks Save and returns to Restrictions when both channels are switched off
+      (FP8)'' en DiscountsCodesPage.test.tsx. No solo bloquea: devuelve al admin al paso que puede arreglarlo.'
+    phase: then
+    text: Save is blocked
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: 'PASA. discount-save-validation.ts:66 mapea ''At least one channel must be enabled.'' -> wizard.validationMessages.channelError.
+      Doble cobertura unitaria: ''shows at-least-one-channel error when both channels are off in editable state'' y ''DOES show
+      the channel at-least-one error on a Ticketing-only draft''.'
+    phase: then
+    text: at least one channel must be enabled for the promotion to be saved
+  notes: 'WIZ-30 cerrado. Ojo con el contexto: existe la PR ABIERTA #444 "test(discounts): mark LOCKED-channel validation gap as
+    known (WIZ-30)". Esa PR describe el estado ANTERIOR (canales bloqueados). La #463 elimino el bloqueo, asi que esa brecha ya
+    no existe en este head — conviene revisar si #444 sigue teniendo sentido o quedo obsoleta.'
+- testCaseId: 0359fef0-72fe-44c8-a23d-0bf3ae8c843b
+  testCaseKey: TC-66
+  testCaseTitle: 'Step 3 — Restrictions: channels, POS reason, email domains'
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-66-step3-restrictions-channels-pos-reason-email-domains.testcase.yml
+  scenarioTitle: '''Require Discount Reason'' for POS is only available when Available at POS is enabled'
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: draft.availablePos = true, switch en RestrictionsStep.tsx:111-120.
+    phase: given
+    text: Available at POS is enabled (WIZ-31)
+  - order: 2
+    status: passed
+    actual: Render condicional evaluado en RestrictionsStep.tsx:127.
+    phase: when
+    text: the admin views Step 3
+  - order: 3
+    status: passed
+    actual: 'PASA. RestrictionsStep.tsx:127-134: {draft.availablePos && (<Switch label={t(''requireReasonAtPos'')} .../>)}. Test
+      del dev: ''renders requireReasonAtPos on a Ticketing-only draft whose POS is authored ON''.'
+    phase: then
+    text: a 'Require Discount Reason' toggle for POS is visible and available
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 4
+    status: not-run
+    actual: 'NO VERIFICABLE AQUI, y no por falta de evidencia sino por alcance. Esta afirmacion describe el comportamiento de la
+      app de POS en el momento de la redencion, no del wizard de autoria. La PR #463 es solo el frontend de autoria: guarda requireReasonAtPos
+      y ahi termina su responsabilidad. Se prueba en el POS, no en esta historia.'
+    phase: then
+    text: when the toggle is turned on, POS staff must enter a reason at redemption
+  notes: 'PASSED por lo que el escenario realmente pide del wizard: el toggle aparece con POS activo. El paso 4 queda not-run por
+    ser comportamiento de otra aplicacion, no por falta de verificacion.'
+- testCaseId: 0359fef0-72fe-44c8-a23d-0bf3ae8c843b
+  testCaseKey: TC-66
+  testCaseTitle: 'Step 3 — Restrictions: channels, POS reason, email domains'
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-66-step3-restrictions-channels-pos-reason-email-domains.testcase.yml
+  scenarioTitle: '''Require Discount Reason'' for POS is hidden when Available at POS is disabled'
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: draft.availablePos = false.
+    phase: given
+    text: Available at POS is disabled (WIZ-31)
+  - order: 2
+    status: passed
+    actual: Se evalua la misma condicion de la linea 127.
+    phase: when
+    text: the admin views Step 3
+  - order: 3
+    status: passed
+    actual: 'PASA. La guarda {draft.availablePos && ...} deja de renderizar el bloque completo. Test: ''POS-gated controls key
+      off the AUTHORED channel: requireReasonAtPos hidden when POS is off''. Extra que el TC no pedia y el codigo si hace: al apagar
+      POS tambien LIMPIA el valor (RestrictionsStep.tsx:117-119 setea requireReasonAtPos a false), cubierto por ''dispatches availablePos
+      update and resets requireReasonAtPos when pos switch is toggled off (editable)''. Sin eso quedaria un flag huerfano activo
+      con POS apagado.'
+    phase: then
+    text: the 'Require Discount Reason' toggle for POS is not visible
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  notes: Cerrado por fuente + dos tests del dev.
+- testCaseId: 0359fef0-72fe-44c8-a23d-0bf3ae8c843b
+  testCaseKey: TC-66
+  testCaseTitle: 'Step 3 — Restrictions: channels, POS reason, email domains'
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-66-step3-restrictions-channels-pos-reason-email-domains.testcase.yml
+  scenarioTitle: Allowed email domains restriction is available only for Online-only discounts
+  scenarioIndex: 3
+  status: passed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: draft.availableOnline=true, draft.availablePos=false.
+    phase: given
+    text: Available Online is enabled and Available at POS is disabled (WIZ-32, OPS-05)
+  - order: 2
+    status: passed
+    actual: Condicion evaluada en RestrictionsStep.tsx:152.
+    phase: when
+    text: the admin views Step 3
+  - order: 3
+    status: passed
+    actual: 'PASA para esta combinacion. RestrictionsStep.tsx:152-170 renderiza el Textarea con label t(''emailDomains''). Test:
+      ''renders the field when Online is on''.'
+    phase: then
+    text: an 'Allowed email domains' restriction section is visible and available
+    attachments:
+    - name: targeted-suites.log
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/targeted-suites.log
+      mimeType: text/plain
+    - name: coverage-matrix.txt
+      path: attachments/tr-043-tc-49-50-66/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+  - order: 4
+    status: passed
+    actual: 'PASA. onValueChange parte la entrada con splitLines() y la escribe en draft.allowedEmailDomains (lineas 161-166).
+      Tests: ''parses comma-separated allowed email domains'' y ''shows an inline allowed email domains error'' para entradas invalidas.'
+    phase: then
+    text: the admin can add specific email domains to restrict online redemption to those domains
+  notes: 'PASSED para la combinacion que el escenario describe (Online on + POS off). El calificador "only" de este titulo NO se
+    cumple: eso es lo que prueba el escenario 4 y ahi se reporta el FAIL. Se mantienen separados para que la cobertura real quede
+    visible.'
+- testCaseId: 0359fef0-72fe-44c8-a23d-0bf3ae8c843b
+  testCaseKey: TC-66
+  testCaseTitle: 'Step 3 — Restrictions: channels, POS reason, email domains'
+  testCaseFilePath: test-cases/SH-1096/SH-1096-TC-66-step3-restrictions-channels-pos-reason-email-domains.testcase.yml
+  scenarioTitle: Allowed email domains restriction is hidden when POS is also enabled
+  scenarioIndex: 4
+  status: failed
+  executedAt: '2026-09-02T19:30:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado perfectamente alcanzable: los dos switches son independientes y editables desde esta PR.'
+    phase: given
+    text: Available Online is enabled and Available at POS is also enabled (WIZ-32, OPS-05)
+  - order: 2
+    status: passed
+    actual: Se evalua la guarda de la linea 152.
+    phase: when
+    text: the admin views Step 3
+  - order: 3
+    status: failed
+    actual: 'FALLA. RestrictionsStep.tsx:152 es {draft.availableOnline && (...)} — mira SOLO availableOnline, nunca availablePos.
+      Con Online=on y POS=on la seccion SI se renderiza y el admin puede escribir dominios. No es un descuido: el dev lo documento
+      en las lineas 141-145: "It is Online-requiring, not Online-only — listing domains does not disable POS". Pero el servidor
+      tiene DOS reglas, no una: ademas de EMAIL_DOMAINS_REQUIRE_ONLINE existe EMAIL_DOMAINS_NOT_ALLOWED_WITH_POS (api/error-catalog.ts:34
+      -> "Email domain restrictions cannot be used when POS is enabled"). Las dos juntas equivalen a Online-only, que es lo que
+      pide el TC. El frontend replica la primera y deja la segunda al servidor, asi que el admin llena el formulario y recien se
+      entera al guardar, despues del round trip. Lo mas fuerte: cuatro lineas mas abajo el propio comentario se queja de ese mismo
+      patron para el caso hermano FP8 ("caught only by the server, after a round trip"). Mismo problema, resuelto de dos maneras
+      distintas en el mismo archivo.'
+    phase: then
+    text: the 'Allowed email domains' restriction section is not visible
+    attachments:
+    - name: hallazgo-email-domains-pos.txt
+      path: attachments/tr-043-tc-49-50-66/tc-66/hallazgo-email-domains-pos.txt
+      mimeType: text/plain
+  notes: 'FAILED. Severidad Medium: sin perdida de datos ni impacto de seguridad, pero es validacion tardia sobre un estado que
+    la UI deja construir, con inconsistencia interna declarada en el codigo. Arreglo minimo sugerido (no aplicado por QA): cambiar
+    la guarda a {draft.availableOnline && !draft.availablePos && (...)} y reusar el aviso de "se limpiaron estos dominios" que
+    ya existe para el caso Online-off, para no perder en silencio lo escrito. Cobertura del dev: ninguna para esta combinacion;
+    el unico test que menciona emailDomainsNotAllowedWithPos (DiscountCodeWizardModal.test.tsx:975) prueba el MAPEO del error del
+    backend, no la prevencion en el cliente. DEFECTO CREADO: SH-1262 (severidad Medium), linkeado a SH-1096 con tipo "Defect" y
+    a SH-1120 con "Relates".'
+  defects:
+  - jiraKey: SH-1262
+    url: https://veevart.atlassian.net/browse/SH-1262
+    severity: Medium
+    summary: '[QA SH-1096] Allowed email domains stays visible and editable when POS is enabled, so the invalid combination is
+      only rejected after a save round trip'
+summary:
+  total: 15
+  passed: 8
+  failed: 4
+  blocked: 0
+  skipped: 2
+  notRun: 1
+  passRate: 53
+history:
+- action: created
+  timestamp: '2026-09-02T19:00:00.000Z'
+  user: angie.montenegro@veevart.com
+  to: planned
+- action: status-changed
+  timestamp: '2026-09-02T19:05:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: planned
+  to: in-progress
+  reason: 'Ejecutar los tres test cases de la QA Sub-task SH-1120 contra la PR #463 ya mergeada'
+- action: updated
+  timestamp: '2026-09-02T19:30:00.000Z'
+  user: angie.montenegro@veevart.com
+  reason: 'Cargados los veredictos por escenario, la matriz de cobertura, la regresion tecnica y de seguridad y el scan OWASP.
+    Queda in-progress: 1 escenario not-run por requerir backend y 4 FAIL pendientes de decision sobre si se abren en Jira.'
+- action: updated
+  timestamp: '2026-09-02T20:05:00.000Z'
+  user: angie.montenegro@veevart.com
+  reason: 'Corregido environment.name de "qa" a "local-source": la corrida no fue en Dev ni en stage sino contra codigo fuente
+    + suite local. Agregada la re-verificacion de los hallazgos contra el ref staging.'
+- action: updated
+  timestamp: '2026-09-03T13:30:00.000Z'
+  user: angie.montenegro@veevart.com
+  reason: Creados los 4 defectos en Jira (SH-1261 a SH-1264) y linkeados a la historia SH-1096 con tipo "Defect" y a la QA Sub-task
+    SH-1120 con "Relates".
+metadata:
+  parentTicket: SH-1096
+  qaSubTask: SH-1120
+  pullRequest: https://github.com/Veevarts/VeevartFrontend/pull/463
+  headUnderTest: 2a4d76abe7a35e9b74b453d5d283defb936a115f
+  mergeBase: 4742b249ab8fd92c35a5c888123d812d8c37e60b
+  classification: UI / Frontend-only
+  testCasesExecuted: TC-49 (draft), TC-50 (active), TC-66 (draft) — los tres que declara SH-1120
+  unitTestsInPR: 63 de los 132 archivos del diff son tests. Cobertura amplia y real del dev.
+  localSuite: 'vitest run src/discounts/discount-wizard -> 56 archivos / 1.658 tests, 0 fallos (exit 0). Suites dirigidas a los
+    tres TC: 5 archivos / 242 tests, 0 fallos.'
+  technicalRegression: 8/8 PASS (T7 por analisis estatico, no por ejecucion — ver regression-results.txt)
+  securityRegression: 8/8 PASS, 0 bloqueadores High/Critical
+  owaspTop10: 4 aplicables (A03, A04, A06, A09) todos PASS · 0 FAIL · 6 N/A justificados
+  defects:
+  - jiraKey: SH-1261
+    url: https://veevart.atlassian.net/browse/SH-1261
+    severity: Low
+    scenario: TC-50 S1
+  - jiraKey: SH-1262
+    url: https://veevart.atlassian.net/browse/SH-1262
+    severity: Medium
+    scenario: TC-66 S4
+  - jiraKey: SH-1263
+    url: https://veevart.atlassian.net/browse/SH-1263
+    severity: Low
+    scenario: TC-49 S5
+  - jiraKey: SH-1264
+    url: https://veevart.atlassian.net/browse/SH-1264
+    severity: Medium
+    scenario: TC-49 S7
+  observations:
+  - 'OBS-0 (ALCANCE DEL ENTORNO, leelo primero): esta corrida NO se ejecuto en Dev ni en stage. Se ejecuto contra el codigo fuente
+    del head de la PR #463 en un worktree local, con la suite del dev corriendo de verdad ahi. Como ese head es del 2026-08-05
+    y develop ya lleva 200 commits encima, los dos hallazgos vivos se RE-VERIFICARON leyendo el codigo del ref staging (00548c1eb8):
+    ambos siguen presentes. Las capturas manuales pendientes se pueden tomar en staging, que es donde el wizard esta desplegado.'
+  - 'OBS-1 (PROCESO, la mas importante): el CI de la PR #463 NO corre tests unitarios. Los 10 checks son AWS CodeBuild, lint y
+    8 jobs de cleanup SST — todos en verde, ninguno ejecuta vitest. Una PR de 36k lineas con 1.658 tests propios se mergeo sin
+    que el pipeline los mirara. Los tests existen y pasan (los corri), pero nada lo estaba garantizando. No es defecto de SH-1096;
+    es una brecha de pipeline que vale levantar aparte.'
+  - 'OBS-2: TC-49 quedo desactualizado y hoy es inejecutable tal como esta. Mezcla cuatro capas: escenarios de un diseno descartado
+    por la decision D10 del Taller (S0, S3), una premisa derogada por la decision "always-a-code" (S0 pide guardar sin codigo,
+    y ahora toda promocion lleva codigo), escenarios validos y verificables (S1, S2, S6) y features que no existen (S5 Duplicate,
+    S7 concurrencia). Recomendacion: reescribirlo contra el Review que si se construyo.'
+  - 'OBS-3: la PR ABIERTA #444 "test(discounts): mark LOCKED-channel validation gap as known (WIZ-30)" describe el estado ANTERIOR
+    a la #463. Esta PR desbloqueo los switches de canal (borro areChannelsLocked / deriveChannels / resolveChannels) y la validacion
+    at-least-one-channel funciona. Conviene revisar si #444 quedo obsoleta.'
+  - 'OBS-4: el monorepo arrastra 51 advisories de npm audit (1 critical vitest, 10 high: vite, next, sharp, ws, postcss, nanoid,
+    form-data, linkify-it, fast-uri, brace-expansion), casi todo tooling de build/test. NO son de esta PR: la unica dependencia
+    que agrega es qrcode.react ^4.2.0, sin advisories. Es deuda del repo, item de mantenimiento aparte.'
+  - 'OBS-5 (positiva): promotion-authoring-mappers.ts:679-681 elige el default seguro y lo justifica en el codigo — "Default to
+    the LEAST-permissive mode (manual) rather than the most permissive (both) so a data gap never silently grants auto-apply +
+    code". Un hueco de datos no termina en un descuento auto-aplicable.'
+  - 'OBS-6 (entorno, para quien repita esto): npm install completo falla con E404 en el scope privado @veevarts. Se destraba con
+    npm install --workspace packages/shop --ignore-scripts y agregando packages/tsconfig al sparse-checkout. Sin ese ultimo paso
+    vitest reporta 56 archivos FALLANDO sin correr un solo test (TSConfckParseError) — falso negativo, mismo patron que ya vimos
+    en SH-844.'
+  - 'OBS-7 (HERRAMIENTA): el clon ~/Downloads/_clones/VeevartFrontend tiene los remote-tracking refs congelados (origin/develop
+    marcaba 2026-08-03, origin/staging 2026-07-22) y no se movian ni con git fetch --unshallow. Leer el estado de las ramas desde
+    ese clon da un resultado FALSO: parecia que staging todavia tenia el codigo viejo con canales bloqueados. Para el estado real
+    hay que usar gh api repos/.../branches/<b> y .../contents/<path>?ref=<b>.'
+  attachmentsPath: attachments/tr-043-tc-49-50-66
+  verificationMethod: 'Codigo fuente + suite del dev ejecutada localmente sobre el head real de la PR (worktree en detached HEAD).
+    SIN navegador y SIN instancia desplegada: no es una corrida en Dev ni en stage. Los hallazgos se re-verificaron despues leyendo
+    el codigo del ref staging via gh api.'
+  pendingManualEvidence: attachments/tr-043-tc-49-50-66/ui/README-que-capturar.txt — 7 capturas pendientes
+  environmentsChecked:
+    executionEnvironment: local-source (worktree ~/Downloads/_clones/VeevartFrontend-worktrees/sh1096 @ 2a4d76abe7a35e9b74b453d5d283defb936a115f)
+    develop: 'ad9306a2fe (2026-09-02) — contiene el merge de la #463 (133f3bf6), 200 commits mas adelante'
+    staging: '00548c1eb8 (2026-08-31) — "promote shop, pos and discounts develop -> staging SH-1241 (#654)"; el wizard llego por
+      la #578'
+    main-prod: c4a17715c7 (2026-08-26)
+    findingsRecheckedOnStaging: SI — TC-50 S1 y TC-66 S4 siguen vivos en staging. Ver verificacion-en-staging.txt
+  defectLinking: 'Los 4 bugs quedaron linkeados a la historia SH-1096 con el tipo "Defect" (id 10072), direccion inwardIssue=SH-1096
+    / outwardIssue=bug, o sea "SH-1096 created SH-12xx". Ademas cada uno linkeado a la QA Sub-task SH-1120 con "Relates". Verificado
+    leyendo issuelinks de SH-1096: los 4 aparecen.'
+  parentStoryStatusAtFiling: In QA Review (cambio desde "Is Ready For QA" durante esta corrida)

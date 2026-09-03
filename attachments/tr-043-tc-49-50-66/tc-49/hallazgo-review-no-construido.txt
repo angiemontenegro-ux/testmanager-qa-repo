@@ -1,0 +1,61 @@
+TC-49 / S0 y S3 — La fila "Redemption Mode" no existe, y ademas el TC quedo viejo
+==================================================================================
+Veredicto de ambos escenarios: SKIPPED (no FAILED — ver por que abajo)
+
+QUE PIDEN
+----------
+S0: la fila lee 'Redemption: Automatic (membership benefit)' y guarda SIN codigo
+S3: la fila lee 'Redemption: Code Required (Entire Order)' y el Save persiste
+
+EVIDENCIA 1 — la fila no existe
+--------------------------------
+  $ grep -rn "Redemption:" packages/shop/src/discounts/discount-wizard/
+  (sin resultados en .ts, .tsx ni en los catalogos en.json / fr.json)
+
+Ninguno de los 19 tests de ReviewStep.test.tsx menciona una fila de redencion.
+El Review que SI se construyo es otra cosa: una tarjeta de cabecera con el valor
+en grande, un chip de estado, el codigo como control copiable, un QR, y un tile
+por regla comprometida.
+
+Esto ya estaba anticipado. El propio TC-49 lo dice en su descripcion: la decision
+D10 del "Taller de decisiones" establecio que el Step 4 actual es una tabla plana
+SIN fila de Redemption Mode, y que estos escenarios describen el rediseno
+RECOMENDADO, no lo construido. Se marcan SKIPPED, no FAILED: no hay nada roto,
+hay un TC escrito contra un diseno que no se eligio.
+
+EVIDENCIA 2 — "guarda sin codigo" ya no es cierto en NINGUN caso
+-----------------------------------------------------------------
+Esto si es informacion nueva, posterior a la nota del taller, y cambia el TC.
+
+El commit head de la PR se llama, literalmente:
+  "feat(discounts): rebuild the list table and Review, and always carry a code"
+
+Y el codigo lo explica en discount-save-validation.ts:22-27:
+
+    "Under the always-a-code decision that shape is no longer an anomaly, it is
+     what this wizard now WRITES: the save sends `draft.code` unconditionally and
+     no longer sends `kind`..."
+
+y en la misma linea, sobre la sonda de unicidad (lineas 40-43):
+
+    "The old visibility gate is gone with the conditional field — every promotion
+     carries a code..."
+
+Confirmado tambien por los tests del dev:
+  ReviewStep.test.tsx      'shows the code and its QR even when every rule is automatic'
+  BasicInfoStep.test.tsx   'renders an empty required field, with Generate, for a
+                            promotion that has no code yet'
+  BasicInfoStep.test.tsx   'always renders an editable customer-facing code field
+                            with Generate'
+
+O sea: TODA promocion lleva codigo, incluida la automatica de membresia. El
+escenario S0 pide guardar sin codigo. Eso ya no es un camino posible del producto.
+
+QUE HAY QUE HACER CON TC-49 (recomendacion, no ejecutada)
+----------------------------------------------------------
+TC-49 necesita reescribirse contra el Review que si existe. Hoy tiene tres capas
+mezcladas y eso lo vuelve inejecutable como esta:
+  - escenarios de un diseno descartado (D10)            -> S0, S3
+  - una premisa derogada por "always-a-code"            -> S0
+  - escenarios validos y verificables                   -> S1, S2, S4, S6
+  - escenarios de features que no existen               -> S5, S7

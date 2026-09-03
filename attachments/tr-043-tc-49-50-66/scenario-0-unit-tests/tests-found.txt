@@ -1,0 +1,52 @@
+TESTS DEL DEV ENCONTRADOS EN LA PR #463 (Veevarts/VeevartFrontend)
+==================================================================
+PR: feat(discounts): rebuild the discount wizard ui for the v3 rules model SH-1096
+Base: 4742b249ab8fd92c35a5c888123d812d8c37e60b
+Head: 2a4d76abe7a35e9b74b453d5d283defb936a115f
+Mergeada a `develop` el 2026-08-05T13:14:38Z.
+
+DIFF: 132 archivos (63 .ts, 60 .tsx, 7 .json, 2 .cjs). +36.245 / -6.695.
+63 de esos 132 archivos son de test. El dev SI agrego cobertura, y es amplia.
+
+ARCHIVOS DE TEST RELEVANTES A LOS TRES TEST CASES
+--------------------------------------------------
+TC-50 (Step 1 - Discount Type):
+  components/codes/wizard/BasicInfoStep.test.tsx .......... 86 tests
+
+TC-66 (Step 3 - Restrictions):
+  components/codes/wizard/RestrictionsStep.test.tsx ....... 26 tests
+  components/codes/wizard/discount-save-validation.test.ts
+  page/DiscountsCodesPage.test.tsx (integracion FP8/FP9)
+
+TC-49 (Step 4 - Review):
+  components/codes/wizard/ReviewStep.test.tsx ............. 19 tests
+  components/codes/wizard/review-model.test.ts
+  components/codes/wizard/redemption-preview-model.test.ts
+  page/save-guard-utils.test.ts
+
+EJECUCION LOCAL (no solo CI)
+-----------------------------
+Suite completa del modulo discount-wizard:
+  56 archivos de test / 1.658 tests -> TODOS PASAN (exit 0, 26,9 s)
+
+Suites dirigidas a los tres TC:
+  5 archivos / 242 tests -> TODOS PASAN (exit 0, 17,9 s)
+
+OJO CON EL CI: la PR #463 NO tiene job de tests unitarios.
+Los checks son: AWS CodeBuild, `lint`, y 8 jobs de cleanup SST. Todos en verde,
+pero NINGUNO corre vitest. Por eso la ejecucion local de arriba es la evidencia
+real, no el CI.
+
+COMO SE DESTRABO EL ENTORNO (para reproducir)
+----------------------------------------------
+`npm install` completo falla con E404 en @veevarts/order-summary (scope privado
+sin token). Se destraba asi:
+  1. git worktree add <dir> 2a4d76abe7a35e9b74b453d5d283defb936a115f --detach
+  2. git sparse-checkout set --no-cone packages/shop packages/ui apps/shared/portal \
+       packages/ticketing-limits packages/tsconfig packages/eslint-config ...
+     (packages/tsconfig es OBLIGATORIO: sin el, vitest cae con
+      TSConfckParseError "@veevart/tsconfig/react-lib.json" y reporta
+      56 archivos fallando SIN correr un solo test — falso negativo)
+  3. npm install --workspace packages/shop --ignore-scripts --no-audit --no-fund
+     (--ignore-scripts evita que el prepare de husky rompa con exit 127)
+  4. ../../node_modules/.bin/vitest run src/discounts/discount-wizard

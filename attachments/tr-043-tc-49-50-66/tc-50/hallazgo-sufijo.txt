@@ -1,0 +1,64 @@
+TC-50 / S1 — HALLAZGO: el campo Value no cambia de unidad al cambiar el tipo
+=============================================================================
+Veredicto del escenario: FAILED (una de las dos afirmaciones no se cumple)
+
+LO QUE PIDE EL TEST CASE
+-------------------------
+Given  el admin escribio Discount Value = 20 con Discount Type = % Off
+When   cambia Discount Type a $ Off
+Then   Discount Value sigue en 20                      -> SE CUMPLE
+And    "the field's suffix/label updates from % to $"  -> NO SE CUMPLE
+
+AFIRMACION 1 — SE CUMPLE
+-------------------------
+BasicInfoStep.tsx:560-562
+    onChange={(discountType) =>
+        dispatch({ type: 'setField', patch: { discountType } })
+    }
+El patch lleva UNICAMENTE discountType. `value` no se toca, no se resetea,
+no se re-parsea. El 20 sobrevive.
+
+AFIRMACION 2 — NO SE CUMPLE
+----------------------------
+No existe ningun sufijo ni adorno de unidad en el control:
+
+  $ grep -n "endContent|startContent|suffix" BasicInfoStep.tsx
+  (sin resultados)
+
+El label es constante:
+  BasicInfoStep.tsx:567   label={t('value')}
+  messages/en.json        codes.wizard.basic.value = 'Value'
+Dice 'Value' con % Off y dice 'Value' con $ Off. Nunca cambia.
+
+Lo UNICO que reacciona al tipo son tres cosas, y ninguna es un sufijo visible
+junto a un valor ya escrito:
+
+  1. placeholder (BasicInfoStep.tsx:568-572)
+       dollar_off -> t('amountValuePlaceholder') = 'e.g. 10.50'
+       percent_off -> t('valuePlaceholder')      = 'e.g. 25'
+     PERO un placeholder solo se ve con el campo VACIO. En el escenario del TC
+     el campo tiene 20 escrito, asi que el placeholder esta oculto justo en el
+     momento en que el TC espera ver la unidad.
+
+  2. min  (BasicInfoStep.tsx:576)  dollar_off -> 0.01   |  percent_off -> 0
+  3. max  (BasicInfoStep.tsx:577)  percent_off -> 100   |  dollar_off -> sin tope
+     Son restricciones de validacion, no affordance visual de unidad.
+
+CONSECUENCIA REAL
+------------------
+Un admin que escribe 20 con % Off y cambia a $ Off ve exactamente la misma
+pantalla: un campo rotulado "Value" con un 20 adentro. Nada en la interfaz
+dice si eso son 20 por ciento o 20 dolares. La unica pista es el dropdown de
+arriba, que hay que volver a leer.
+
+Existe formato con unidad en OTRA parte del producto, lo que confirma que la
+convencion existe y aqui falta:
+  messages/en.json  codes.table.valueFormats.percent = '{value}%'
+La tabla de listado si muestra la unidad. El campo del wizard no.
+
+SEVERIDAD SUGERIDA: Low
+No hay perdida de datos, no hay error de calculo, no hay riesgo de seguridad.
+Es claridad de UI. El valor se guarda con el tipo correcto.
+
+COBERTURA DEL DEV: ninguna. De los 86 tests de BasicInfoStep.test.tsx ninguno
+cambia el tipo con un valor ya escrito.
