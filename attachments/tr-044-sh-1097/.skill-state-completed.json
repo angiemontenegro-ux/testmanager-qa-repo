@@ -14,8 +14,8 @@
   "trKey": "TR-044",
   "prNumber": null,
   "startedAt": "2026-09-03T13:41:30.057477Z",
-  "lastUpdated": "2026-09-03T14:10:00Z",
-  "status": "in-progress",
+  "lastUpdated": "2026-09-03T15:00:00Z",
+  "status": "completed",
   "completedSteps": [
     1,
     2,
@@ -26,9 +26,11 @@
     7,
     8,
     9,
-    10
+    10,
+    11,
+    12
   ],
-  "currentStep": 11,
+  "currentStep": 12,
   "data": {
     "repo": "Veevarts/VeevartFrontend",
     "localClone": "/Users/veevart/Downloads/_clones/VeevartFrontend",
@@ -92,6 +94,25 @@
       "TC-51.4 intersection banner",
       "TC-63.1 qualifying item type"
     ],
-    "commitHeld": "Rule 7b/10 \u2014 11 low-severity FAILs need Angie to decide filing before commit"
+    "commitHeld": "Rule 7b/10 \u2014 11 low-severity FAILs need Angie to decide filing before commit",
+    "committed": "123afcf35a85cb458b73c01c2e111a863acf268b",
+    "testCasesRewritten": {
+      "TC-51": "sc 0,1,4,5 rewritten (sc4 inverted to preservation); sc3 left as known gap",
+      "TC-52": "sc 0,2 rewritten; sc1 left as known gap",
+      "TC-55": "all 3 replaced with 4 per-rule gate-collapse scenarios; file renamed to SH-1097-TC-55-membership-gate-collapse.testcase.yml, id/key preserved",
+      "untouched": [
+        "TC-53",
+        "TC-54",
+        "TC-63"
+      ]
+    },
+    "knownGapsLeftFailing": [
+      "TC-51.4 intersection banner",
+      "TC-52.2 review date source",
+      "TC-53.1 ticketing add-guard",
+      "TC-63.1 qualifying item type",
+      "TC-63.3 silent item drop"
+    ],
+    "stillOpen": "Angie has not yet decided which of the 5 known gaps to file as Jira defects"
   }
 }
