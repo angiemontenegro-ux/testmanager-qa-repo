@@ -203,6 +203,10 @@ results:
     summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
       event+membership intersection banner'
     note: Gap 3 of the grouped defect.
+    assignee: Cesar Tapasco (cesar.tapasco@veevart.com)
+    linkedTo:
+    - SH-1097 (Relates)
+    - SH-1096 (Relates)
 - testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
   testCaseKey: TC-51
   testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
@@ -361,6 +365,10 @@ results:
     summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
       event+membership intersection banner'
     note: Gap 2 of the grouped defect.
+    assignee: Cesar Tapasco (cesar.tapasco@veevart.com)
+    linkedTo:
+    - SH-1097 (Relates)
+    - SH-1096 (Relates)
 - testCaseId: e8542d54-e05c-4554-8caf-64b277cc5f1a
   testCaseKey: TC-52
   testCaseTitle: Rule Collapsed Summary & Overall Usage
@@ -837,6 +845,10 @@ results:
     summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
       event+membership intersection banner'
     note: Gap 1 of the grouped defect.
+    assignee: Cesar Tapasco (cesar.tapasco@veevart.com)
+    linkedTo:
+    - SH-1097 (Relates)
+    - SH-1096 (Relates)
 - testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
   testCaseKey: TC-63
   testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
@@ -902,6 +914,13 @@ history:
   to: in-progress
   reason: 'Registrar SH-1266 en los tres escenarios que agrupa y el escalado a Product de los otros dos. El run sigue in-progress:
     TC-53.1 y TC-63.1 esperan respuesta de Martin.'
+- action: updated
+  timestamp: '2026-09-03T18:55:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: in-progress
+  to: in-progress
+  reason: SH-1266 asignada a Cesar Tapasco y linkeada tambien a SH-1096, la HU que dueña el Step 4 Review del Gap 2. Registrado
+    el mapeo gap -> HU en un comentario del ticket.
 notes: '## Solution understood
 
 
@@ -994,6 +1013,10 @@ metadata:
     severity: Low
     summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
       event+membership intersection banner'
+    assignee: Cesar Tapasco (cesar.tapasco@veevart.com)
+    linkedTo:
+    - SH-1097 (Relates)
+    - SH-1096 (Relates)
   productQuestionsRaised:
     issue: SH-1097
     comment: 24470 (detalle) + 24471 (mention a Martin Campo)
@@ -1001,3 +1024,11 @@ metadata:
     q2: TC-63.1 — se corto Qualifying Item Type junto con Minimum/Max Quantity el 2026-07-22
   adjudication: 'Angie 2026-09-03: uno agrupado (SH-1266) para TC-63.3 + TC-52.2 + TC-51.4; TC-53.1 y TC-63.1 como pregunta
     a Martin.'
+  defectStoryOwnership:
+    note: SH-1266 agrupa tres gaps que NO pertenecen todos a la misma historia. Verificado en Jira, no asumido.
+    gap1_shop_item_silent_drop: SH-1097 (Shop rule card)
+    gap2_review_no_date_source: SH-1096 (Step 4 Review) — NO SH-1097
+    gap3_intersection_banner: SH-1097 (Ticketing rule card)
+    sh1094: ES UN EPIC (Discount Engine — Unified wizard & derived-redemption model), no una HU. Las PRs rotuladas SH-1094
+      apuntan al epic; no sirve como HU de linkeo.
+    cleanSplitSeam: 'Gap 2 es la costura limpia si Cesar prefiere partirlo: unico gap del Step 4 Review y unico de SH-1096.'

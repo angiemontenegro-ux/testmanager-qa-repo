@@ -14,7 +14,7 @@
   "trKey": "TR-044",
   "prNumber": null,
   "startedAt": "2026-09-03T13:41:30.057477Z",
-  "lastUpdated": "2026-09-03T18:45:00Z",
+  "lastUpdated": "2026-09-03T18:55:00Z",
   "status": "completed",
   "completedSteps": [
     1,
@@ -96,7 +96,11 @@
           "TC-52.2 review date source",
           "TC-51.4 intersection banner"
         ],
-        "linkedTo": "SH-1097 (Relates)"
+        "linkedTo": [
+          "SH-1097 (Relates)",
+          "SH-1096 (Relates)"
+        ],
+        "assignee": "Cesar Tapasco"
       }
     ],
     "awaitingAdjudication": [
@@ -137,6 +141,12 @@
       ],
       "status": "awaiting Martin"
     },
-    "adjudication": "Angie 2026-09-03: one grouped defect + two questions to Martin. Done."
+    "adjudication": "Angie 2026-09-03: one grouped defect + two questions to Martin. Done.",
+    "defectStoryOwnership": {
+      "gap1": "SH-1097",
+      "gap2": "SH-1096 (Step 4 Review) \u2014 not SH-1097",
+      "gap3": "SH-1097",
+      "sh1094": "is an EPIC, not a story \u2014 PR labels point at the epic"
+    }
   }
 }
