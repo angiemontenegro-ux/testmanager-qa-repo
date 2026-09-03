@@ -193,7 +193,16 @@ results:
       mimeType: text/plain
       size: 6405
   notes: 'FAILED: funcionalidad no construida. Decision de producto pendiente — o se implementa el banner de interseccion,
-    o se retira el escenario porque el gate tiene precedencia por diseno.'
+    o se retira el escenario porque el gate tiene precedencia por diseno. DEFECTO ABIERTO 2026-09-03: SH-1266 (Gap 3 de tres),
+    prioridad Low, linkeada a SH-1097 con ''Relates''. Agrupada por decision de Angie: los tres son omisiones chicas de la
+    misma superficie y salen mas baratas juntas.'
+  defects:
+  - jiraKey: SH-1266
+    url: https://veevart.atlassian.net/browse/SH-1266
+    severity: Low
+    summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
+      event+membership intersection banner'
+    note: Gap 3 of the grouped defect.
 - testCaseId: 461f9f5d-088d-49e4-ba3f-79a71695d6f5
   testCaseKey: TC-51
   testCaseTitle: Per-Rule Date & Time Range — Conditional Visibility & Derivation
@@ -342,7 +351,16 @@ results:
       mimeType: text/plain
       size: 3156
   notes: 'FAILED: no implementado. Es el hallazgo mas facil de cerrar de este run si Product lo quiere — los datos ya estan
-    en la regla, falta la linea en el Review.'
+    en la regla, falta la linea en el Review. DEFECTO ABIERTO 2026-09-03: SH-1266 (Gap 2 de tres), prioridad Low, linkeada
+    a SH-1097 con ''Relates''. Agrupada por decision de Angie: los tres son omisiones chicas de la misma superficie y salen
+    mas baratas juntas.'
+  defects:
+  - jiraKey: SH-1266
+    url: https://veevart.atlassian.net/browse/SH-1266
+    severity: Low
+    summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
+      event+membership intersection banner'
+    note: Gap 2 of the grouped defect.
 - testCaseId: e8542d54-e05c-4554-8caf-64b277cc5f1a
   testCaseKey: TC-52
   testCaseTitle: Rule Collapsed Summary & Overall Usage
@@ -436,7 +454,9 @@ results:
       size: 4033
   notes: 'FAILED por el lado Ticketing. NO es descuido del dev: su razon (espejar un predicado gate-blind crearia un candado
     EQUIVOCADO) es solida y esta escrita. Lo que falta es una decision de Product/Design sobre que deberia decir exactamente
-    el candado de Ticketing. 2 de 3 modulos cumplen.'
+    el candado de Ticketing. 2 de 3 modulos cumplen. ESCALADO A PRODUCT 2026-09-03, no como defecto: question 1 del comentario
+    de Angie en SH-1097 (comment 24470), con mention a Martin Campo en el 24471. Se deja FAILED a proposito hasta que Product
+    responda — el escenario correspondiente del .testcase esta marcado ''Do NOT rewrite this to match the code''.'
 - testCaseId: 4f0d0a13-112a-4c50-93b5-7c413c2c0c36
   testCaseKey: TC-53
   testCaseTitle: Universal-Rule Lock on Add Rule Button
@@ -722,7 +742,9 @@ results:
     real'', asi que el prototipo lo tenia. Dado que el escenario 4 registra que Product corto Minimum/Max Quantity de esta
     MISMA tarjeta el 2026-07-22, lo mas probable es que Qualifying Item Type se cortara tambien y el TC no se actualizo —
     pero a diferencia de Min/Max Quantity NO hay registro de decision, asi que no se puede cerrar como corte intencional sin
-    confirmacion.'
+    confirmacion. ESCALADO A PRODUCT 2026-09-03, no como defecto: question 2 del comentario de Angie en SH-1097 (comment 24470),
+    con mention a Martin Campo en el 24471. Se deja FAILED a proposito hasta que Product responda — el escenario correspondiente
+    del .testcase esta marcado ''Do NOT rewrite this to match the code''.'
 - testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
   testCaseKey: TC-63
   testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
@@ -805,7 +827,16 @@ results:
       size: 5723
   notes: 'FAILED. La INTEGRIDAD DE DATOS no esta en riesgo — ningun id huerfano puede llegar al payload (ver T5 en regression-results.txt);
     el hueco es puramente ''no se le aviso al admin''. Nota de forma: el modelo vivo es Category UNICA + Item UNICO, asi que
-    la premisa en plural del TC (''one or more Categories'', ''the Items'') ya no calza.'
+    la premisa en plural del TC (''one or more Categories'', ''the Items'') ya no calza. DEFECTO ABIERTO 2026-09-03: SH-1266
+    (Gap 1 de tres), prioridad Low, linkeada a SH-1097 con ''Relates''. Agrupada por decision de Angie: los tres son omisiones
+    chicas de la misma superficie y salen mas baratas juntas.'
+  defects:
+  - jiraKey: SH-1266
+    url: https://veevart.atlassian.net/browse/SH-1266
+    severity: Low
+    summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
+      event+membership intersection banner'
+    note: Gap 1 of the grouped defect.
 - testCaseId: eecc9911-2077-4987-a8e5-07412e5ae279
   testCaseKey: TC-63
   testCaseTitle: Shop Rule Card — Category, Item Scope & Item Type
@@ -864,6 +895,13 @@ history:
   to: in-progress
   reason: Ejecutar los seis test cases que cubre la QA Sub-task SH-1121 contra el codigo de origin/develop y la suite del
     dev.
+- action: updated
+  timestamp: '2026-09-03T18:40:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: in-progress
+  to: in-progress
+  reason: 'Registrar SH-1266 en los tres escenarios que agrupa y el escalado a Product de los otros dos. El run sigue in-progress:
+    TC-53.1 y TC-63.1 esperan respuesta de Martin.'
 notes: '## Solution understood
 
 
@@ -950,6 +988,16 @@ metadata:
   technicalRegression: 7/7 PASS
   securityRegression: 6/6 PASS
   owasp: 4 aplicables PASS / 6 N/A / 0 FAIL
-  defectsRaised: []
-  pendingUserDecision: 'Filiar o no los 5 hallazgos de baja severidad (Regla 7b): TC-53.1 Ticketing add-guard, TC-63.3 item
-    quitado en silencio, TC-52.2 origen de fechas en Review, TC-51.4 banner de interseccion, TC-63.1 Qualifying Item Type'
+  defectsRaised:
+  - jiraKey: SH-1266
+    url: https://veevart.atlassian.net/browse/SH-1266
+    severity: Low
+    summary: 'Rule cards: three UI-layer gaps — item silently dropped on category narrowing, no date source in Review, no
+      event+membership intersection banner'
+  productQuestionsRaised:
+    issue: SH-1097
+    comment: 24470 (detalle) + 24471 (mention a Martin Campo)
+    q1: TC-53.1 — deberia Ticketing tener candado preventivo de + Add Rule, y que exactamente deberia bloquear (opciones a/b/c)
+    q2: TC-63.1 — se corto Qualifying Item Type junto con Minimum/Max Quantity el 2026-07-22
+  adjudication: 'Angie 2026-09-03: uno agrupado (SH-1266) para TC-63.3 + TC-52.2 + TC-51.4; TC-53.1 y TC-63.1 como pregunta
+    a Martin.'

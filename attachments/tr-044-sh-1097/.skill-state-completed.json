@@ -14,7 +14,7 @@
   "trKey": "TR-044",
   "prNumber": null,
   "startedAt": "2026-09-03T13:41:30.057477Z",
-  "lastUpdated": "2026-09-03T15:00:00Z",
+  "lastUpdated": "2026-09-03T18:45:00Z",
   "status": "completed",
   "completedSteps": [
     1,
@@ -86,7 +86,19 @@
     "securityRegression": "6/6 PASS",
     "owasp": "4 applicable PASS / 6 N/A / 0 FAIL",
     "trPath": "test-runs/TR-044-sh-1097-ticketing-shop-rule-cards.testrun.yml",
-    "defectsRaised": [],
+    "defectsRaised": [
+      {
+        "jiraKey": "SH-1266",
+        "url": "https://veevart.atlassian.net/browse/SH-1266",
+        "severity": "Low",
+        "covers": [
+          "TC-63.3 silent item drop",
+          "TC-52.2 review date source",
+          "TC-51.4 intersection banner"
+        ],
+        "linkedTo": "SH-1097 (Relates)"
+      }
+    ],
     "awaitingAdjudication": [
       "TC-53.1 ticketing add-guard",
       "TC-63.3 silent item drop",
@@ -113,6 +125,18 @@
       "TC-63.1 qualifying item type",
       "TC-63.3 silent item drop"
     ],
-    "stillOpen": "Angie has not yet decided which of the 5 known gaps to file as Jira defects"
+    "productQuestions": {
+      "issue": "SH-1097",
+      "comments": [
+        "24470 detail",
+        "24471 mention to Martin Campo"
+      ],
+      "covers": [
+        "TC-53.1 ticketing add-guard",
+        "TC-63.1 qualifying item type"
+      ],
+      "status": "awaiting Martin"
+    },
+    "adjudication": "Angie 2026-09-03: one grouped defect + two questions to Martin. Done."
   }
 }
