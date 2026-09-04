@@ -1,0 +1,26 @@
+LOG DE EJECUCION DE SUITE
+=========================
+La suite local NO se corrio: VeevartFrontend no esta clonado en esta maquina,
+y clonar el monorepo completo solo para correr tests no se justifica (modo
+remote-only de la Step 4 del skill).
+
+Los veredictos de este TR derivan de:
+  1. Lectura del codigo fuente en la rama `develop` (via GitHub contents API).
+  2. Inspeccion estatica de los tests del dev en la PR #659.
+  3. Estado de CI de la PR #659.
+
+ESTADO DE CI DE LA PR #659 (gh pr checks 659):
+  lint                                  pass   17m19s
+  AWS CodeBuild us-east-1 veevart-latest pass  "Build succeeded"
+  preview-membership / SST preview      pass   4m9s
+  preview-pay-by-link / SST preview     pass   2m21s
+  preview-programs / SST preview        pass
+  cleanup-* (membership, pay-by-link, programs, shells)  pass
+
+NINGUN check en rojo. La PR esta mergeada a `develop` desde 2026-09-01.
+
+BACKEND: el worktree local `~/Downloads/VeevartBackend-worktrees/sh1057-staging`
+esta sobre `origin/staging`, que esta 91 commits DETRAS de `origin/develop`.
+Toda la verificacion de backend de este TR se rehizo con `git grep` /
+`git show` contra `origin/develop`, no contra el worktree. La suite backend
+tampoco se corrio en esta sesion: SH-1063 no cambia codigo de backend.

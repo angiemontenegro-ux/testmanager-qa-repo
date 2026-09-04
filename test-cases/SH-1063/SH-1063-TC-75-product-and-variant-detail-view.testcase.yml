@@ -1,0 +1,189 @@
+schemaVersion: "1.0"
+id: "07ad4fe9-dbdd-4362-b6a3-bc88fbba8788"
+key: "TC-75"
+title: "Products — Product Detail View, Variant Summary and Variant Drill-In"
+description: "QA coverage for SH-1063 (\"Products · UI — view the product info and each variant's detail\"), QA sub-task SH-1164, under epic SH-793 (Products — create and manage items & variants). Validates the simple-product direct view, the multi-variant summary, the per-variant drill-in and the read-only nature of stock and cost. IMPLEMENTATION DOMAIN: this story does NOT live in AuctiferaDX. The UI is Veevarts/VeevartFrontend (`packages/shop/src/products/item-detail/**` — ItemDetail.tsx, OverviewCard, InventoryCard, VariantsTable, inventory-summary.ts, MovementsPanel) and the read APIs are Veevarts/VeevartBackend (`domains/shop/catalog/api`). NO PULL REQUEST CARRIES THE KEY SH-1063 — the slice ships under the EPIC key SH-793, same pattern recorded for SH-1057; searching PRs for SH-1063 returns only unrelated infra work. Also note staging promotions are SQUASH merges, so `git merge-base --is-ancestor` gives false negatives: compare tree content, not ancestry. CORRECTED 2026-09-04 DURING EXECUTION (TR-047): the integration branch for BOTH repos is `develop`, not `main`/`staging`. The first version of this test case was verified against VeevartFrontend `main` and a VeevartBackend worktree on `origin/staging` that turned out to be 91 commits behind `origin/develop` — every finding below was re-verified against `develop` and one of them was WRONG. Always resolve VeevartFrontend against `develop`; a local clone fetches only `main` and leaves `develop` frozen. NAMING: the story's \"technical variant\" is called the WILDCARD in code, with origin `implicit` — the word \"technical\" appears nowhere. OPEN RISKS carried into this test case, each verified rather than inherited: (1) the story's AC2 says the summary shows the AVERAGE cost and stock, but decision D9 (research/decisions.md:218-229) rules the summary is stock = SUM and CPP = quantity-weighted, and names SH-1063 explicitly at :228 — \"Invalidates: SH-1156 and SH-1063, which both say 'average'\" — so the AC wording is superseded, and scenario 2 tests D9, not the AC verbatim; (2) NO cost figure of any kind ships on the summary — inventory-summary.ts states \"no per-location or average-cost breakdown\" and returns only rows + a summed total, so even D9's weighted CPP is absent, and scenario 3 pins that gap; (3) AC3's drill-in DOES EXIST, delivered as a MODAL rather than a route — this REPLACES the original claim in this test case that it was missing, which was an artefact of reading `main`. VeevartFrontend PR #659 (\"variant row click opens a read-only detail modal\", merged to `develop` 2026-09-01, labelled with sibling story SH-1058) wires `onRowAction` on the Variants table to a net-new `VariantDetailModal` showing the same 8 fields as the row. There is still no GET single-variant endpoint and no route change: the modal is fed from the already-fetched variants list, so the drill-in is client-side. The images half of AC3 is DEFERRED — the modal shows the PARENT PRODUCT's primary image with a visible caption saying so, even though the backend on `develop` now does support per-variant images (`variant-image-display.ts`, `images` + `imagesInherited` on the variant response). Scenario 4 tests the shipped modal; (4) AC4 says stock AND cost are read-only, but `product_variants.cost` is DELIBERATELY writable via variant PATCH (UpdateVariantDto.cost, decisions.md:976 and :1759 — \"`product_variants.cost` stays writable — only `average_cost` is read-only\"), so the AC conflicts with a shipped decision and scenario 5 tests the decision; (5) the story's added Service scenario is VOID under SH-1137/SH-1167, but `itemType` is STILL live end to end — ITEM_TYPE_VALUES = ['physical','service'] in domain/product.ts:27, exposed on the create DTO, the PATCH DTO and ProductResponseDto.itemType, with a dev test at products.controller.spec.ts:357 that creates item_type \"service\" and reads it back — so a NEW service product is creatable through the API today, which is a sharper contradiction than the one recorded on SH-1057 and scenario 7 exists to pin it, not to sign it off. NOTE FOR THE EXECUTOR: an earlier version of the SH-1164 plan asserted that \"no `stock` field or Inventory module exists anywhere in the monorepo\" and that ListVariantsUseCase exposes no stock. Both are now FALSE — a full inventory module ships (stock-projection-repository.port.ts, get-inventory-view.use-case.ts, GET /v1/inventory, the Cardex ledger) and VariantResponseDto.stock is readable on the wire. Do not re-inherit those claims; they predate the code landing."
+type: "integration"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The SH-1063 code is deployed to the environment under test. Verify the promotion by comparing tree content, NOT git ancestry — staging promotions in these repos are squash merges and ancestry checks give false negatives."
+  - "A test tenant with access to the Shop catalog and permission to create products."
+  - "A simple product created with no options — its only variant is the wildcard (origin `implicit`) — and a multi-variant product with at least 11 variants, so the client-side pagination in InventoryCard and VariantsTable (PAGE_SIZE = 10 each, independent of one another) is actually exercised."
+  - "At least one variant carrying posted inventory movements, and at least one archived variant, so the summary's \"every variant, including archived\" rule and the signed-stock rule are both reachable."
+  - "Access to the API responses (GET /v1/products/:id and GET /v1/products/:productId/variants) as well as the UI — the UI alone cannot prove which row is the wildcard, nor what the product response omits."
+  - "There is no Product Type selector to choose in the UI: SH-1137 made every product physical. The API is a different matter — see scenario 7."
+scenarios:
+  - title: "A simple product shows its own data directly in the main view, with no drill-in required"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "wildcard"
+    given:
+      - "a simple product created with no options, so its only variant is the wildcard (origin `implicit`)"
+    when:
+      - "a shop admin opens the product's detail view"
+    then:
+      - "the identity, overview, price/tax and system data are all readable on the main view without opening anything else"
+      - "the on-hand figure for the product is visible on the main view via the Inventory card, sourced from the wildcard variant's `stock` field"
+      - "the admin is never asked to open a variant to see the product's stock"
+      - "GET /v1/products/:id returns the product with `defaultVariantSku`, `baseSku`, `categoryName` and `variantCount` — and confirm what it does NOT return: no cost, no stock, no summary field exists on ProductResponseDto, so any figure on screen must have come from the variants call, not the product call"
+  - title: "A multi-variant product summarises stock as a SUM across every variant, including archived ones, with the sign intact"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "d9"
+      - "corrected-ac"
+    given:
+      - "a product with multiple real variants, at least one of them archived, and at least one holding negative on-hand"
+      - "NOTE: the story's AC2 says the view shows the AVERAGE cost and stock. That wording was OVERRULED, not missed — decision D9 (research/decisions.md:218-229) rules stock = SUM across variants and CPP = quantity-weighted, and names this story at :228: \"Invalidates: SH-1156 and SH-1063, which both say 'average'\". Test D9, not the 2026-07-08 wording."
+    when:
+      - "the admin opens the product's detail view and reads the Inventory card and the Variants tab caption"
+    then:
+      - "the total shown is the SUM of every variant's on-hand, not an arithmetic mean"
+      - "archived variants ARE included in that total — the rule is \"every variant\", not \"every active variant\", per the contract documented on buildInventorySummary in inventory-summary.ts"
+      - "a negative on-hand is summed with its sign and is never clamped to zero, matching the backend rule already asserted at list-variants.use-case.spec.ts:136 and :146 (D29 / SH-1111)"
+      - "the total covers the FULL variant set regardless of which page the client-side pagination is currently showing — reveal more rows in the Inventory card, and page through the Variants table, and confirm the total does not change"
+      - "the Inventory card total and the Variants tab caption agree, since both derive from the same buildInventorySummary call"
+  - title: "No cost figure of any kind is summarised on the product view — neither the AC's average nor D9's weighted CPP"
+    tags:
+      - "ac-2"
+      - "edge-case"
+      - "missing-doc"
+      - "needs-product-ruling"
+    given:
+      - "a product with multiple variants that each carry a non-null `cost`, and posted movements that have produced a real `average_cost` per variant"
+    when:
+      - "the admin opens the product's detail view and looks for a product-level cost figure"
+    then:
+      - "the Inventory card shows on-hand only — inventory-summary.ts states the contract in its own words: \"no new fetch, no per-location or average-cost breakdown\", and InventorySummary carries only `rows` and `total`"
+      - "no product-level cost, average cost or CPP is rendered anywhere on the detail view"
+      - "confirm the gap on the API side too: no aggregation over a product's variant set exists in the backend application layer, and the weighted-CPP row in decisions.md:1753 is marked as not built"
+      - "record this as a KNOWN GAP against AC2's second half, not as a passing scenario: the summary satisfies D9's stock rule and does NOT satisfy D9's CPP rule. Do not file it as a defect before confirming with the assignee whether CPP was deferred deliberately — but do not sign AC2 off as met either"
+      - "distinguish the two costs when reporting: `product_variants.cost` is the merchant-typed unit cost, while `product_variants.average_cost` is the MWAC/PMP valuation. An average of the former would NOT be CPP (decisions.md:302-303)"
+  - title: "Clicking a variant row opens a read-only detail modal showing that variant's own data"
+    tags:
+      - "ac-3"
+      - "happy-path"
+      - "drill-in"
+      - "sh-1058"
+      - "corrected-scenario"
+    given:
+      - "a product with several variants, open on the Variants tab of the detail view"
+      - "NOTE: AC3 asks to be \"redirected to that variant's detail\". It shipped as a MODAL, not a route — VeevartFrontend PR #659, merged to `develop` on 2026-09-01 under the sibling key SH-1058. Judge the intent (inspect one variant's own data), and record the route-vs-modal difference rather than failing on it."
+    when:
+      - "the admin clicks a variant row, and separately activates one from the keyboard"
+    then:
+      - "a read-only modal opens showing that variant's own displayName, SKU, barcode, price, cost, taxable, stock and status — the same 8 fields as the row, in the table's own column order"
+      - "the correct variant opens even when the row is on the second page of the paginated table, not the same-position row from page 1"
+      - "a keyboard user can tab to a row and press Enter to open the same modal, and an accessible hint describing how to activate a row is reachable"
+      - "the modal exposes NO edit, archive or stock-adjustment control of any kind — no checkbox, switch, menuitem, link, spinbutton or textbox, and no button whose accessible name reads save/archive/delete/adjust/create/edit"
+      - "an open modal reflects LIVE variant data after a background refetch rather than a stale snapshot from the moment of the click; if the selected variant disappears from the set the modal closes itself, and it does NOT spring back open if that id later reappears"
+      - "IMAGES ARE THE DEFERRED HALF OF AC3: the modal shows the PARENT PRODUCT's primary image (isPrimary wins, else the first image, else an explicit empty-image state) and captions it visibly as the product's image, NOT the variant's. Verify the caption is present and honest. Per-variant images are supported by the backend on `develop` (variant-image-display.ts exposes `images` + `imagesInherited`) but deliberately not surfaced here — confirm this deferral is accepted before signing AC3 off as fully met"
+      - "no route change occurs and no GET single-variant endpoint is called — the modal is fed from the already-fetched variants list"
+  - title: "Stock is read-only from the product view, but variant cost is deliberately still editable"
+    tags:
+      - "ac-4"
+      - "edge-case"
+      - "read-only"
+      - "corrected-ac"
+    given:
+      - "a product with variants that hold stock and cost"
+    when:
+      - "the admin inspects the detail view for any control that would change stock or cost, and then the write APIs are probed directly"
+    then:
+      - "no row in the Variants table exposes an edit, archive or stock-adjustment control — the table is a plain read-only surface, as its own contract states"
+      - "the product PATCH accepts neither `cost` nor `stock`: UpdateProductDto has no such field, and its nested variant overrides accept only `optionValueLabels`, `sku` and `price`"
+      - "`stock` and `average_cost` are not writable from any catalog endpoint — no DTO field exists for either"
+      - "HOWEVER `cost` IS writable through the variant PATCH (UpdateVariantDto.cost), and that is INTENTIONAL: decisions.md:976 and :1759 both state \"`product_variants.cost` stays writable — only `average_cost` is read-only\". AC4's blanket \"stock/cost are read-only\" therefore conflicts with a shipped decision — verify the AC means `average_cost`, and do not file the writable `cost` as a defect without a product ruling"
+      - "note a secondary gap while here: the typed 422 the spec calls for on a blocked field, `FIELD_NOT_EDITABLE_FROM_CATALOG` (decisions.md:975-976), is not implemented — a stock or averageCost key is rejected by zod `.strict()` as a generic 400 instead. Low severity, but it belongs on the record"
+  - title: "Opening a product or a variant that does not exist reports not-found rather than showing stale data"
+    tags:
+      - "negative"
+      - "error-handling"
+    given:
+      - "a product ID that does not exist for the tenant, and a variant ID that was removed or never belonged to the product under test"
+    when:
+      - "the admin opens each of them"
+    then:
+      - "the missing product is reported as not found — `ProductNotFoundError` is thrown by GetProductUseCase before any further read, and identically by ListVariantsUseCase, which also throws it before any inventory read is attempted (asserted at list-variants.use-case.spec.ts:262)"
+      - "the missing variant is reported as not found — `VariantNotFoundError`, wire code `VARIANT_NOT_FOUND`, in domain/exceptions/options-variants.errors.ts"
+      - "no stale, empty or wrong-product data is rendered in place of the error"
+      - "a cross-tenant product ID is treated as not-found, not as a permission error that leaks the product's existence"
+      - "NOTE the line numbers quoted in the previous version of the SH-1164 plan are stale — the ProductNotFoundError throw in list-variants.use-case.ts is at :75, not :39, and VariantNotFoundError is at :162, not :62. The classes and behaviour are unchanged; only the citations moved"
+  - title: "The view carries no service-only state, but the API still creates and returns a Service product type"
+    tags:
+      - "void-scenario-followup"
+      - "sh-1137"
+      - "needs-product-ruling"
+      - "missing-doc"
+    given:
+      - "SH-1137 removed the Product Type selector and made every product physical, which VOIDS the story's added Service scenario (\"A Service product hides inventory in the view\") — that scenario must not be implemented and must not be signed off"
+      - "the story description still carries the superseded \"Physical vs Service branching in the view\" section, flagged there but not deleted because the story was In Progress"
+    when:
+      - "the admin opens the detail view of every kind of product, and the create and update APIs are then probed directly for a product type"
+    then:
+      - "no Physical/Service pill and no \"Product type\" field is rendered on the detail view, and stock, the Cardex/movements panel and the out-of-stock state are shown for every product unconditionally"
+      - "the literal string \"Services aren't tracked in inventory\" appears nowhere — confirmed absent from the whole shop domain"
+      - "BUT `itemType` is still live end to end on the API: ITEM_TYPE_VALUES = ['physical','service'] in domain/product.ts:27, accepted on the create DTO, accepted on the PATCH DTO, and returned on ProductResponseDto.itemType — and the dev's own test at products.controller.spec.ts:357 creates a product with item_type \"service\" and reads it back"
+      - "service branching also survives in the read path: SQL exclusions `p.item_type <> 'service'` in the inventory view, variant search and location repositories, plus service-inventory-policy.ts and ServiceNotStockableError"
+      - "this is a BLOCKER-class contradiction to escalate, not to close: shipped code lets a NEW service product be created through the API and then hides it from the inventory view, which contradicts the canonical rule (SH-1137 / SH-1167). This is SHARPER than the finding recorded on SH-1057, which concluded service was reachable only for legacy rows — creation is reachable too. Escalate for a product ruling and confirm whether real rows with item_type = 'service' exist before estimating impact"
+  - title: "The detail view degrades safely when the variants read fails or the variant set shrinks under the reader"
+    tags:
+      - "edge-case"
+      - "resilience"
+      - "negative"
+    given:
+      - "a product open on the detail view, with the variants query able to fail or to return a shorter list on a background refetch"
+    when:
+      - "the variants read errors, and separately, the variant set shrinks while the reader is sitting on a later page of the Variants table"
+    then:
+      - "a failed variants read gates the entire tabs region rather than rendering a page that silently claims zero stock — the backend counterpart is already asserted at list-variants.use-case.spec.ts:246, \"fails LOUD when a fact port rejects — it never resolves with stock: 0\""
+      - "a variant with no stock row at all reads as 0, never as null or undefined (BR-017, asserted at list-variants.use-case.spec.ts:174)"
+      - "when the variant set shrinks below the current page, the table clamps to a valid page at render time instead of showing an out-of-range slice or a pagination control frozen on a page that no longer exists"
+      - "the pagination control is hidden entirely when every variant fits on one page, rather than rendering a disabled single-page control"
+tags:
+  - "sh-1063"
+  - "sh-1164"
+  - "sh-793"
+  - "products"
+  - "variants"
+  - "product-detail"
+  - "wildcard"
+  - "inventory"
+  - "cardex"
+  - "read-only"
+  - "scope-ui"
+parameters: []
+links:
+  jira:
+    - key: "SH-1063"
+      url: "https://veevart.atlassian.net/browse/SH-1063"
+      type: "story"
+    - key: "SH-1164"
+      url: "https://veevart.atlassian.net/browse/SH-1164"
+      type: "qa-subtask"
+    - key: "SH-793"
+      url: "https://veevart.atlassian.net/browse/SH-793"
+      type: "epic"
+    - key: "SH-1137"
+      url: "https://veevart.atlassian.net/browse/SH-1137"
+      type: "related"
+    - key: "SH-1057"
+      url: "https://veevart.atlassian.net/browse/SH-1057"
+      type: "blocker"
+    - key: "SH-1060"
+      url: "https://veevart.atlassian.net/browse/SH-1060"
+      type: "blocker"
+    - key: "SH-1064"
+      url: "https://veevart.atlassian.net/browse/SH-1064"
+      type: "related"
+  external: []
+estimatedDuration: 105
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-04T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-09-04T00:00:00Z"
+  version: 2

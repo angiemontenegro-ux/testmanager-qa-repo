@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1063",
+  "tcKey": "TC-75",
+  "trKey": "TR-047",
+  "prNumber": 659,
+  "startedAt": "2026-09-04T17:40:00Z",
+  "lastUpdated": "2026-09-04T18:05:00Z",
+  "status": "completed",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11
+  ],
+  "currentStep": 12,
+  "data": {
+    "classification": {
+      "category": "UI/Frontend-dominant",
+      "rationale": "React read-only item-detail surface + backend read APIs; no SQL, no infra, no deps"
+    },
+    "branchCorrection": "Integration branch for BOTH repos is develop. TC-75 v1 verified against main/staging (91 commits behind) and wrongly concluded AC3 drill-in was missing. Corrected in TC-75 v2.",
+    "passRate": "7/8 passed, 1 failed (scenario index 2)",
+    "findings": {
+      "H1": "FAIL - no cost figure in summary, contradicts AC2 AND D9",
+      "H2": "images half of AC3 deferred to product image, labeled",
+      "H3": "cost writable by decision, AC4 misworded",
+      "H4": "itemType still live in API - already FAILED in TR-046 s8, not re-filed"
+    },
+    "regression": "technical 7/7 PASS, security 7/7 PASS",
+    "owasp": "3 applicable (A03,A04,A10) all PASS, 7 N/A",
+    "defectsRaised": [],
+    "commitHeld": "Rule 7b/10 - awaiting Angie's decision on filing H1 as a defect"
+  }
+}

@@ -1,0 +1,67 @@
+RESULTADOS DE REGRESION  (TR-047 / TC-75)
+==========================================
+Ejecutado sobre `gh pr diff 659` (1934 lineas) y la rama `develop`.
+
+REGRESION TECNICA — 7/7 PASS
+-----------------------------
+1. onRowAction sobre la tabla — PASS
+   Los tests read-only de la tabla se re-ejecutan CON el nuevo handler
+   montado: VariantsTable.test.tsx:183 y :219 siguen afirmando que ninguna
+   fila expone control de edit/archive/stock-adjustment, y :219 lo comprueba
+   especificamente con los botones de Pagination ya montados (11+ variantes).
+   El row-click es read-only por construccion: abre un modal, no muta nada.
+
+2. buildInventorySummary con dos consumidores — PASS
+   InventoryCard y VariantsTable llaman al MISMO helper puro. El total no se
+   re-deriva en ninguna de las dos, asi que no pueden divergir.
+   Pinneado por InventoryCard.test.tsx:208 y VariantsTable.test.tsx:389.
+
+3. ProductStatusChip compartido — PASS
+   VariantStatus es subconjunto de ProductStatus; el modal y la tabla usan el
+   mismo chip sin bifurcar la paleta. status-parity.test.ts cubre el paquete.
+
+4. i18n compartida — PASS
+   El modal reusa columns.*, default, noSku, noBarcode, noCost, taxableYes,
+   taxableNo de la tabla en vez de duplicar copy. en.json y fr.json ambos
+   tocados en la PR; messages-parity.test.ts vigila la paridad.
+
+5. resolve-product-image extraido — PASS
+   Salio de ItemDetailTabs.tsx a su propio modulo con test net-new
+   (resolve-product-image.test.ts). ItemDetailHeader lo consume tambien y su
+   test fue actualizado en la misma PR.
+
+6. Modal vs paginacion — PASS
+   VariantsTable.test.tsx:538 abre explicitamente una variante de la SEGUNDA
+   pagina y comprueba que el modal muestra esa, no la fila homologa de la 1a.
+
+7. Refetch con el modal abierto — PASS (el riesgo mas alto del diff, bien cubierto)
+   :563 comprueba que un modal ya abierto muestra datos LIVE tras un refetch,
+   no un snapshot congelado del click. :599 comprueba el caso feo: la variante
+   desaparece del set -> el modal se cierra solo; y si mas tarde reaparece,
+   NO se vuelve a abrir sin accion del usuario (bandera isDetailModalOpen).
+
+REGRESION DE SEGURIDAD — 7/7 PASS, 0 blockers
+----------------------------------------------
+8.  A03 Injection            PASS  0 hits de dangerouslySetInnerHTML, v-html,
+                                   eval(, new Function(, document.write.
+                                   Todo el render nuevo es JSX interpolado
+                                   (escapado por React por defecto).
+9.  Command injection        PASS  0 hits de child_process / exec( / spawn(.
+10. Secretos                 PASS  0 hits reales. Sin claves, tokens ni
+                                   -----BEGIN en las lineas anadidas.
+11. PII en logs              PASS  0 console.log / logger / print anadidos.
+12. Dependencias             PASS  package.json y lockfiles NO tocados por
+                                   la PR. Sin advisories nuevos que evaluar.
+13. SSRF                     PASS  Los unicos hits de URL son fixtures de
+                                   test (`https://cdn.example.com/mug.jpg`).
+                                   El <img src> del modal sale del record del
+                                   producto ya obtenido, no de input libre;
+                                   una url rota cae al estado vacio via onError
+                                   (VariantDetailModal.test.tsx:264), no a un
+                                   glyph roto ni a un fetch arbitrario.
+14. Auth / RBAC              PASS  Los hits de "auth/permission/role" son
+                                   PROSA del design.md de openspec, no codigo.
+                                   Sin cambios de guard, permiso ni scope.
+
+CONCLUSION: 14/14 items PASS. Ningun blocker de seguridad. La PR es un slice
+frontend read-only sin superficie de escritura nueva.

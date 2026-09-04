@@ -1,0 +1,60 @@
+MATRIZ DE COBERTURA AC <-> TESTS DEL DEV  (SH-1063 / TC-75)
+============================================================
+
+AC1 - Producto simple muestra sus datos directamente en la vista principal
+  CUBIERTO (parcial, por composicion)
+  - InventoryCard.test.tsx:57  "renders the on-hand stock per variant"
+  - spec.md "Overview Card Shows Only Fetched Fields": todo campo debe ser
+    trazable al record del producto
+  - Backend get-product.use-case.spec.ts:61 fija la forma del contrato
+    (defaultVariantSku, categoryName, variantCount) SIN cost ni stock
+  GAP: ningun test afirma "un producto simple no exige drill-in". Se deriva
+  de que el wildcard es la unica fila y su stock ya sale en InventoryCard.
+
+AC2 - La vista muestra el resumen a traves de las variantes
+  CUBIERTO para stock, NO EXISTE para costo
+  - InventoryCard.test.tsx:73   "renders the summed total"
+  - InventoryCard.test.tsx:96   incluye variante ARCHIVED en el total
+  - InventoryCard.test.tsx:125  suma stock NEGATIVO sin clamp
+  - InventoryCard.test.tsx:208  total sobre el set COMPLETO, no la pagina
+  - VariantsTable.test.tsx:355  count + stock sumado via buildInventorySummary
+  - VariantsTable.test.tsx:370  negativo sin clamp
+  - VariantsTable.test.tsx:389  refleja el set COMPLETO, no la pagina actual
+  - InventoryCard.test.tsx:143  "never renders a location or average-cost
+    breakdown"  <-- test que PROHIBE activamente la mitad de costo del AC2
+  GAP DELIBERADO: no hay CPP ni promedio de costo. Es una decision del spec,
+  no un olvido. Ver hallazgo H1.
+
+AC3 - Click en la variante abre su detalle (costo, stock, imagenes)
+  CUBIERTO para el drill-in y los datos; imagenes por variante DIFERIDAS
+  - VariantsTable.test.tsx:428  abre el modal con los datos correctos
+  - VariantsTable.test.tsx:448  se abre tambien desde el teclado
+  - VariantsTable.test.tsx:538  abre la variante correcta en la 2a pagina
+  - VariantsTable.test.tsx:563  refleja datos LIVE tras un refetch
+  - VariantsTable.test.tsx:599  no queda pegado ni reabre solo
+  - VariantDetailModal.test.tsx:107  renderiza los 8 campos de la tabla
+  - VariantDetailModal.test.tsx:203  muestra la imagen del PRODUCTO con
+    disclaimer explicito de que NO es la de la variante
+  GAP: la imagen por variante existe en backend (`variant-image-display.ts`,
+  `images` + `imagesInherited` en develop) pero el modal la difiere a
+  proposito. Ver hallazgo H2.
+
+AC4 - Stock y costo son de solo lectura en esta vista
+  CUBIERTO en el frontend; contradicho por decision en el backend
+  - VariantsTable.test.tsx:183  ninguna fila expone edit/archive/adjust
+  - VariantsTable.test.tsx:219  sigue sin exponerlos con Pagination montada
+  - VariantDetailModal.test.tsx:362  barrido del modal: sin checkbox, switch,
+    menuitem, link, spinbutton, textbox ni boton con nombre peligroso
+  CONTRADICCION: `cost` SI es editable via PATCH de variante
+  (variant.dto.ts:247 en develop), por decision explicita. Ver hallazgo H3.
+
+RESILIENCIA (no es un AC, pero el TC lo cubre)
+  - VariantsTable.test.tsx:318 / :334  clamp de pagina al encoger el set
+  - VariantsTable.test.tsx:293 / :299  oculta Pagination si todo cabe
+  - InventoryCard.test.tsx:218 / :232  manejo de foco en el ultimo "Load more"
+  - backend list-variants.use-case.spec.ts:246  falla RUIDOSO, nunca stock:0
+  - backend list-variants.use-case.spec.ts:174  sin fila de stock lee 0
+
+VEREDICTO DE COBERTURA: el dev cubrio los 4 AC con tests reales. No hay
+"cambio sustantivo sin cobertura". Los gaps son de PRODUCTO (AC vs spec),
+no de testing.

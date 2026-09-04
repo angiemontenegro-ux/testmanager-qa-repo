@@ -1,0 +1,26 @@
+PLAN DE REGRESION TECNICA + SEGURIDAD  (TR-047 / TC-75 / SH-1063)
+==================================================================
+PR bajo prueba: Veevarts/VeevartFrontend #659
+  "feat(shop): variant row click opens a read-only detail modal (SH-1058)"
+  base: develop | merged 2026-09-01 | +1562/-21 | 16 archivos
+
+| # | Item                                                        | Tipo      | Riesgo | Metodo de chequeo                                        | Veredicto |
+|---|-------------------------------------------------------------|-----------|--------|----------------------------------------------------------|-----------|
+| 1 | VariantsTable gana onRowAction: no debe romper la tabla      | Tecnico   | Medium | Tests del dev de paginacion + read-only sobre la MISMA tabla | PASS |
+| 2 | buildInventorySummary es consumido por 2 superficies         | Tecnico   | Medium | InventoryCard y VariantsTable derivan del mismo helper       | PASS |
+| 3 | ProductStatusChip reusado desde item-wizard en el modal      | Tecnico   | Low    | VariantStatus es subconjunto de ProductStatus; sin fork      | PASS |
+| 4 | i18n: el modal reusa las claves columns.* de la tabla        | Tecnico   | Low    | messages-parity.test.ts + status-parity.test.ts en el paquete| PASS |
+| 5 | resolve-product-image extraido de ItemDetailTabs             | Tecnico   | Medium | resolve-product-image.test.ts net-new + ItemDetailHeader     | PASS |
+| 6 | Paginacion: el modal debe abrir la variante de la pagina real| Tecnico   | Medium | VariantsTable.test.tsx:538 (2a pagina)                       | PASS |
+| 7 | Refetch en background con el modal abierto                   | Tecnico   | High   | VariantsTable.test.tsx:563 y :599                            | PASS |
+| 8 | A03 Injection: interpolacion sin escapar en el JSX nuevo     | Seguridad | High   | grep dangerouslySetInnerHTML / v-html / eval / new Function  | PASS |
+| 9 | Command injection en el diff                                 | Seguridad | High   | grep child_process / exec( / spawn(                          | PASS |
+|10 | Secretos en el diff                                          | Seguridad | High   | grep password/api_key/secret/token/bearer/-----BEGIN         | PASS |
+|11 | PII en logs                                                  | Seguridad | Medium | grep console.log / logger.info / print(                      | PASS |
+|12 | Dependencias nuevas o actualizadas                           | Seguridad | Medium | grep package.json / lockfiles en el diff                     | PASS |
+|13 | SSRF: URL influida por el usuario en llamadas salientes      | Seguridad | High   | grep fetch( / axios. / http(s)://                            | PASS |
+|14 | Auth / RBAC / route guards tocados                           | Seguridad | High   | grep permission/role/auth/guard/acl en lineas anadidas       | PASS |
+
+NOTA DE ALCANCE: la PR #659 es 100% frontend read-only. No toca backend, no
+toca SQL, no toca infra, no toca dependencias. El backend de SH-1063 (las APIs
+de lectura) no cambio en este slice.

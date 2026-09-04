@@ -1,0 +1,716 @@
+schemaVersion: '1.0'
+id: tr-7c801084-9d76-4ea7-9aad-6fa07b42b92e
+key: TR-047
+title: 'Run: SH-1063 la vista de detalle de producto — datos directos del producto simple, resumen de stock por SUMA, drill-in
+  por variante en modal read-only, solo lectura y ausencia de estado Service (TC-75) contra develop de VeevartFrontend (PR
+  #659) y origin/develop de VeevartBackend, SH-1063 / QA Sub-task SH-1164'
+status: in-progress
+environment:
+  name: local-source
+  buildVersion: 'UI / Frontend-dominante (React/TS read-only) con verificacion de las APIs de lectura del backend. ENTORNO:
+    NO se probo en navegador ni en instancia desplegada. LA HISTORIA NO TIENE PR PROPIA: ninguna PR lleva la clave SH-1063;
+    el slice viaja bajo la clave del EPIC SH-793 y la pieza de drill-in bajo la clave hermana SH-1058. PR PRINCIPAL BAJO PRUEBA:
+    VeevartFrontend #659 ''feat(shop): variant row click opens a read-only detail modal (SH-1058)'', base develop, mergeada
+    2026-09-01, +1562/-21, 16 archivos, CI TODA EN VERDE (lint 17m19s, AWS CodeBuild ''Build succeeded'', previews y cleanups).
+    Superficie relacionada ya en develop: PR #569 ''paginate item-detail inventory and variants''. CORRECCION DE RAMA — ES
+    EL HALLAZGO DE PROCESO DE ESTE RUN: la rama de integracion de LOS DOS repos es develop, no main ni staging. La v1 del
+    TC-75 se verifico contra main de VeevartFrontend y contra un worktree de VeevartBackend en origin/staging que resulto
+    estar 91 commits DETRAS de origin/develop. Eso produjo una conclusion FALSA (que el drill-in del AC3 no existia) que este
+    run corrige. Todo lo de backend se rehizo con git grep/git show contra origin/develop. LIMITE DIVULGADO: VeevartFrontend
+    NO esta clonado en esta maquina, asi que su verificacion es ESTATICA — codigo fuente en develop leido por la API de GitHub,
+    mas los nombres y asserts de los tests del dev, mas el estado de CI. La suite del frontend NO se ejecuto localmente. La
+    suite del backend tampoco se corrio en esta sesion: SH-1063 no cambia codigo de backend. Sin SQL, sin metadata de Salesforce,
+    sin dependencias nuevas: no aplica safesql ni carga a sandbox. VEREDICTO: 7/8 PASS, 1 FAIL (escenario 3, ninguna cifra
+    de costo en el resumen — contradice el AC2 Y la decision D9 que lo corrigio). Regresion tecnica 7/7 PASS, seguridad 7/7
+    PASS, OWASP 3 aplicables (A03, A04, A10) los 3 PASS y 7 N/A justificados, 0 bloqueadores de seguridad.'
+startedAt: '2026-09-04T17:40:00.000Z'
+results:
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: A simple product shows its own data directly in the main view, with no drill-in required
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable valido: un producto sin opciones nace con exactamente una variante wildcard (origin implicit).
+      Rama zero-options de rebuild-variants.ts, ya ejercida en TR-046.'
+    phase: given
+    text: a simple product created with no options, so its only variant is the wildcard (origin `implicit`)
+  - order: 2
+    status: passed
+    actual: 'Apertura verificada por codigo fuente en develop, no en navegador: ItemDetail.tsx monta ItemDetailHeader + ItemDetailTabs,
+      y la pestana Overview arma IdentityCard, OverviewCard, PriceTaxCard, SystemCard e InventoryCard.'
+    phase: when
+    text: a shop admin opens the product's detail view
+  - order: 3
+    status: passed
+    actual: 'Las cuatro tarjetas se renderizan en la vista principal sin ninguna interaccion previa. El spec product-detail-preview
+      lo fija: ''Overview Card Shows Only Fetched Fields'' — todo campo debe ser trazable al record del producto obtenido.'
+    phase: then
+    text: the identity, overview, price/tax and system data are all readable on the main view without opening anything else
+  - order: 4
+    status: passed
+    actual: 'InventoryCard.test.tsx:57 ''renders the on-hand stock per variant'': con una sola variante (el wildcard), su
+      on-hand ES la cifra del producto. La tarjeta se alimenta de buildInventorySummary sobre las variantes ya obtenidas —
+      sin fetch adicional.'
+    phase: then
+    text: the on-hand figure for the product is visible on the main view via the Inventory card, sourced from the wildcard
+      variant's `stock` field
+  - order: 5
+    status: passed
+    actual: 'No se exige drill-in: la cifra sale en la vista principal. El modal de detalle de variante es opcional, no un
+      paso obligatorio para ver stock.'
+    phase: then
+    text: the admin is never asked to open a variant to see the product's stock
+  - order: 6
+    status: passed
+    actual: 'CONFIRMADO en origin/develop: ProductResponseDto expone id, name, description, handle, productId, categoryId,
+      vendorId, basePrice, compareAtPrice, tags, status, itemType, taxMappingId, defaultVariantSku, baseSku, categoryName,
+      variantCount, images — y NINGUN campo de cost, stock ni summary. Toda cifra en pantalla viene de la llamada de variantes.
+      get-product.use-case.spec.ts:61 pinnea esa forma.'
+    phase: then
+    text: 'GET /v1/products/:id returns the product with `defaultVariantSku`, `baseSku`, `categoryName` and `variantCount`
+      — and confirm what it does NOT return: no cost, no stock, no summary field exists on ProductResponseDto, so any figure
+      on screen must have come from the variants call, not the product call'
+  attachments:
+  - name: tests-found.txt
+    path: attachments/tr-047-tc-75/scenario-0-unit-tests/tests-found.txt
+    mimeType: text/plain
+    size: 2151
+  - name: coverage-matrix.txt
+    path: attachments/tr-047-tc-75/scenario-0-unit-tests/coverage-matrix.txt
+    mimeType: text/plain
+    size: 3538
+  - name: test-run-log.txt
+    path: attachments/tr-047-tc-75/scenario-0-unit-tests/test-run-log.txt
+    mimeType: text/plain
+    size: 1282
+  - name: regression-plan.txt
+    path: attachments/tr-047-tc-75/regression-plan.txt
+    mimeType: text/plain
+    size: 3070
+  - name: regression-results.txt
+    path: attachments/tr-047-tc-75/regression-results.txt
+    mimeType: text/plain
+    size: 3887
+  - name: owasp-top10-scan.txt
+    path: attachments/tr-047-tc-75/owasp-top10-scan.txt
+    mimeType: text/plain
+    size: 3516
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: A multi-variant product summarises stock as a SUM across every variant, including archived ones, with the
+    sign intact
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Precondicion cubierta por los fixtures de los tests del dev, que incluyen variantes archived y valores de stock
+      negativos.
+    phase: given
+    text: a product with multiple real variants, at least one of them archived, and at least one holding negative on-hand
+  - order: 2
+    status: passed
+    actual: 'Nota del TC honrada: se prueba D9 (stock = SUMA), no la palabra ''average'' del AC2, que decisions.md:228 invalida
+      por nombre.'
+    phase: given
+    text: 'NOTE: the story''s AC2 says the view shows the AVERAGE cost and stock. That wording was OVERRULED, not missed —
+      decision D9 (research/decisions.md:218-229) rules stock = SUM across variants and CPP = quantity-weighted, and names
+      this story at :228: "Invalidates: SH-1156 and SH-1063, which both say ''average''". Test D9, not the 2026-07-08 wording.'
+  - order: 3
+    status: passed
+    actual: 'Lectura verificada sobre las dos superficies que muestran el total: InventoryCard (fila de total) y el caption
+      de la pestana Variants.'
+    phase: when
+    text: the admin opens the product's detail view and reads the Inventory card and the Variants tab caption
+  - order: 4
+    status: passed
+    actual: SUMA, no media. buildInventorySummary hace rows.reduce((sum,row) => sum + row.stock, 0). Pinneado por InventoryCard.test.tsx:73
+      'renders the summed total' y VariantsTable.test.tsx:355 'shows the variant count and the summed stock, computed via
+      buildInventorySummary'.
+    phase: then
+    text: the total shown is the SUM of every variant's on-hand, not an arithmetic mean
+  - order: 5
+    status: passed
+    actual: 'ARCHIVED incluidas. InventoryCard.test.tsx:96 ''includes an ARCHIVED variant in the total — this card renders
+      every variant, not only active ones''. El docstring del helper lo dice igual: ''la exigencia es cada variante, no cada
+      variante activa''.'
+    phase: then
+    text: archived variants ARE included in that total — the rule is "every variant", not "every active variant", per the
+      contract documented on buildInventorySummary in inventory-summary.ts
+  - order: 6
+    status: passed
+    actual: Signo intacto, sin clamp. InventoryCard.test.tsx:125 'sums a NEGATIVE stock value into the total, unclamped' y
+      VariantsTable.test.tsx:370 lo mismo para el contador de la tabla. Coincide con la regla de backend ya afirmada en list-variants.use-case.spec.ts:136
+      y :146 (D29 / SH-1111).
+    phase: then
+    text: a negative on-hand is summed with its sign and is never clamped to zero, matching the backend rule already asserted
+      at list-variants.use-case.spec.ts:136 and :146 (D29 / SH-1111)
+  - order: 7
+    status: passed
+    actual: Total independiente de la paginacion. InventoryCard.test.tsx:208 'keeps the total row summed over the FULL variant
+      set, not just the currently revealed page' y VariantsTable.test.tsx:389 'reflects the FULL variant set, not just the
+      variants on the current page'.
+    phase: then
+    text: the total covers the FULL variant set regardless of which page the client-side pagination is currently showing —
+      reveal more rows in the Inventory card, and page through the Variants table, and confirm the total does not change
+  - order: 8
+    status: passed
+    actual: 'Los dos totales coinciden POR CONSTRUCCION: ambas superficies llaman al mismo helper puro buildInventorySummary
+      y ninguna re-deriva la suma por su cuenta.'
+    phase: then
+    text: the Inventory card total and the Variants tab caption agree, since both derive from the same buildInventorySummary
+      call
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: No cost figure of any kind is summarised on the product view — neither the AC's average nor D9's weighted
+    CPP
+  scenarioIndex: 2
+  status: failed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Precondicion valida: ProductVariant.cost existe como campo por variante y average_cost existe como proyeccion
+      MWAC/PMP del ledger. Los dos datos ESTAN disponibles.'
+    phase: given
+    text: a product with multiple variants that each carry a non-null `cost`, and posted movements that have produced a real
+      `average_cost` per variant
+  - order: 2
+    status: passed
+    actual: Busqueda hecha sobre el codigo de develop de las cinco tarjetas de Overview y del caption de la pestana Variants.
+    phase: when
+    text: the admin opens the product's detail view and looks for a product-level cost figure
+  - order: 3
+    status: passed
+    actual: 'CONFIRMADO: InventoryCard muestra solo on-hand. inventory-summary.ts lo declara en su propio contrato — ''no
+      new fetch, no per-location or average-cost breakdown'' — y InventorySummary solo lleva rows y total.'
+    phase: then
+    text: 'the Inventory card shows on-hand only — inventory-summary.ts states the contract in its own words: "no new fetch,
+      no per-location or average-cost breakdown", and InventorySummary carries only `rows` and `total`'
+  - order: 4
+    status: failed
+    actual: 'FAIL — no se renderiza NINGUNA cifra de costo a nivel de producto. No es un descuido: InventoryCard.test.tsx:143
+      ''never renders a location or average-cost breakdown'' PROHIBE activamente ese campo, y el spec product-detail-preview
+      lo exige asi en ''Inventory Summary Is Per-Variant On-Hand Only''.'
+    phase: then
+    text: no product-level cost, average cost or CPP is rendered anywhere on the detail view
+  - order: 5
+    status: passed
+    actual: 'CONFIRMADO en origin/develop: sigue sin existir agregacion sobre el conjunto de variantes de un producto en la
+      capa de aplicacion del backend, y la fila de CPP ponderado en decisions.md:1753 sigue marcada como no construida.'
+    phase: then
+    text: 'confirm the gap on the API side too: no aggregation over a product''s variant set exists in the backend application
+      layer, and the weighted-CPP row in decisions.md:1753 is marked as not built'
+  - order: 6
+    status: failed
+    actual: 'AQUI ESTA EL FAIL, y es mas amplio de lo que decia el plan: la implementacion contradice el AC2 (que pide costo
+      promedio) Y TAMBIEN contradice la decision D9 que lo corrigio (que pide CPP ponderado por cantidad). No es ''el AC quedo
+      viejo y el spec lo corrigio'' — el spec entregado no cumple NINGUNA de las dos reglas. Severidad baja en impacto real:
+      no hay dato erroneo en pantalla, hay un dato ausente. Requiere ruling de producto: o se construye el CPP ponderado,
+      o se corrige el AC2 y D9 para reconocer que el resumen es solo on-hand.'
+    phase: then
+    text: 'record this as a KNOWN GAP against AC2''s second half, not as a passing scenario: the summary satisfies D9''s stock
+      rule and does NOT satisfy D9''s CPP rule. Do not file it as a defect before confirming with the assignee whether CPP
+      was deferred deliberately — but do not sign AC2 off as met either'
+  - order: 7
+    status: passed
+    actual: 'Distincion registrada para el reporte: product_variants.cost es el costo unitario tecleado por el comerciante
+      y product_variants.average_cost es la valuacion MWAC/PMP (decisions.md:302-303). Un promedio del primero NO seria CPP.
+      Quien construya esto debe partir de average_cost.'
+    phase: then
+    text: 'distinguish the two costs when reporting: `product_variants.cost` is the merchant-typed unit cost, while `product_variants.average_cost`
+      is the MWAC/PMP valuation. An average of the former would NOT be CPP (decisions.md:302-303)'
+  defects:
+  - jiraKey: SH-1269
+    url: https://veevart.atlassian.net/browse/SH-1269
+    severity: medium
+    summary: 'Products - Item detail: tres desalineaciones AC vs implementacion en SH-1063. Agrupadas a peticion de Angie
+      para no fragmentar una sola conversacion de reconciliacion en tres bugs de bajo impacto. Hallazgo 1 (este FAIL): el
+      resumen no muestra ninguna cifra de costo, contradiciendo el AC2 y tambien la decision D9 que lo corrigio. Hallazgo
+      2: la mitad de imagenes del AC3 esta diferida a la imagen del producto padre, rotulada. Hallazgo 3: el AC4 dice que
+      cost es de solo lectura pero es escribible por decision. Solo el hallazgo 1 requiere codigo; los otros dos probablemente
+      se cierran corrigiendo la redaccion de la historia. El cuarto hallazgo (itemType vivo en la API) queda EXCLUIDO a proposito:
+      ya esta como FAIL en TR-046 escenario 8 y pertenece a SH-1137 / SH-1167.'
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: Clicking a variant row opens a read-only detail modal showing that variant's own data
+  scenarioIndex: 3
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto con varias variantes abierto en la pestana Variants.
+    phase: given
+    text: a product with several variants, open on the Variants tab of the detail view
+  - order: 2
+    status: passed
+    actual: 'CORRECCION REGISTRADA: este escenario decia en la v1 del TC que el drill-in NO existia. Era falso — se leyo la
+      rama main. La PR #659 de VeevartFrontend lo entrego en develop el 2026-09-01 bajo la clave hermana SH-1058.'
+    phase: given
+    text: 'NOTE: AC3 asks to be "redirected to that variant''s detail". It shipped as a MODAL, not a route — VeevartFrontend
+      PR #659, merged to `develop` on 2026-09-01 under the sibling key SH-1058. Judge the intent (inspect one variant''s own
+      data), and record the route-vs-modal difference rather than failing on it.'
+  - order: 3
+    status: passed
+    actual: Click de raton y activacion por teclado, los dos ejercidos por los tests del dev.
+    phase: when
+    text: the admin clicks a variant row, and separately activates one from the keyboard
+  - order: 4
+    status: passed
+    actual: Modal read-only con los 8 campos. VariantDetailModal.test.tsx:107 'renders all 8 table fields for the selected
+      variant', en el orden de columnas de la tabla (variant, sku, barcode, price, cost, taxable, stock, status) y reusando
+      sus mismas claves i18n. VariantsTable.test.tsx:428 'opens the modal with the CORRECT variant data when a row is clicked'.
+    phase: then
+    text: a read-only modal opens showing that variant's own displayName, SKU, barcode, price, cost, taxable, stock and status
+      — the same 8 fields as the row, in the table's own column order
+  - order: 5
+    status: passed
+    actual: Pagina correcta. VariantsTable.test.tsx:538 'opens the correct variant when it is on the SECOND page, not page
+      1'.
+    phase: then
+    text: the correct variant opens even when the row is on the second page of the paginated table, not the same-position
+      row from page 1
+  - order: 6
+    status: passed
+    actual: Teclado cubierto. VariantsTable.test.tsx:448 'opens the modal from the keyboard, not only the mouse' y :472 'announces
+      how a row is activated via a sr-only hint wired through aria-describedby'.
+    phase: then
+    text: a keyboard user can tab to a row and press Enter to open the same modal, and an accessible hint describing how to
+      activate a row is reachable
+  - order: 7
+    status: passed
+    actual: Sin controles de mutacion. VariantDetailModal.test.tsx:362 barre el modal abierto rechazando checkbox, switch,
+      menuitem, link, spinbutton y textbox, y cualquier boton cuyo NOMBRE ACCESIBLE tenga forma de save/archive/delete/adjust/create/edit.
+      La misma garantia ya existia para las filas de la tabla (:183) y sigue valiendo con Pagination montada (:219).
+    phase: then
+    text: the modal exposes NO edit, archive or stock-adjustment control of any kind — no checkbox, switch, menuitem, link,
+      spinbutton or textbox, and no button whose accessible name reads save/archive/delete/adjust/create/edit
+  - order: 8
+    status: passed
+    actual: Datos vivos y cierre seguro. VariantsTable.test.tsx:563 'shows the LIVE variant data in an already-open modal
+      after variants updates, not a stale snapshot' y :599 'closes gracefully — never stuck open, never silently reopens —
+      when the selected variant disappears from variants and later reappears'. Este era el riesgo mas alto del diff y esta
+      bien cubierto.
+    phase: then
+    text: an open modal reflects LIVE variant data after a background refetch rather than a stale snapshot from the moment
+      of the click; if the selected variant disappears from the set the modal closes itself, and it does NOT spring back open
+      if that id later reappears
+  - order: 9
+    status: passed
+    actual: 'IMAGENES — MITAD DIFERIDA DE AC3, no cumplida como la pide el AC pero entregada de forma honesta: el modal muestra
+      la imagen primaria del PRODUCTO PADRE (isPrimary gana, si no la primera, si no un estado vacio explicito) y la CAPTIONEA
+      visiblemente como imagen del producto, no de la variante — VariantDetailModal.test.tsx:203 ''shows the product image
+      with an explicit disclaimer that it is the PRODUCT image, not the variant''''s''. El backend en develop YA soporta imagenes
+      por variante (variant-image-display.ts expone images + imagesInherited), asi que el dato existe y la UI lo difiere a
+      proposito. NO se marca FAIL porque la sustitucion esta especificada y rotulada al usuario, pero necesita el visto bueno
+      de producto antes de firmar AC3 como completo.'
+    phase: then
+    text: 'IMAGES ARE THE DEFERRED HALF OF AC3: the modal shows the PARENT PRODUCT''s primary image (isPrimary wins, else
+      the first image, else an explicit empty-image state) and captions it visibly as the product''s image, NOT the variant''s.
+      Verify the caption is present and honest. Per-variant images are supported by the backend on `develop` (variant-image-display.ts
+      exposes `images` + `imagesInherited`) but deliberately not surfaced here — confirm this deferral is accepted before
+      signing AC3 off as fully met'
+  - order: 10
+    status: passed
+    actual: 'Sin cambio de ruta y sin endpoint nuevo: confirmado en origin/develop que sigue sin haber GET de una sola variante
+      (0 hits de @Get('':variantId'') y de GetVariantUseCase; variants/:variantId solo acepta PATCH y DELETE). El modal se
+      alimenta del listado de variantes ya obtenido, asi que el drill-in es 100% cliente.'
+    phase: then
+    text: no route change occurs and no GET single-variant endpoint is called — the modal is fed from the already-fetched
+      variants list
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: Stock is read-only from the product view, but variant cost is deliberately still editable
+  scenarioIndex: 4
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto con variantes que tienen stock y costo.
+    phase: given
+    text: a product with variants that hold stock and cost
+  - order: 2
+    status: passed
+    actual: Inspeccion de la UI por codigo + tests, y sondeo de las rutas de escritura sobre los DTO de origin/develop.
+    phase: when
+    text: the admin inspects the detail view for any control that would change stock or cost, and then the write APIs are
+      probed directly
+  - order: 3
+    status: passed
+    actual: Ninguna fila expone control de edicion. VariantsTable.test.tsx:183 'exposes no edit, archive, or stock-adjustment
+      control on any row' y :219 lo revalida con los botones de Pagination ya montados (11+ variantes), que es donde un barrido
+      ingenuo daria falso positivo.
+    phase: then
+    text: no row in the Variants table exposes an edit, archive or stock-adjustment control — the table is a plain read-only
+      surface, as its own contract states
+  - order: 4
+    status: passed
+    actual: 'CONFIRMADO en develop: UpdateProductDto no tiene cost ni stock, y sus overrides anidados de variante solo aceptan
+      optionValueLabels, sku y price.'
+    phase: then
+    text: 'the product PATCH accepts neither `cost` nor `stock`: UpdateProductDto has no such field, and its nested variant
+      overrides accept only `optionValueLabels`, `sku` and `price`'
+  - order: 5
+    status: passed
+    actual: 'CONFIRMADO en develop: no existe campo stock ni averageCost en ningun DTO de escritura. stock solo aparece en
+      el DTO de RESPUESTA (variant.dto.ts:375), documentado como firmado y nunca clampeado.'
+    phase: then
+    text: '`stock` and `average_cost` are not writable from any catalog endpoint — no DTO field exists for either'
+  - order: 6
+    status: passed
+    actual: 'CONTRADICCION CONFIRMADA Y ESPERADA, no defecto: cost SI es escribible via PATCH de variante — variant.dto.ts:247
+      en develop, cost: decimal.nullable().optional(). Es deliberado: decisions.md:976 y :1759 dicen ''product_variants.cost
+      stays writable — only average_cost is read-only''. El AC4 esta mal redactado, no el codigo. Verificar que el AC queria
+      decir average_cost.'
+    phase: then
+    text: 'HOWEVER `cost` IS writable through the variant PATCH (UpdateVariantDto.cost), and that is INTENTIONAL: decisions.md:976
+      and :1759 both state "`product_variants.cost` stays writable — only `average_cost` is read-only". AC4''s blanket "stock/cost
+      are read-only" therefore conflicts with a shipped decision — verify the AC means `average_cost`, and do not file the
+      writable `cost` as a defect without a product ruling'
+  - order: 7
+    status: passed
+    actual: 'Gap secundario confirmado: FIELD_NOT_EDITABLE_FROM_CATALOG sigue SIN implementar en src de develop (0 hits),
+      pese a estar especificado en decisions.md:975-976. Hoy una clave stock o averageCost cae como 400 generico de zod .strict()
+      en vez del 422 tipado. Severidad baja; queda anotado, no filado.'
+    phase: then
+    text: 'note a secondary gap while here: the typed 422 the spec calls for on a blocked field, `FIELD_NOT_EDITABLE_FROM_CATALOG`
+      (decisions.md:975-976), is not implemented — a stock or averageCost key is rejected by zod `.strict()` as a generic
+      400 instead. Low severity, but it belongs on the record'
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: Opening a product or a variant that does not exist reports not-found rather than showing stale data
+  scenarioIndex: 5
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: IDs inexistentes preparados conceptualmente; la verificacion es por codigo y por los tests del dev del backend.
+    phase: given
+    text: a product ID that does not exist for the tenant, and a variant ID that was removed or never belonged to the product
+      under test
+  - order: 2
+    status: passed
+    actual: Apertura de ambos casos.
+    phase: when
+    text: the admin opens each of them
+  - order: 3
+    status: passed
+    actual: ProductNotFoundError confirmado en origin/develop (product.errors.ts:14). Se lanza antes de cualquier otra lectura,
+      y list-variants.use-case.spec.ts:262 pinnea que sigue lanzandose ANTES de tocar inventario.
+    phase: then
+    text: the missing product is reported as not found — `ProductNotFoundError` is thrown by GetProductUseCase before any
+      further read, and identically by ListVariantsUseCase, which also throws it before any inventory read is attempted (asserted
+      at list-variants.use-case.spec.ts:262)
+  - order: 4
+    status: passed
+    actual: VariantNotFoundError confirmado en origin/develop (options-variants.errors.ts:182), con codigo de wire VARIANT_NOT_FOUND.
+    phase: then
+    text: the missing variant is reported as not found — `VariantNotFoundError`, wire code `VARIANT_NOT_FOUND`, in domain/exceptions/options-variants.errors.ts
+  - order: 5
+    status: passed
+    actual: 'Sin datos rancios: el error corta antes de armar respuesta. La pestana entera queda gateada por el estado de
+      error de la query (ver escenario 8).'
+    phase: then
+    text: no stale, empty or wrong-product data is rendered in place of the error
+  - order: 6
+    status: passed
+    actual: 'Cross-tenant tratado como not-found: get-product.use-case.spec.ts:32 cubre exactamente el caso cross-tenant y
+      espera ProductNotFoundError, no un error de permisos que filtraria la existencia del producto.'
+    phase: then
+    text: a cross-tenant product ID is treated as not-found, not as a permission error that leaks the product's existence
+  - order: 7
+    status: passed
+    actual: 'AVISO DE CITAS: los numeros de linea se movieron OTRA VEZ respecto al TC (que ya los habia corregido una vez
+      contra staging). En develop VariantNotFoundError esta en :182, no en :162 ni en :62. Las clases y el comportamiento
+      no cambiaron — es deriva de citas, no defecto.'
+    phase: then
+    text: NOTE the line numbers quoted in the previous version of the SH-1164 plan are stale — the ProductNotFoundError throw
+      in list-variants.use-case.ts is at :75, not :39, and VariantNotFoundError is at :162, not :62. The classes and behaviour
+      are unchanged; only the citations moved
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: The view carries no service-only state, but the API still creates and returns a Service product type
+  scenarioIndex: 6
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: SH-1137 quito el selector de tipo de producto; el escenario Service de la historia sigue VOID y no se implementa
+      ni se firma.
+    phase: given
+    text: SH-1137 removed the Product Type selector and made every product physical, which VOIDS the story's added Service
+      scenario ("A Service product hides inventory in the view") — that scenario must not be implemented and must not be signed
+      off
+  - order: 2
+    status: passed
+    actual: La descripcion de SH-1063 todavia arrastra la seccion superada 'Physical vs Service branching in the view'.
+    phase: given
+    text: the story description still carries the superseded "Physical vs Service branching in the view" section, flagged
+      there but not deleted because the story was In Progress
+  - order: 3
+    status: passed
+    actual: Revision de la vista de detalle y sondeo de las APIs de create y update.
+    phase: when
+    text: the admin opens the detail view of every kind of product, and the create and update APIs are then probed directly
+      for a product type
+  - order: 4
+    status: passed
+    actual: 'UI LIMPIA — CONFIRMADO en develop: 0 hits de itemType, productType o service en ItemDetail.tsx, OverviewCard.tsx,
+      ItemDetailHeader.tsx y SystemCard.tsx. Ni pill de tipo ni campo ''Product type''. Stock, el panel de movimientos y el
+      estado de out-of-stock se muestran sin condicional de tipo.'
+    phase: then
+    text: no Physical/Service pill and no "Product type" field is rendered on the detail view, and stock, the Cardex/movements
+      panel and the out-of-stock state are shown for every product unconditionally
+  - order: 5
+    status: passed
+    actual: 'Copy ausente confirmada: 0 hits de ''Services aren''''t tracked in inventory'' ni variantes en los messages de
+      item-detail (en.json y fr.json).'
+    phase: then
+    text: the literal string "Services aren't tracked in inventory" appears nowhere — confirmed absent from the whole shop
+      domain
+  - order: 6
+    status: passed
+    actual: 'API TODAVIA EXPONE itemType — confirmado en origin/develop, no solo en staging: ITEM_TYPE_VALUES = [''physical'',''service'']
+      en domain/product.ts:27, y itemType presente en el DTO de create (:213), en el de PATCH (:267) y en ProductResponseDto
+      (:344). El test del dev products.controller.spec.ts:357 crea item_type ''service'' y lo lee de vuelta.'
+    phase: then
+    text: 'BUT `itemType` is still live end to end on the API: ITEM_TYPE_VALUES = [''physical'',''service''] in domain/product.ts:27,
+      accepted on the create DTO, accepted on the PATCH DTO, and returned on ProductResponseDto.itemType — and the dev''s
+      own test at products.controller.spec.ts:357 creates a product with item_type "service" and reads it back'
+  - order: 7
+    status: passed
+    actual: 'Ramas de servicio vivas en la lectura: exclusiones SQL p.item_type <> ''service'' en inventory view, variant
+      search y locations, mas service-inventory-policy.ts y ServiceNotStockableError.'
+    phase: then
+    text: 'service branching also survives in the read path: SQL exclusions `p.item_type <> ''service''` in the inventory
+      view, variant search and location repositories, plus service-inventory-policy.ts and ServiceNotStockableError'
+  - order: 8
+    status: passed
+    actual: 'NO SE VUELVE A FILAR AQUI, y por eso este escenario NO es FAIL: la contradiccion ya esta registrada como FAIL
+      en TR-046 escenario 8 (TC-74 / SH-1057) y espera ruling de producto. Volver a fallarla en este TR la contaria dos veces.
+      Para el alcance que SH-1063 posee — la VISTA — la superficie esta limpia y pasa. La contradiccion es de SH-1137 / SH-1167
+      y se arrastra como escalamiento abierto, no como defecto nuevo.'
+    phase: then
+    text: 'this is a BLOCKER-class contradiction to escalate, not to close: shipped code lets a NEW service product be created
+      through the API and then hides it from the inventory view, which contradicts the canonical rule (SH-1137 / SH-1167).
+      This is SHARPER than the finding recorded on SH-1057, which concluded service was reachable only for legacy rows — creation
+      is reachable too. Escalate for a product ruling and confirm whether real rows with item_type = ''service'' exist before
+      estimating impact'
+- testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
+  testCaseKey: TC-75
+  testCaseTitle: Products — Product Detail View, Variant Summary and Variant Drill-In
+  testCaseFilePath: test-cases/SH-1063/SH-1063-TC-75-product-and-variant-detail-view.testcase.yml
+  scenarioTitle: The detail view degrades safely when the variants read fails or the variant set shrinks under the reader
+  scenarioIndex: 7
+  status: passed
+  executedAt: '2026-09-04T18:05:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Vista de detalle abierta, con la query de variantes capaz de fallar o de devolver una lista mas corta.
+    phase: given
+    text: a product open on the detail view, with the variants query able to fail or to return a shorter list on a background
+      refetch
+  - order: 2
+    status: passed
+    actual: Fallo de lectura y encogimiento del set, ejercidos por separado.
+    phase: when
+    text: the variants read errors, and separately, the variant set shrinks while the reader is sitting on a later page of
+      the Variants table
+  - order: 3
+    status: passed
+    actual: 'Fallo ruidoso, no silencioso. En el frontend el estado de loading/error de variantsQuery gatea la REGION ENTERA
+      de pestanas (documentado en el module doc de ItemDetail.tsx). La contraparte de backend ya esta afirmada en list-variants.use-case.spec.ts:246
+      ''fails LOUD when a fact port rejects — it never resolves with stock: 0''.'
+    phase: then
+    text: 'a failed variants read gates the entire tabs region rather than rendering a page that silently claims zero stock
+      — the backend counterpart is already asserted at list-variants.use-case.spec.ts:246, "fails LOUD when a fact port rejects
+      — it never resolves with stock: 0"'
+  - order: 4
+    status: passed
+    actual: Variante sin fila de stock lee 0, nunca null ni undefined. list-variants.use-case.spec.ts:174 (BR-017, creacion
+      perezosa).
+    phase: then
+    text: a variant with no stock row at all reads as 0, never as null or undefined (BR-017, asserted at list-variants.use-case.spec.ts:174)
+  - order: 5
+    status: passed
+    actual: Clamp de pagina en render, no reset por efecto. VariantsTable.test.tsx:318 'clamps to a valid page when variants
+      shrinks below the current page, instead of a blank table with no way back' y :334 'clamps to the new LAST valid page
+      (not a frozen stale one)'.
+    phase: then
+    text: when the variant set shrinks below the current page, the table clamps to a valid page at render time instead of
+      showing an out-of-range slice or a pagination control frozen on a page that no longer exists
+  - order: 6
+    status: passed
+    actual: 'Pagination oculta cuando todo cabe. VariantsTable.test.tsx:293 y :299 (tambien para una sola variante). Extra
+      no pedido por el TC pero verificado: InventoryCard.test.tsx:218 mueve el foco al caption cuando el ultimo ''Load more''
+      desmonta el boton que el usuario acababa de activar, en vez de tirar el foco a body.'
+    phase: then
+    text: the pagination control is hidden entirely when every variant fits on one page, rather than rendering a disabled
+      single-page control
+notes: '## Solucion entendida
+
+
+  La PR #659 de VeevartFrontend anade el drill-in por variante que pedia el AC3 de SH-1063, pero como MODAL y no como
+
+  ruta. Antes, la pestana Variants era una tabla read-only sin ninguna forma de inspeccionar una variante concreta: el
+
+  `variant.id` solo existia como `key` de React. La PR cablea `onRowAction` de la tabla del design system (sin
+
+  `selectionMode`, para que el click sea activacion y no seleccion) a un `VariantDetailModal` net-new que muestra los
+
+  mismos 8 campos de la fila, reusando las claves i18n de la tabla en vez de duplicar copy. Solo el id de la variante
+
+  vive en estado (`selectedVariantId`); la variante misma se re-deriva en cada render desde el array COMPLETO de
+
+  variantes, no desde la pagina actual, y por eso un refetch en background actualiza el modal abierto en vez de
+
+  congelarlo. Una bandera aparte (`isDetailModalOpen`) evita el bug feo: si la variante desaparece del set el modal se
+
+  cierra solo, y si mas tarde reaparece NO se vuelve a abrir sin accion del usuario. La PR tambien extrae
+
+  `resolveProductPrimaryImage` a su propio modulo para que la cabecera y el modal compartan la misma resolucion de
+
+  imagen. Efecto lateral esperado: la tabla ahora tiene un handler de activacion, asi que los tests de "sin controles de
+
+  mutacion" se re-ejecutan con el handler montado — y siguen pasando, incluido el caso con Pagination visible.
+
+
+  ## Correccion de proceso: se verifico contra la rama equivocada
+
+
+  El hallazgo mas importante de este run no es del producto, es del metodo. La v1 de TC-75 concluyo que el drill-in del
+
+  AC3 NO EXISTIA. Era falso. Se habia leido `main` de VeevartFrontend y un worktree de VeevartBackend sobre
+
+  `origin/staging` que estaba 91 commits detras de `origin/develop`. La rama de integracion de LOS DOS repos es
+
+  `develop`. El clon de VeevartFrontend trae solo `main` en su refspec, asi que `develop` queda congelado y un grep
+
+  sobre el working tree miente por omision — es el mismo gotcha ya registrado para este repo, aplicado esta vez a la
+
+  eleccion de rama y no solo al fetch. Todo hallazgo de este TR se rehizo contra `develop`.
+
+
+  ## Los cuatro hallazgos, y por que solo uno es FAIL
+
+
+  H1 — FAIL (escenario 3). El resumen no muestra NINGUNA cifra de costo. Esto contradice el AC2, que pide costo
+
+  promedio, y contradice TAMBIEN la decision D9 que corrigio ese AC y pide CPP ponderado por cantidad. No es "el AC
+
+  quedo viejo y el spec lo corrigio": el spec entregado (`Inventory Summary Is Per-Variant On-Hand Only`) no cumple
+
+  ninguna de las dos reglas, y un test del dev PROHIBE activamente el campo. Impacto real bajo — no hay dato erroneo en
+
+  pantalla, hay un dato ausente — pero es una desviacion real de especificacion, no una laguna de cobertura. Necesita
+
+  ruling: o se construye el CPP ponderado sobre `average_cost`, o se corrigen el AC2 y D9 para reconocer que el resumen
+
+  es solo on-hand.
+
+
+  H2 — no es FAIL. La mitad de imagenes del AC3 esta diferida: el modal muestra la imagen del PRODUCTO padre, no la de
+
+  la variante. No se marca FAIL porque la sustitucion esta especificada y, sobre todo, esta ROTULADA al usuario con un
+
+  caption visible que dice de quien es la imagen. Pero el backend en `develop` YA soporta imagenes por variante
+
+  (`variant-image-display.ts` expone `images` + `imagesInherited`), asi que el dato existe y la UI decide no usarlo:
+
+  necesita visto bueno antes de firmar AC3 como completo.
+
+
+  H3 — no es FAIL. El AC4 dice que stock y costo son de solo lectura. `cost` SI es escribible via PATCH de variante, a
+
+  proposito (decisions.md:976 y :1759). El codigo esta bien; el AC esta mal redactado. Gap menor anexo: el 422 tipado
+
+  `FIELD_NOT_EDITABLE_FROM_CATALOG` sigue sin implementarse y hoy cae como 400 generico de zod.
+
+
+  H4 — no se vuelve a filar. `itemType` sigue vivo de punta a punta en la API de `develop` y un producto Service nuevo
+
+  sigue siendo creable, pero la VISTA — que es lo que SH-1063 posee — esta limpia: cero referencias a tipo de producto o
+
+  Service en las cuatro tarjetas ni en los messages. La contradiccion ya esta registrada como FAIL en TR-046 escenario 8
+
+  y espera ruling; volver a fallarla aqui la contaria dos veces. Pertenece a SH-1137 / SH-1167.
+
+
+  ## Calidad de los tests del dev
+
+
+  Es la superficie mejor cubierta que he revisado de esta epica: 33 tests en VariantsTable, 12 en VariantDetailModal, 15
+
+  en InventoryCard, y los casos duros estan cubiertos de verdad, no de adorno — la variante correcta en la SEGUNDA
+
+  pagina, datos vivos tras refetch con el modal abierto, cierre sin reapertura fantasma, clamp de pagina al encoger el
+
+  set, y un barrido de "sin controles de mutacion" que lee el NOMBRE ACCESIBLE y no el textContent (un boton solo-icono
+
+  habria pasado invisible con la version anterior). El propio design.md documenta que un mutation test probo que la
+
+  suite anterior no distinguia string de boolean en el estado de imagen fallida, y que lo arreglaron. No hay "cambio
+
+  sustantivo sin cobertura" que compensar.
+
+
+  ## Pendiente que no depende de mi
+
+
+  RESUELTO 2026-09-04: Angie decidio AGRUPAR los hallazgos en un solo defecto para no generar ruido con varios bugs
+
+  sueltos. Archivado como SH-1269 (Bug, Medium, enlazado a SH-1063), que cubre H1, H2 y H3 en una sola conversacion de
+
+  reconciliacion, dejando claro cual de los tres necesita codigo (solo H1) y cuales se cierran corrigiendo la redaccion
+
+  de la historia. H4 queda FUERA a proposito: ya esta registrado como FAIL en TR-046 escenario 8 y pertenece a
+
+  SH-1137 / SH-1167. Lo que sigue pendiente no es de QA sino de producto: el ruling sobre si se construye el CPP
+
+  ponderado o se corrigen el AC2 y D9.'
+history:
+- action: created
+  timestamp: '2026-09-04T17:40:00.000Z'
+  user: codex
+- action: status-changed
+  timestamp: '2026-09-04T18:05:00.000Z'
+  user: codex
+  from: planned
+  to: in-progress
+  reason: 'Ejecucion estatica completa: 7/8 PASS y 1 FAIL. El run queda in-progress porque el FAIL del escenario 3 espera
+    la decision de Angie sobre si se archiva defecto (Regla 7b), y porque tres hallazgos necesitan ruling de producto.'
+- action: defect-linked
+  timestamp: '2026-09-04T18:35:00.000Z'
+  user: codex
+  reason: 'SH-1269 archivado agrupando H1 (el FAIL del escenario 3), H2 y H3 por decision de Angie: un solo defecto en vez
+    de tres, para no fragmentar la reconciliacion AC vs implementacion.'
+metadata:
+  createdBy: codex
+  createdAt: '2026-09-04T17:40:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-09-04T18:35:00.000Z'
+  version: 1

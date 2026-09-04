@@ -1,0 +1,22 @@
+OWASP TOP 10 (2021) — SCAN DE APLICABILIDAD  (TR-047 / TC-75 / PR #659)
+========================================================================
+Superficie: PR frontend read-only (React/TS) + verificacion de las APIs de
+lectura del backend. Sin SQL, sin infra, sin dependencias, sin auth.
+
+| ID  | Riesgo                     | Aplica | Metodo de chequeo                          | Veredicto | Evidencia / Justificacion |
+|-----|----------------------------|--------|--------------------------------------------|-----------|---------------------------|
+| A01 | Broken Access Control      | No     | -                                          | N/A       | La PR no toca permisos, guards, roles ni sharing. El modal es read-only y se alimenta del set de variantes YA obtenido por la pagina; no introduce ninguna referencia directa a objeto nueva ni endpoint nuevo. |
+| A02 | Cryptographic Failures     | No     | -                                          | N/A       | No hay manejo de credenciales, tokens, hashing ni PII en reposo en el diff. |
+| A03 | Injection                  | Si     | grep de interpolacion sin escapar + revision del JSX nuevo | PASS | 0 hits de dangerouslySetInnerHTML, v-html, eval(, new Function(, document.write. Todo el contenido del modal se renderiza como JSX interpolado, escapado por React. Sin construccion de SQL/comandos en el diff. |
+| A04 | Insecure Design            | Si     | Revision del modelo de amenaza del slice    | PASS      | El drill-in es deliberadamente read-only y esta pinneado por un barrido de tests (VariantDetailModal.test.tsx:362) que rechaza checkbox, switch, menuitem, link, spinbutton, textbox y cualquier boton con nombre accesible de save/archive/delete/adjust/create/edit. No abre superficie de mutacion. NOTA APARTE: el hallazgo A04 sobre `item_type='service'` alcanzable por API sigue vivo en `develop` pero es del alcance de SH-1137/SH-1167, NO de esta PR — ver hallazgo H4. |
+| A05 | Security Misconfiguration  | No     | -                                          | N/A       | No se tocan archivos de infra, env, CORS, headers ni toggles de debug. |
+| A06 | Vulnerable Components      | No     | -                                          | N/A       | package.json y lockfiles NO tocados por la PR. Sin dependencias nuevas ni actualizadas que auditar. |
+| A07 | Authentication Failures    | No     | -                                          | N/A       | No se tocan login, sesion, MFA, reset de password ni emision de tokens. |
+| A08 | Integrity Failures         | No     | -                                          | N/A       | No se toca CI/CD, deserializacion ni sistema de plugins. Sin eval ni loaders inseguros. |
+| A09 | Logging Failures           | No     | -                                          | N/A       | La PR no anade ni quita logging. Superficie observability-neutral. |
+| A10 | SSRF                       | Si     | grep de llamadas salientes + origen de la url de imagen | PASS | El unico saliente nuevo es el `<img src>` del modal, cuya url viene del record del producto ya obtenido (resolveProductPrimaryImage), no de input libre del usuario. Una url rota o inalcanzable cae al estado de imagen vacia via onError (VariantDetailModal.test.tsx:264), no a un fetch arbitrario. Las urls del diff son fixtures de test (cdn.example.com). |
+
+RESUMEN: 3 aplicables (A03, A04, A10), 3 PASS, 0 FAIL, 7 N/A justificados.
+Sin blockers de seguridad. Ningun defecto de seguridad que archivar.
+
+Referencia: OWASP Top 10:2021.

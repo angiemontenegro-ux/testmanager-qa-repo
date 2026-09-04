@@ -1,0 +1,35 @@
+TESTS DEL DEV EN LA PR #659 (VeevartFrontend, merged 2026-09-01 -> develop)
+==========================================================================
+Fuente: `gh pr diff 659` + lectura de los archivos en la rama `develop`.
+NO se corrio la suite localmente: VeevartFrontend NO esta clonado en esta
+maquina. Los veredictos derivan de (a) lectura del codigo fuente en `develop`,
+(b) inspeccion estatica de los tests del dev, (c) el estado de CI de la PR.
+
+CI de la PR #659: TODOS los checks en `pass` (lint 17m19s, AWS CodeBuild
+veevart-latest "Build succeeded", previews y cleanups sh-1058 en verde).
+
+ARCHIVOS DE TEST TOCADOS POR LA PR
+----------------------------------
+packages/shop/src/products/item-detail/ItemDetail.test.tsx
+packages/shop/src/products/item-detail/components/ItemDetailHeader.test.tsx
+packages/shop/src/products/item-detail/components/VariantDetailModal.test.tsx   (net-new)
+packages/shop/src/products/item-detail/components/VariantsTable.test.tsx
+packages/shop/src/products/item-detail/resolve-product-image.test.ts            (net-new)
+
+TESTS RELEVANTES YA EXISTENTES (no tocados por la PR, pero cubren el TC)
+------------------------------------------------------------------------
+packages/shop/src/products/item-detail/components/InventoryCard.test.tsx
+packages/shop/src/products/item-detail/inventory-summary.test.ts
+packages/shop/src/products/item-detail/components/VariantsTable.stockSummary.test.tsx
+domains/shop/catalog/api/test/application/use-cases/list-variants.use-case.spec.ts  (backend)
+domains/shop/catalog/api/test/application/use-cases/get-product.use-case.spec.ts    (backend)
+
+CONTEO DE ASSERTIONS POR BLOQUE (nombres de `it(` leidos en develop)
+--------------------------------------------------------------------
+VariantsTable.test.tsx                 33 tests en 4 describes
+  - describe VariantsTable                          10
+  - describe VariantsTable - pagination              7
+  - describe VariantsTable - total-stock counter     4
+  - describe VariantsTable - row click opens modal  10
+VariantDetailModal.test.tsx            12 tests
+InventoryCard.test.tsx                 15 tests en 2 describes
