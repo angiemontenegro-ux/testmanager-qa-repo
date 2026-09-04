@@ -1,0 +1,103 @@
+VERIFICACION DE LOS RIESGOS ABIERTOS DE SH-1160 — 2026-09-04
+Arbol: VeevartBackend origin/staging b5ab930e (worktree) + VeevartFrontend main (estatico)
+Motivo: el bloque de correccion del 2026-09-04 en SH-1160 los dejo marcados como
+"NOT re-verified". Esto los verifica. 2 se cierran, 2 siguen abiertos, 1 es codigo muerto.
+
+## 1) SKU max length: 100 vs 255 — SIGUE ABIERTO, pero mal planteado
+
+Confirmado que el cap sigue en 100, NO en 255:
+  variant.dto.ts:114  sku: z.string().trim().min(1).max(100).nullable().optional()   (VariantOverrideDto)
+  variant.dto.ts:221  sku: z.string().trim().min(1).max(100).nullable().optional()   (UpdateVariantDto)
+  domain/product.ts:47  export const PRODUCT_ID_MAX_LENGTH = 100
+
+PERO el planteo del plan ("Dev debe alinear ambos a 255") asume que 255 es lo vigente,
+y eso no esta claro: la PR #1265 se llama literal "fix(shop): raise Product ID cap to
+100 and ignore openspec in prettier (SH-793 B9)". O sea 100 no es un descuido heredado,
+es un valor que alguien SUBIO a proposito bajo la decision B9, despues de que el PM
+dijera 255.
+
+ACCION CORRECTA: no es un cambio de codigo, es UNA confirmacion. Preguntar cual gana,
+B9 (100) o el 255 del PM. Si gana 255 hay que mover los dos DTOs y PRODUCT_ID_MAX_LENGTH;
+si gana B9, hay que corregir el escenario 10 del plan y el criterio de salida.
+Nota: las citas del plan (variant.dto.ts:32,95) quedaron desactualizadas — el archivo
+se movio a infrastructure/entrypoints/api/dtos/ y crecio. Las lineas vigentes son 114 y 221.
+
+## 2) Campo `sku` a nivel de Product — SE CIERRA, ya no es hueco
+
+product.dto.ts NO tiene campo `sku`: solo `productId` (lineas 91, 116, 178, 236, 313).
+El plan pedia "add a real `sku` field to Product". Ese requisito NO se cumplio asi y no
+hace falta: el requisito se satisfizo de otra forma. El wildcard es el dueño del SKU base
+(D264 / I8) y el valor viaja en la entrada de variante de combinacion vacia, no en un
+campo del producto. Ya validado en el escenario 5 de TC-74 (PASS).
+
+CIERRE: quitar este riesgo del plan. No hay trabajo de Dev pendiente aca.
+
+## 3) `cost` seteable por PATCH /variants/:id — ABIERTO, y peor de lo que decia el plan
+
+El plan decia "UpdateVariantDto hoy permite setear cost directamente". Confirmado, y la
+cadena completa es peor que la superficie del DTO:
+
+  variant.dto.ts:227                cost: decimal.nullable().optional()   (UpdateVariantDto)
+  update-variant.use-case.ts:351    cost: input.cost   dentro de variant.update()
+
+O sea no queda en el DTO: el use case lo ESCRIBE. Y la asimetria es el hallazgo real:
+`applyEditableFields` (update-variant.use-case.ts:344) llama primero a
+`assertWildcardPriceUntouched(variant, input)`, guard que cubre UNICAMENTE `price` y
+`compareAtPrice` — su propio docblock dice que son "derived from the item (D264/D264.1),
+never authored on the variant row itself". `cost` NO tiene guard equivalente: se escribe
+sin condicion, en CUALQUIER variante, wildcard incluido. No existe CostNotEditable ni
+nada por el estilo (grep vacio).
+
+Eso contradice la regla de SH-1057 en su propia descripcion: "las variantes nuevas
+empiezan en 0 de stock; stock y costo se acumulan solo por movimientos de inventario
+(nunca se tipean)". El precio esta protegido y el costo no.
+
+DUEÑO: el plan lo ruteo a SH-1064 / SH-1165, y ahi debe resolverse. Pero el hallazgo
+tambien pega contra la DoD de SH-1057, asi que conviene que quede anotado en los dos.
+
+## 4) Autogeneracion de SKU de variante (escenario 3b) — SE CIERRA, esta construida
+
+Pregunta abierta del plan: "confirmar si la autogeneracion pasa en el frontend o hace
+falta un generador en el backend". Respuesta: FRONTEND, y ya existe.
+
+  packages/shop/src/products/item-wizard/utils/variant-sku-mint.ts        (implementacion)
+  packages/shop/src/products/item-wizard/utils/variant-sku-mint.test.ts   (14+ casos)
+
+Nombres que fijan la conducta que el plan queria validar:
+  :59  mints the value the preview renders, for every combination of a new Item
+  :74  mints nothing while the Item has no SKU — there is no base to build on
+  :100 leaves a typed SKU alone — a typed value is not a default to replace
+  :113 leaves every variant the catalog already holds alone
+  :117 mints for the combination an edit ADDED, and only that one
+  :175 describe: a LIVE optionless original does not switch the mint off (wildcard model)
+
+Y confirmado que NO hay generador en el backend (grep de mintSku/generateSku/skuMint/
+deriveSku en todo domains/shop/catalog/api/src: vacio), lo cual es coherente y deliberado.
+La editabilidad que pedia el escenario 3b esta cubierta por :100.
+
+CIERRE: el escenario 3b es ejecutable y su mecanismo esta identificado. No hay trabajo
+de Dev pendiente aca.
+
+## 5) DefaultVariantHasStockError — CONFIRMADO codigo muerto
+
+  domain/exceptions/options-variants.errors.ts:153  export class DefaultVariantHasStockError
+  usos en src/:   NINGUNO (cero throw, cero new)
+  usos en test/:  NINGUNO
+
+Sigue definido y sin cablear, igual que cuando el plan lo anoto (ahi estaba en :53; el
+archivo crecio a :153). Como SH-1062 (plan SH-1163) exige la conducta OPUESTA, dejarlo
+sin cablear hoy NO rompe nada — el riesgo es al reves: es una trampa para quien lo cablee
+sin leer SH-1062 primero.
+
+ACCION: no es defecto. Vale un comentario en SH-1163 avisando que la excepcion existe y
+que cablearla contradice su propio AC.
+
+## Resumen
+
+| Riesgo del plan SH-1160                  | Estado                | Accion                                  |
+|------------------------------------------|-----------------------|-----------------------------------------|
+| 1. SKU 255 vs max(100)                   | ABIERTO, mal planteado| confirmar si gana B9 (100) o el PM (255)|
+| 2. campo sku en Product                  | CERRADO               | quitar del plan: resuelto por el wildcard|
+| 3. cost por PATCH /variants/:id          | ABIERTO, mas grave    | anotar en SH-1165 y en la DoD de SH-1057|
+| 4. autogeneracion de SKU de variante     | CERRADO               | quitar del plan: existe en el frontend  |
+| 5. DefaultVariantHasStockError sin cablear| CONFIRMADO muerto    | comentar en SH-1163, no es defecto      |
