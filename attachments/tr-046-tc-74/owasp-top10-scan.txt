@@ -1,0 +1,25 @@
+OWASP TOP 10 (2021) APPLICABILITY SCAN — TC-74 / TR-046 / SH-1057
+Surface: domains/shop/catalog/api (VeevartBackend @ origin/staging b5ab930e)
+       + packages/shop/src/products/item-wizard (VeevartFrontend @ main, static review)
+
+| ID  | Risk                       | Applicable | Check method                                          | Verdict | Evidence / Justification |
+|-----|----------------------------|------------|-------------------------------------------------------|---------|--------------------------|
+| A01 | Broken Access Control      | Yes        | tenantId scoping + requireTenantId + guard topology   | PASS    | 19/22 repo files scope by tenantId; write path calls requireTenantId() before querying; main.ts documents ApiKeyGuard + x-tenant-id on 10/11 controllers and CanonicalJwtGuard on product-media. SH-1057 adds no endpoint and touches no guard, profile or scope. |
+| A02 | Cryptographic Failures     | No         | grep password/api-key/secret/bearer/-----BEGIN        | N/A     | Only matches are CORS header NAMES and the guard-topology comment in main.ts. The change handles variant rows, SKUs and stock integers — no credential, token or PII at rest. |
+| A03 | Injection                  | Yes        | concat-SQL grep + manual read of all 8 hits + binding | PASS    | All 8 hits are false positives: 1 doc comment, 4 static literal-fragment joins, 2 SQL arithmetic (`quantity + EXCLUDED.quantity`). Sole interpolation is `${SCHEMA}` = process.env.CATALOG_DB_SCHEMA ?? 'shop_catalog' (server-side; a schema identifier is not bindable). User values bound $1..$4. |
+| A04 | Insecure Design            | Yes        | ruling review vs SH-1137 canonical rule               | FAIL    | Not an exploit class — a design/spec contradiction. Legacy `itemType: 'service'` remains a live data class: ITEM_TYPE_VALUES=['physical','service'] (domain/product.ts:27) and the frontend deliberately round-trips a legacy service item end to end (item-wizard-submit-payloads.item-type.test.ts:53/:62/:102), so ServiceNotStockableError stays reachable for those rows while SH-1137 declares the inventory rule universal. Severity Medium per A04. Adjudication pending (Rule 7b). |
+| A05 | Security Misconfiguration  | No         | infra/env/CORS/debug-toggle diff                      | N/A     | No infra-as-code, env default, debug toggle or CORS change in the SH-1057 slice; main.ts was not modified by it. |
+| A06 | Vulnerable Components      | No         | dependency-file change count across 7 backend PRs     | N/A     | Zero package.json / pnpm-lock changes in #1241 #1278 #1283 #1285 #1287 #1300 #1337 — nothing added or bumped to audit. |
+| A07 | Authentication Failures    | No         | login/session/MFA/token-issuance diff                 | N/A     | No auth flow, session handling or token issuance in scope. |
+| A08 | Integrity Failures         | No         | grep eval/new Function/yaml.load/pickle; CI diff      | N/A     | No deserialization of untrusted input and no CI/CD or package-signing change in the slice. |
+| A09 | Logging Failures           | No         | grep console/logger x email|phone|ssn|dob|address     | N/A     | No PII reaches a log statement in the changed surface; the change adds no endpoint whose denials would need auditing. |
+| A10 | SSRF                       | No         | grep fetch/axios/got/request in the catalog source    | N/A     | No server-side outbound HTTP call is introduced; all persistence is local Postgres via TypeORM. |
+
+TOTALS: 3 Applicable · 2 PASS · 1 FAIL (A04, Medium — spec contradiction, not an exploit) · 7 N/A
+
+NOTE ON A04's SEVERITY: this is deliberately NOT filed as a Critical. It is not
+A01/A03/A06/A07/A10 and there is no privilege boundary, injection vector or
+vulnerable component involved. It is Insecure Design in the narrow sense that a
+canonical product rule and the shipped behaviour disagree, which is a
+correctness and expectations risk, not an active exploit class. Per Rule 7b the
+Jira defect is NOT auto-filed — it awaits the user's decision.

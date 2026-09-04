@@ -1,0 +1,24 @@
+AC <-> TEST COVERAGE MATRIX — SH-1057 / TC-74
+
+| AC / criterion (source)                                          | Covered by                                                                 | Gap |
+|------------------------------------------------------------------|----------------------------------------------------------------------------|-----|
+| AC1 create w/o variants -> exactly one technical variant;         | rebuild-variants.ts zero-options arm + mintWildcard(dormant:false);        | none |
+|     stock and cost live on it                                    | rebuild-variants-origin.spec:93; post-movement.use-case.spec (14)          |      |
+| AC2 movement posts against the technical variant in the Cardex    | post-movement.use-case.spec; post-movement-service-guard.spec:142/159;     | none |
+|                                                                  | stock-projection repo keys stock by (variant_id, location_id)              |      |
+| AC3 a product always has at least one variant                     | ensure-at-least-one-default.spec (13); settle-default-variant.spec (9);    | none |
+|                                                                  | NoActiveVariantsRemainError; variant-status-transitions last-active refusal |      |
+| Added-1a the grid shows exactly one variant row                   | VariantsStep.test.tsx:1018                                                 | none |
+| Added-1b that row labeled "technical" + "Same SKU as the item"    | DELIBERATELY ABSENT and guarded: options-copy.test.ts:158 and :163;        | n/a  |
+|                                                                  | VariantsStep.test.tsx:1032 asserts name-inheritance and NO badge (D0/D26)  | OVERRULED |
+| Added-2 no-variant product shares its SKU with the technical one  | item-wizard-submit-payloads.variant-sku.test.ts:225/:233/:245/:404;        | none |
+|                                                                  | backend replace-product-options-sku-base.spec (12)                         |      |
+| Added-3 a Service product's technical variant has no inventory    | VOID per SH-1137 — not implemented as an AC. But the carve-out EXISTS:     | see  |
+|                                                                  | service-inventory-policy.spec (7); post-movement-service-guard.spec (20)   | A04  |
+| TC-74 extra: dormant wildcard on an optioned product              | rebuild-variants-origin.spec:150/:220/:245; sleep-wake.spec (8); PR #1285  | DB round-trip blocked |
+| TC-74 extra: removing options with stock is not silently collapsed| assert-archived-variants-have-no-stock.ts:126 (OptionValueHasStockError);  | none |
+|                                                                  | removal-facts.spec (13); archival.spec (26)                                |      |
+
+GAPS REQUIRING QA COMPENSATION: none. The dev covered every live criterion.
+GAPS IN THIS RUN (environmental): the DB round-trip of sleep/wake, and any
+real-tenant data question (do legacy itemType='service' rows exist?).

@@ -1,0 +1,118 @@
+
+ RUN  v3.2.6 /Users/veevart/Downloads/VeevartBackend-worktrees/sh1057-staging/domains/shop/catalog/api
+
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault > does nothing when the set already carries a default 2ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault > prefers a KEPT variant that used to be the default 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault > falls back to the first added variant when nothing was default before 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault > falls back to the first kept variant when nothing was added 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault > promotes nothing when there is nothing to promote 1ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > does not accept an INACTIVE holder as satisfying BR-022, and RELEASES it 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > writes the RELEASED holder before the promoted row, because `toUpdate` is written in array order 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > leaves the array order alone when nothing had to be released 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > does NOT release when there is nothing sellable to promote 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > needs no reorder when the promotion lands in `addedVariants` 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > never promotes an INACTIVE row, even when it sorts first 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > skips a previously-default row that has since been paused 0ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts > ensureAtLeastOneDefault — BR-022 is about SELLABLE rows (B27.4) > promotes nothing when the whole set is inactive — D196 refuses that save first 0ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > stampBeforeArchiving — the only copy of a combination about to be deleted > stamps a never-stamped row from the options it is handed 1ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > stampBeforeArchiving — the only copy of a combination about to be deleted > leaves an already-stamped row alone, including the `[]` that MEANS no options 0ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > settleDefaultOver — who must give the flag up, and who takes it > clears an ARCHIVED holder and promotes the candidate 1ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > settleDefaultOver — who must give the flag up, and who takes it > an INACTIVE holder loses the flag and is NOT routed to the archive write (D203) 0ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > settleDefaultOver — who must give the flag up, and who takes it > orders the releasing row BEFORE the promotion in `toUpdate` 0ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > settleDefaultOver — who must give the flag up, and who takes it > an INACTIVE holder does not count as the holder that suppresses promotion 0ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > settleDefaultOver — who must give the flag up, and who takes it > does nothing when an ACTIVE variant already holds the flag 0ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > UpdateVariantUseCase calls the pair — the SIBLING survives the write (D164) > stamps the sibling’s combination before the write clears its links 1ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts > UpdateVariantUseCase calls the pair — the SIBLING survives the write (D164) > restores that sibling with its REAL combination, not an empty one 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-price-guard.spec.ts > UpdateVariantUseCase — the manual PATCH refuses a price on the wildcard (Judgment Day finding) > the exact four-step reproduction: PATCH compareAtPrice on the wildcard now refuses at step 2 4ms
+ ✓ test/application/use-cases/update-variant-wildcard-price-guard.spec.ts > UpdateVariantUseCase — the manual PATCH refuses a price on the wildcard (Judgment Day finding) > refuses setting price alone on an AWAKE wildcard too 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-price-guard.spec.ts > UpdateVariantUseCase — the manual PATCH refuses a price on the wildcard (Judgment Day finding) > refuses on a DORMANT wildcard too — same "every state" rule as WildcardVariantCannotBeArchivedError 1ms
+ ✓ test/application/use-cases/update-variant-wildcard-price-guard.spec.ts > UpdateVariantUseCase — the manual PATCH refuses a price on the wildcard (Judgment Day finding) > a PATCH that does not touch price or compareAtPrice is unaffected — the guard checks the FIELDS, not the row 1ms
+ ✓ test/application/use-cases/update-variant-wildcard-price-guard.spec.ts > UpdateVariantUseCase — the wildcard price guard does not catch an ordinary variant (boundary) > an ordinary combination variant still accepts price and compareAtPrice normally 0ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C2 — adding the first option puts the wildcard to SLEEP (§2.2 W1) > puts the wildcard to sleep instead of archiving it when the first option is added 4ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C2 — adding the first option puts the wildcard to SLEEP (§2.2 W1) > keeps it OUT of `newlyArchived`, which is what kills the 409 at the root 0ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C2 — adding the first option puts the wildcard to SLEEP (§2.2 W1) > does NOT sleep an ordinary combination row that lost its combination 0ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C2 — adding the first option puts the wildcard to SLEEP (§2.2 W1) > does NOT sleep a wildcard an admin already ARCHIVED by hand 0ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C3 — clearing the last option WAKES the dormant wildcard (§2.2 W2/W3) > wakes the DORMANT wildcard rather than archiving the row it was meant to wake 1ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C3 — clearing the last option WAKES the dormant wildcard (§2.2 W2/W3) > archives the combination rows around it, and leaves exactly one default 0ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C3 — clearing the last option WAKES the dormant wildcard (§2.2 W2/W3) > leaves the LEGACY archived `[]` row alone — the repair path §6 does not migrate 0ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts > C3 — clearing the last option WAKES the dormant wildcard (§2.2 W2/W3) > prefers the wildcard over the previously-default ACTIVE row 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > I8 — an option-bearing save writes the SKU base onto the wildcard > applies the empty-labels override to the dormant wildcard 3ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > I8 — an option-bearing save writes the SKU base onto the wildcard > leaves the wildcard ASLEEP — the override is a field edit, never a status one 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > I8 — an option-bearing save writes the SKU base onto the wildcard > DROPS the price half of the same override — the base is a SKU channel (D265) 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > I8 — an option-bearing save writes the SKU base onto the wildcard > does NOT re-mint the siblings already minted from the old base (§2.3a) 1ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > I8 — an option-bearing save writes the SKU base onto the wildcard > reaches the wildcard and nothing else when no empty-labels override is sent 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264 — the wildcard's price is the item's price > follows a reprice while it SLEEPS, on the next option-bearing save 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264 — the wildcard's price is the item's price > wakes at the CURRENT item price, not the one it went to sleep at 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264 — the wildcard's price is the item's price > tracks a reprice DOWNWARD too, so the rule is tracking and not a maximum 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264's boundary — an ordinary combination keeps the price the merchant set > leaves a size priced at $60 alone through the reprice, the sleep and the wake 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264's boundary — an ordinary combination keeps the price the merchant set > does not reach a size on the collapse that wakes the wildcard 0ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264.1 — the PRE-EXISTING half, on an item that never had options > follows the merchant's reprice on the simplest shape in the catalog 1ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts > D264.1 — the PRE-EXISTING half, on an item that never had options > mints a brand-new optionless item at the item price, as it always did 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the synthesized empty-combination default > is born with origin `implicit` 2ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the zero-options survivor > is MARKED even though it was created without a marker 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the zero-options survivor > marks the RESTORED legacy row too, which arrives through the same map 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the zero-options survivor > preserves the row identity it marks — same id, same SKU 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the DORMANT wildcard a product created WITH options is born with > is minted alongside the cartesian rows, marked and ASLEEP 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the DORMANT wildcard a product created WITH options is born with > carries the SKU base from the empty-combination override 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the DORMANT wildcard a product created WITH options is born with > takes the SKU from that override and the price from the ITEM (D264/D265) 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the DORMANT wildcard a product created WITH options is born with > mints an ORDINARY combination at the override's price, which is D8 untouched 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the DORMANT wildcard a product created WITH options is born with > is NOT minted onto a product that already has rows 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > the DORMANT wildcard a product created WITH options is born with > is NOT minted on the zero-options birth, which already had its own 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > every cartesian row stays unmarked > leaves added combinations with origin null 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > every cartesian row stays unmarked > leaves surviving combination rows unmarked on an option-bearing save 0ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts > every cartesian row stays unmarked > does not mark a row that was ALREADY marked out of existence, either 0ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > skips a Service line on a sale — the sale still succeeds 1ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > rejects a Service line on a stock adjustment 0ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > rejects a Service line on a purchase receipt 0ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > is NOT uniform: sale and adjustment disagree 0ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > carves out EXACTLY one document type 0ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > fails closed on every document type D5 does not name 0ms
+ ✓ test/domain/service-inventory-policy.spec.ts > serviceLineHandlingFor (D5) > rejects an unknown document type 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — manual PATCH refuses to archive the wildcard (SH-793 §4 C5) > refuses to archive a DORMANT wildcard, and offers inactive as the alternative it already is 2ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — manual PATCH refuses to archive the wildcard (SH-793 §4 C5) > refuses to archive an AWAKE wildcard too — never, in any state, even as the item's only variant 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — manual PATCH refuses to reactivate a DORMANT wildcard (SH-793 §2.2) > refuses {"status":"active"} on a dormant wildcard while the item has options 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — the wildcard guards do not catch ordinary gestures (boundary) > reactivating an AWAKE-born wildcard on an OPTIONLESS item still works — the guard must not catch it 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — the wildcard guards do not catch ordinary gestures (boundary) > archiving an ordinary combination variant still works 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — the wildcard guards do not catch ordinary gestures (boundary) > reactivating an ordinary paused combination variant still works 0ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts > UpdateVariantUseCase — the wildcard guards do not catch ordinary gestures (boundary) > restoring a legacy archived row is unaffected by either wildcard guard 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > posts one document with the source/partner/note shape 2ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > sets the average to the unit cost on the first receipt 1ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > MWAC AC: 10 on hand @ $10.00, receive 10 @ $4.00 -> running_avg_cost $7.00, on_hand 20 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > updates location_stock/stock via addQuantityTx with the signed delta 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > rejects an empty line list 1ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > rejects an inflow line with no unitCostInput 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > negative stock bypass (SH-1111) > rejects an outflow that would drive location_stock negative when allowNegative is not set 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > negative stock bypass (SH-1111) > rejects an outflow that would drive location_stock negative with the default (omitted allowNegative) 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > negative stock bypass (SH-1111) > allows an outflow that drives location_stock negative when allowNegative is true 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > negative stock bypass (SH-1111) > does not reject an outflow that leaves location_stock at exactly zero 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > idempotent retry (SH-1111) > applies the receipt exactly once: a retried call with the same idempotencyKey returns the original result without posting again 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > idempotent retry (SH-1111) > does not throw on a retry -- it returns cleanly, matching the first call shape 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > idempotent retry (SH-1111) > two DIFFERENT idempotency keys each post their own document 0ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts > PostMovementUseCase > idempotent retry (SH-1111) > a caller with no idempotencyKey gets no dedupe -- two identical calls both post 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path accepts and posts nothing (task 3.5 / 3.6) > selling the same Service FIVE times returns success five times and posts zero lines 2ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path accepts and posts nothing (task 3.5 / 3.6) > selling a Service leaves its on-hand UNCHANGED and does not drive it to -1 (task 3.6) 1ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path accepts and posts nothing (task 3.5 / 3.6) > five sales of a Service leave on-hand at 0, not at -5 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path accepts and posts nothing (task 3.5 / 3.6) > never consumes a document number for a Service-only sale 1ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path still posts for a physical item (task 3.7) > a physical sale posts exactly one header and exactly one line 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path still posts for a physical item (task 3.7) > a physical sale still moves stock 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the SALE path still posts for a physical item (task 3.7) > a MIXED sale posts the physical line only, at line sequence 1 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > every other path REJECTS (tasks 3.2 / 3.3) > rejects a stock adjustment on a Service 1ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > every other path REJECTS (tasks 3.2 / 3.3) > rejects an inbound purchase receipt for a Service 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > every other path REJECTS (tasks 3.2 / 3.3) > rejects a MIXED adjustment whole — the physical line is not posted either 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > every other path REJECTS (tasks 3.2 / 3.3) > an adjustment on a PHYSICAL variant is untouched by the guard 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > every other path REJECTS (tasks 3.2 / 3.3) > the error names the offending variant ids as structured data 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > a variant marked Service for ANOTHER tenant posts normally here 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > idempotent replay is answered BEFORE the D5 filter > a sale replayed after its line was retyped to Service returns the ORIGINAL header 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > idempotent replay is answered BEFORE the D5 filter > an adjustment replayed after its line was retyped to Service does NOT throw 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > idempotent replay is answered BEFORE the D5 filter > a FIRST Service-only sale carrying a key still skips, and reserves no key 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > idempotent replay is answered BEFORE the D5 filter > a Service-only sale replayed with the same key stays a skip, never a fabricated header 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the result reports how many Service lines were dropped > an all-physical sale reports 0 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the result reports how many Service lines were dropped > a mixed sale reports the number of lines it dropped 0ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts > PostMovementUseCase — Service enforcement (D5) > the result reports how many Service lines were dropped > a Service-only sale reports every line it dropped 0ms
+ ✓ test/application/use-cases/receive-purchase-order-service-policy.spec.ts > ReceivePurchaseOrderUseCase asks the D5 policy rather than restating it > does not refuse on its own authority when the policy says skip 2ms
+
+ Test Files  11 passed (11)
+      Tests  109 passed (109)
+   Start at  11:44:09
+   Duration  740ms (transform 663ms, setup 0ms, collect 2.40s, tests 64ms, environment 1ms, prepare 542ms)
+

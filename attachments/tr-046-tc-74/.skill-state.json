@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1057",
+  "tcKey": "TC-74",
+  "trKey": "TR-046",
+  "prNumber": null,
+  "startedAt": "2026-09-04T00:00:00Z",
+  "lastUpdated": "2026-09-04T16:50:00Z",
+  "status": "in-progress",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "currentStep": 11,
+  "data": {
+    "prBundle": {
+      "note": "NO PR carries SH-1057. Work shipped under EPIC-labeled PRs (SH-793) across two repos, all MERGED.",
+      "VeevartBackend": [
+        1241,
+        1271,
+        1278,
+        1283,
+        1285,
+        1287,
+        1300,
+        1337
+      ],
+      "VeevartFrontend": [
+        462,
+        526,
+        543,
+        508,
+        520,
+        570
+      ],
+      "promotions": [
+        "#1343 develop->staging",
+        "#1366 staging->main"
+      ]
+    },
+    "repos": {
+      "VeevartBackend": "/Users/veevart/Downloads/VeevartBackend (LOCAL, detached HEAD 214 behind origin/main; staging+develop now fetched)",
+      "VeevartFrontend": "NOT checked out -> remote-only mode"
+    },
+    "paths": {
+      "rebuild-variants": "domains/shop/catalog/api/src/application/use-cases/rebuild-variants.ts",
+      "ensure-at-least-one-default": "domains/shop/catalog/api/src/application/use-cases/ensure-at-least-one-default.ts",
+      "post-movement-line-builder": "domains/shop/catalog/api/src/application/use-cases/post-movement-line-builder.ts",
+      "variant-status-transitions": "domains/shop/catalog/api/src/application/use-cases/variant-status-transitions.ts",
+      "service-inventory-policy": "domains/shop/catalog/api/src/domain/service-inventory-policy.ts",
+      "replace-product-options": "domains/shop/catalog/api/src/application/use-cases/replace-product-options.use-case.ts"
+    },
+    "gotcha": "clone refspec is main-only (+refs/heads/main:...); staging/develop needed explicit fetch",
+    "classification": {
+      "category": "Mixed (backend TS domain/application + frontend React wizard)",
+      "rationale": "No SH-1057 PR; slice shipped across ~14 merged epic-labeled SH-793 PRs in VeevartBackend (local) + VeevartFrontend (remote-only)."
+    },
+    "unitTests": {
+      "targeted": "11 spec files, 109/109 PASS (real run, vitest 3.2.6)",
+      "fullSuite": "1451 assertions PASS, 0 failed, 327 skipped; 41 .integration.spec.ts files blocked by Docker unavailable (env, not defect)",
+      "envFix": "pnpm install cannot complete: @veevarts/acl-core 404 (private registry, no token). Ran vitest from .pnpm store after manually linking 1160 pkgs.",
+      "runLog": "attachments/tr-046-tc-74/scenario-0-unit-tests/test-run-log.txt"
+    },
+    "keyFindings": {
+      "scenario4_D26": "CONFIRMED+STRONGER: options-copy.test.ts:158 'does not claim the single variant shares the Item SKU' AND :163 'does not badge the single variant as technical' (D0/D26). BOTH halves of the disputed criterion are deliberately absent and test-guarded.",
+      "scenario5_SKU": "CONFIRMED (Cesar right): variant-sku.test.ts:225 'create, WITHOUT options - the Item SKU rides the empty combination', :233/:245/:404. NUANCE :265 - when form.sku is EMPTY no variants block is sent and the wildcard is born sku:null. The options-copy comment describes only that empty case; no contradiction.",
+      "scenario8_service": "DECISIVE: itemType absent from backend presentation layer, BUT frontend item-wizard-submit-payloads.item-type.test.ts deliberately PRESERVES legacy service items end to end (:53 create-shaped, :62 edit, :102 load->payload round-trip). ITEM_TYPE_VALUES=['physical','service'] still in domain product.ts:27. So ServiceNotStockableError IS reachable for LEGACY service items -> contradicts SH-1137's universal rule. Spec-vs-impl deviation, NOT a security blocker -> Rule 7b: failed + ask before filing.",
+      "scenario6_cost": "Documented ruled side effect: every optioned product carries a dormant wildcard from birth, consuming 1 of 24 SHOP_ITEM_SNAPSHOT_MAX_VARIANTS slots -> real ceiling 23 for ALL products. Cesar accepted knowingly."
+    },
+    "scenarioResults": [
+      {
+        "scenarioIndex": 0,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 1,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 2,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 3,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 4,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 5,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 6,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 7,
+        "status": "failed"
+      }
+    ],
+    "owasp": {
+      "applicable": 3,
+      "pass": 2,
+      "fail": 1,
+      "na": 7,
+      "failItem": "A04 Insecure Design (Medium) - legacy service itemType contradicts SH-1137"
+    },
+    "defectsRaised": [],
+    "pendingAdjudication": "Scenario 8 FAIL is a spec-vs-impl contradiction (Medium, not a security blocker). Rule 7b: ask Angie before filing. Commit HELD per Rule 10."
+  }
+}

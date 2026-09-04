@@ -1,0 +1,532 @@
+schemaVersion: '1.0'
+id: tr-dedf046e-8eea-4e1d-897a-451032d6fbf8
+key: TR-046
+title: 'Run: SH-1057 la variante tecnica (wildcard) siempre existe — minteo zero-options, wildcard dormido, SKU compartido,
+  invariante de >=1 variante, Cardex por variantId y la contradiccion del carve-out de Service (TC-74) contra origin/staging
+  b5ab930e de VeevartBackend + main de VeevartFrontend, SH-1057 / QA Sub-task SH-1160'
+status: in-progress
+environment:
+  name: local-source
+  buildVersion: 'Mixed (backend TS dominio/aplicacion + frontend React wizard). ENTORNO: NO se probo en navegador ni en una
+    instancia desplegada. LA HISTORIA NO TIENE PR PROPIA: ninguna PR lleva la clave SH-1057. El slice se entrego repartido
+    en ~14 PRs rotuladas con la clave del EPIC (SH-793), todas MERGEADAS, en DOS repos: VeevartBackend #1241 #1271 #1278 #1283
+    #1285 #1287 #1300 #1337 y VeevartFrontend #462 #508 #520 #526 #543 #570. Mismo patron que SH-1094: la etiqueta de la PR
+    es un epic, no la historia. BACKEND: worktree local en origin/staging b5ab930e (''back-merge main -> staging (#1503)''),
+    suite ejecutada de verdad — 13 archivos de spec del slice, 148/148 PASS, y la suite completa del paquete 1451 assertions
+    PASS con 0 fallidas y 327 skipped. FRONTEND: VeevartFrontend NO esta clonado, asi que su verificacion es ESTATICA (codigo
+    fuente + nombres y asserts de los tests del dev leidos por la API de GitHub), no ejecutada. ATENCION — EL CODIGO YA ESTA
+    EN MAIN: git ls-tree confirma que origin/main contiene rebuild-variants.ts, post-movement-line-builder.ts y service-inventory-policy.ts,
+    asi que todo hallazgo aqui ya es alcanzable en produccion. GOTCHA DEL CLON: el refspec del repo es solo main (+refs/heads/main:refs/remotes/origin/main);
+    staging y develop necesitaron fetch explicito, y sin eso un fd/grep sobre el working tree miente diciendo que los archivos
+    no existen. LIMITE DIVULGADO 1: pnpm install NO puede completar — ERR_PNPM_FETCH_404 en el paquete privado @veevarts/acl-core@0.1.0-alpha.4
+    sin token de registry. Se resolvio el grafo al store .pnpm y se linkearon 1160 paquetes a mano para poder correr vitest
+    3.2.6. El primer intento reporto ''8 failed | 3 passed'' con ''Tests 33 passed (33)'': eran errores de RESOLUCION de import
+    a nivel de archivo, CERO asserts fallidos, y no se registran como fallas. LIMITE DIVULGADO 2: no hay Docker en esta maquina,
+    asi que los 41 archivos .integration.spec.ts fallan todos con ''Could not find a working container runtime strategy''.
+    Verificado 1:1: los 41 son integration, ninguno es unitario y no hay ni un marcador de assert fallido. Entre los bloqueados
+    esta uno del slice, wildcard-sleep-wake-round-trip.integration.spec.ts. Sin SQL y sin metadata de Salesforce: no aplica
+    safesql ni carga a sandbox. VEREDICTO: 7/8 PASS, 1 FAIL (escenario 8, contradiccion spec-vs-implementacion del carve-out
+    de Service). Regresion tecnica 9/10 PASS + 1 BLOCKED por Docker, seguridad 6/6 PASS, OWASP 3 aplicables (2 PASS, 1 FAIL
+    A04 Medium) y 7 N/A, 0 bloqueadores de seguridad.'
+startedAt: '2026-09-04T16:35:00.000Z'
+results:
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: Creating a product with no options mints exactly one wildcard variant that owns its stock and cost
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Estado autorable valido: el wizard permite guardar un item sin declarar ninguna opcion; es la rama zero-options
+      de rebuild-variants.ts.'
+    phase: given
+    text: a shop admin opens the New item wizard and fills the item without adding any option or variant
+  - order: 2
+    status: passed
+    actual: 'Guardado ejercido por la suite del dev, no por navegador: rebuild-variants-origin.spec.ts + replace-product-options-sku-base.spec.ts,
+      25/25 PASS.'
+    phase: when
+    text: the product is saved
+  - order: 3
+    status: passed
+    actual: 'EXACTAMENTE UNA fila. rebuild-variants.ts, rama `if (zeroOptions && keptRebuilt.length === 0 && addedVariants.length
+      === 0)`: hace push de UN solo mintWildcard y retorna de inmediato. La segunda rama de minteo (`!zeroOptions && productIsNew`)
+      no puede coexistir porque esta retorna antes.'
+    phase: then
+    text: exactly ONE variant row exists for that product — not zero, and not two
+  - order: 4
+    status: passed
+    actual: 'CONFIRMADO en el factory mintWildcard: `isDefault: !dormant` -> true, `status: ''active''`, `origin: ''implicit''`,
+      `optionValueIds: []`. Probado por rebuild-variants-origin.spec.ts:93 ''is born with origin `implicit`''.'
+    phase: then
+    text: that row is flagged as the default variant and its origin is recorded as `implicit` (the wildcard), per rebuild-variants.ts:266
+      and the factory at :364
+  - order: 5
+    status: passed
+    actual: 'El stock y el costo se resuelven por variantId, no por producto: la tabla stock tiene PK (variant_id, location_id)
+      y no existe columna de producto. post-movement.use-case.spec.ts (14 PASS) lo ejerce. LIMITE: verificado en memoria;
+      el round-trip a Postgres quedo BLOQUEADO por falta de Docker.'
+    phase: then
+    text: the product's stock and average cost (CPP) resolve THROUGH that variant, not from a product-level field
+  - order: 6
+    status: passed
+    actual: 'El precio del wildcard es el del ITEM por D264 (mintWildcard recibe basePrice del producto y no es sobreescribible).
+      El stock arranca sin filas y solo se mueve por movimientos; el costo no se puede tipear: update-variant-wildcard-price-guard.spec.ts
+      (5 PASS) y update-variant-wildcard-manual-guard.spec.ts (7 PASS).'
+    phase: then
+    text: the variant's initial stock is 0 and its cost could not be typed at creation time
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: An inventory movement on a simple product posts against its wildcard variant in the Cardex
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Producto simple con su unico wildcard: el mismo estado que valida el escenario 1.'
+    phase: given
+    text: a simple product created with no options, so its only variant is the wildcard
+  - order: 2
+    status: passed
+    actual: Movimiento ejercido por post-movement.use-case.spec.ts (14 PASS) y post-movement-service-guard.spec.ts (20 PASS),
+      incluyendo ':142 a physical sale posts exactly one header and exactly one line'.
+    phase: when
+    text: an inventory movement is recorded for that product
+  - order: 3
+    status: passed
+    actual: Las filas de ledger y de stock se escriben por variantId. stock-projection-typeorm.repository.ts inserta en stock
+      (variant_id, location_id, tenant_id, quantity) y en location_stock con los mismos ejes. Confirmado por ':159 a physical
+      sale still moves stock'.
+    phase: then
+    text: the resulting ledger row, stock row and cost read are all keyed by the wildcard's variantId, per post-movement-line-builder.ts:59
+      and :71 and the rows at :75, :98 and :115
+  - order: 4
+    status: passed
+    actual: El Cardex del wildcard es el que recibe el movimiento, porque es el unico variantId del producto en esa rama.
+    phase: then
+    text: the movement is visible in the wildcard variant's Cardex
+  - order: 5
+    status: passed
+    actual: 'NO existe fila de movimiento con variantId nulo: variant_id es parte de la PK de stock y de los conflict targets
+      ON CONFLICT, asi que una fila sin variante no es representable en el esquema.'
+    phase: then
+    text: no movement row exists that is keyed by the product alone with a null variantId
+  - order: 6
+    status: passed
+    actual: 'El stock y el CPP se mueven desde 0 SOLO por movimientos. Los dos guards de update lo confirman por el lado contrario:
+      no hay ruta para tipearlos.'
+    phase: then
+    text: after the movement the variant's stock and CPP have moved from 0 — confirming stock and cost accrue only from movements,
+      never from typed input
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: A product can never be left with zero variants
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto con variantes reales generadas desde sus opciones.
+    phase: given
+    text: a product that currently has real variants generated from its options
+  - order: 2
+    status: passed
+    actual: 'Las dos rutas destructivas estan ejercidas: quitar todas las opciones y desactivar la ultima variante activa.'
+    phase: when
+    text: the admin attempts an operation that would remove every remaining variant — clearing all options, or deactivating
+      the last active variant
+  - order: 3
+    status: passed
+    actual: RECHAZADO en las tres capas citadas. replace-product-options.use-case.ts lanza NoActiveVariantsRemainError; variant-status-transitions.ts
+      rechaza la ultima variante activa. ensure-at-least-one-default.spec.ts:190 'promotes nothing when the whole set is inactive
+      - D196 refuses that save first'.
+    phase: then
+    text: 'the operation is REJECTED rather than silently leaving the product variant-less: NoActiveVariantsRemainError from
+      replace-product-options.use-case.ts:530, and the refusal of the last active variant in variant-status-transitions.ts:200'
+  - order: 4
+    status: passed
+    actual: 'ensure-at-least-one-default promueve una fila SELLABLE cuando la regeneracion deja el set sin default. Y no acepta
+      un holder INACTIVO como suficiente: '':104 does not accept an INACTIVE holder as satisfying BR-022, and RELEASES it'',
+      '':171 never promotes an INACTIVE row, even when it sorts first''. 13/13 PASS.'
+    phase: then
+    text: if regeneration leaves no row defaulted, a sellable row is promoted to default instead of the product ending up
+      with none, per ensure-at-least-one-default.ts:93
+  - order: 5
+    status: passed
+    actual: 'En ningun punto intermedio el producto queda sin variantes: el guard corre antes de commitear (D11/BR-033 en
+      replace-product-options.use-case.ts:444, incondicional).'
+    phase: then
+    text: at every point during the operation the product still has at least one variant
+  - order: 6
+    status: passed
+    actual: EXACTAMENTE UN default. settle-default-variant.spec.ts (9 PASS) + el indice unico parcial uq_product_variants_product_default,
+      que no excluye por status.
+    phase: then
+    text: exactly one variant remains flagged as default — never zero, never two
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: A no-variant product shows exactly one UNLABELED variant row inheriting the product name (corrected behaviour)
+  scenarioIndex: 3
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto creado sin opciones reales.
+    phase: given
+    text: a product created with no real options
+  - order: 2
+    status: passed
+    actual: 'NOTA DEL TC CONFIRMADA Y REFORZADA: el badge no solo falta, esta GUARDADO por dos tests independientes en dos
+      archivos distintos. Ver el step siguiente.'
+    phase: given
+    text: 'NOTE: the story''s added scenario 1 asks for this row to be labeled "technical" and to show "Same SKU as the item".
+      That half was OVERRULED, not missed — VariantsStep.tsx:1336 records that the single row inherits the parent product''s
+      display name under decision D26, with no badge and no special label, and options-copy.test.ts:163 ("does not badge the
+      single variant as technical") actively guards the label''s absence. Test what was decided, not the 2026-07-27 wording.'
+  - order: 3
+    status: passed
+    actual: 'Revision estatica del codigo fuente y de los tests del dev (VeevartFrontend NO esta clonado localmente: no se
+      abrio navegador).'
+    phase: when
+    text: the admin opens the Variants step in the wizard, and then the item's Variants grid
+  - order: 4
+    status: passed
+    actual: 'EXACTAMENTE UNA fila: VariantsStep.test.tsx:1018 ''renders exactly one body row, carrying the same five columns'',
+      dentro del describe '':1017 a product with no option combination (D0 / D26)''.'
+    phase: then
+    text: the grid shows exactly ONE variant row, per VariantsStep.tsx:1330
+  - order: 5
+    status: passed
+    actual: 'CONFIRMADO en positivo y en negativo. VariantsStep.test.tsx:1032 ''inherits the parent product name and shows
+      no badge or special label''. Y options-copy.test.ts:163 ''does not badge the single variant as technical'' asserta que
+      variantCountSingle NO matchea /technical|technique/i. HALLAZGO EXTRA: options-copy.test.ts:158 ''does not claim the
+      single variant shares the Item SKU'' asserta que la copy tampoco dice ''Same SKU as the item'' -> AMBAS mitades del
+      criterio en disputa estan deliberadamente ausentes y protegidas por tests, no solo la del badge.'
+    phase: then
+    text: that row displays the parent product's name and carries NO "technical" badge and NO "Same SKU as the item" caption
+  - order: 6
+    status: passed
+    actual: 'El usuario nunca define una opcion para obtener esa fila: la fila existe por el minteo del backend, no por accion
+      del admin.'
+    phase: then
+    text: the admin was never asked to define an option to get that row
+  - order: 7
+    status: passed
+    actual: 'Ausencia registrada como ESPERADA bajo D0/D26. NO se levanta defecto. El comentario del test lo dice explicito:
+      la copy de referencia del 2026-07-27 era falsa en create porque nada mintea SKU de variante cuando el campo va vacio.'
+    phase: then
+    text: the absence of the badge is recorded as EXPECTED under D26 — do NOT raise it as a defect; if the product owner still
+      wants the label, it needs a product ruling and its own ticket
+  notes: 'PASSED contra la conducta CORREGIDA (D0/D26), no contra la redaccion del 2026-07-27. Hallazgo que refuerza el riesgo
+    #1 del TC: no falta solo el badge ''technical'', tambien falta a proposito la copy ''Same SKU as the item'', y cada ausencia
+    tiene su propio test que la protege (options-copy.test.ts:163 y :158). No filar defecto por el badge sin ruling de producto.'
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: A no-variant product shares its SKU with the wildcard variant, on both create and edit
+  scenarioIndex: 4
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto con SKU 'MUG-01' y sin variantes.
+    phase: given
+    text: a shop admin creates a product with SKU "MUG-01" and no variants
+  - order: 2
+    status: passed
+    actual: 'Create y edit ejercidos por separado por la suite del dev: item-wizard-submit-payloads.variant-sku.test.ts, 20
+      casos.'
+    phase: when
+    text: the product is saved, and then re-saved from the edit flow without changing the SKU
+  - order: 3
+    status: passed
+    actual: EL SKU VIAJA COMPARTIDO, Cesar tenia razon. describe ':225 create, WITHOUT options - the Item SKU rides the empty
+      combination', con ':233 sends one variant entry naming the empty combination, carrying form.sku' y ':252 still sends
+      no options key and no top-level sku key' -> UN solo valor de SKU, no dos.
+    phase: then
+    text: the wildcard variant's base SKU is also "MUG-01" — ONE SKU shared between item and variant, not two values
+  - order: 4
+    status: passed
+    actual: 'La fuente es el campo Item SKU de Details, no la celda deshabilitada del grid: '':245 reads the Item SKU field,
+      not the disabled grid cell''. Backend: replace-product-options-sku-base.spec.ts (12 PASS) aterriza el valor como base
+      del wildcard.'
+    phase: then
+    text: the empty-combination variant payload carries the item SKU, per item-wizard-submit-payloads.ts:140, composed rather
+      than spread-clobbered at :162
+  - order: 5
+    status: passed
+    actual: 'La ruta de edit produce el mismo SKU compartido: '':404 editing the Item rewrites no existing variant SKU - only
+      the wildcard entry rides'' y '':334 sends only the wildcard entry - a loaded variant with a null SKU does not acquire
+      one''.'
+    phase: then
+    text: the edit path produces the same shared SKU as the create path — the payload is used on both
+  - order: 6
+    status: passed
+    actual: 'SALVEDAD IMPORTANTE, no es defecto: cuando el campo Item SKU se deja VACIO, '':265 sends no variants block at
+      all when form.sku is empty'', asi que el wildcard nace con sku null. Eso reconcilia el comentario de options-copy.test.ts
+      (''the variant is born sku: null'') con el hallazgo de Cesar: el comentario describe UNICAMENTE el caso de SKU vacio.
+      No hay contradiccion entre los dos.'
+    phase: then
+    text: changing the item SKU and re-saving carries the new value onto the wildcard rather than leaving the variant on the
+      stale one
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: A product created WITH options gets a dormant wildcard alongside its real variants
+  scenarioIndex: 5
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto creado CON opciones reales.
+    phase: given
+    text: 'a shop admin creates a product and defines real options (e.g. Size: S, M)'
+  - order: 2
+    status: passed
+    actual: Guardado ejercido por rebuild-variants-origin.spec.ts y replace-product-options-wildcard-sleep-wake.spec.ts (8
+      PASS).
+    phase: when
+    text: the product is saved
+  - order: 3
+    status: passed
+    actual: Una variante real por combinacion generada.
+    phase: then
+    text: one real variant exists per generated combination
+  - order: 4
+    status: passed
+    actual: 'WILDCARD DORMIDO CONFIRMADO. rebuild-variants.ts, rama `if (!zeroOptions && productIsNew)` -> mintWildcard({dormant:
+      true}) = status ''inactive'' + isDefault false, ambos escritos en create() y no por un deactivate() posterior. Probado
+      por '':150 is minted alongside the cartesian rows, marked and ASLEEP'', '':220 is NOT minted onto a product that already
+      has rows'' y '':245 is NOT minted on the zero-options birth, which already had its own''.'
+    phase: then
+    text: a dormant wildcard variant is also created, per rebuild-variants.ts:330
+  - order: 5
+    status: passed
+    actual: 'No se ofrece como fila vendible: nace ''inactive''. Y queda fuera del picker de ordenes de compra por la PR #1285
+      (''keep the dormant wildcard off purchase orders'', I4).'
+    phase: then
+    text: the dormant wildcard is NOT presented to the admin as a sellable row in the Variants grid alongside the real variants
+  - order: 6
+    status: passed
+    actual: 'No es el default mientras existan variantes reales, y por diseno: ensure-at-least-one-default corre DESPUES del
+      minteo y promueve solo una fila SELLABLE, asi que la pasa por encima y asienta el default en la primera combinacion.
+      Sin ese detalle habria un 23505 contra uq_product_variants_product_default en un guardado ordinario. LIMITE: el round-trip
+      sleep/wake contra Postgres (wildcard-sleep-wake-round-trip.integration.spec.ts) quedo BLOQUEADO por falta de Docker;
+      la version en memoria pasa.'
+    phase: then
+    text: the dormant wildcard is not the default variant while real variants exist, and does not accumulate stock or Cardex
+      movements of its own
+  notes: 'PASSED en memoria. LIMITE DIVULGADO: wildcard-sleep-wake-round-trip.integration.spec.ts (el round-trip contra Postgres
+    de dormir/despertar) quedo BLOQUEADO porque no hay runtime de contenedores en esta maquina. Ademas queda registrado el
+    costo aceptado a sabiendas por Cesar: cada producto con opciones carga un wildcard dormido desde su nacimiento y gasta
+    uno de los 24 slots de SHOP_ITEM_SNAPSHOT_MAX_VARIANTS, con lo que el techo real baja a 23 para TODOS los productos. Registrado,
+    no levantado como defecto.'
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: Removing all options from a product that already has stock is not silently collapsed into the wildcard
+  scenarioIndex: 6
+  status: passed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Producto con variantes reales que tienen stock.
+    phase: given
+    text: a product with real variants that currently hold stock
+  - order: 2
+    status: passed
+    actual: Quitar todas las opciones SIN confirmar la remocion.
+    phase: when
+    text: the admin removes all options without confirming the removal of those variants
+  - order: 3
+    status: passed
+    actual: 'RECHAZADO. assert-archived-variants-have-no-stock.ts:126 lanza OptionValueHasStockError, y el propio archivo
+      documenta en :45 que solo lo hace cuando el caller NO envio confirmRemoveVariants: true. El guard D11/BR-033 corre INCONDICIONALMENTE
+      desde replace-product-options.use-case.ts:444. removal-facts.spec.ts (13 PASS) + archival.spec.ts (26 PASS).'
+    phase: then
+    text: the operation is rejected rather than discarding stock-bearing variants
+  - order: 4
+    status: passed
+    actual: 'No se sintetiza wildcard para reemplazarlas hasta que el admin confirme o limpie el stock: el guard corre antes
+      de la fase de minteo.'
+    phase: then
+    text: no wildcard is synthesized to replace them until the admin explicitly confirms or the stock is cleared
+  - order: 5
+    status: passed
+    actual: 'Las variantes y su stock quedan intactos tras el rechazo: removal-facts.spec.ts:369 ''routes the BR-033 stock
+      guard through ctx - never onto a second connection'', asi que el rechazo y la lectura de stock comparten transaccion.'
+    phase: then
+    text: the product's variants and their stock are unchanged after the rejection
+  - order: 6
+    status: passed
+    actual: 'CROSS-CHECK HECHO: no se levanta nada aqui. SH-1062 (plan SH-1163) gobierna la direccion opuesta y no se toco
+      en este run.'
+    phase: then
+    text: 'CROSS-CHECK before filing anything here: SH-1062 ("add variants to a product that already has movements", QA plan
+      SH-1163) governs the opposite direction. Confirm which ticket owns the behaviour before raising a defect.'
+- testCaseId: efdc64e8-d628-406f-913c-bca7bbb7208c
+  testCaseKey: TC-74
+  testCaseTitle: Products — Every Product Has At Least One Variant (Technical / Wildcard)
+  testCaseFilePath: test-cases/SH-1057/SH-1057-TC-74-technical-variant-always-present.testcase.yml
+  scenarioTitle: No Service-typed path is reachable, and the live Service inventory policy is pinned as a contradiction
+  scenarioIndex: 7
+  status: failed
+  executedAt: '2026-09-04T16:48:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Premisa del TC: SH-1137 anula el tercer escenario agregado de SH-1057. Correcto, no se implemento como AC.'
+    phase: given
+    text: SH-1137 removed the Product Type selector and made every product physical, which VOIDS the story's third added scenario
+      ("A Service product's technical variant has no inventory") — that scenario must not be implemented and must not be signed
+      off
+  - order: 2
+    status: passed
+    actual: 'Premisa del TC confirmada Y PRECISADA: service-inventory-policy.ts esta vivo en staging y NO es codigo muerto
+      — lo consumen post-movement.use-case.ts:366, receive-purchase-order.use-case.ts:212 y post-movement-contract.ts. La
+      tabla de D5 es: sale -> skip, purchase order -> reject, adjustment -> reject. service-inventory-policy.spec.ts (7 PASS)
+      y post-movement-service-guard.spec.ts (20 PASS) la fijan.'
+    phase: given
+    text: 'HOWEVER Cesar Tapasco confirmed on 2026-09-01 that service-inventory-policy.ts IS LIVE in origin/staging: a sale
+      skips the line, and a purchase order or adjustment rejects with ServiceNotStockableError, with matching frontend copy'
+  - order: 3
+    status: passed
+    actual: Se recorrieron las entradas de creacion y las rutas de movimiento, OC y ajuste, por codigo y por la suite del
+      dev. No se ejecuto contra un tenant real.
+    phase: when
+    text: the admin creates a product through every available entry point, and an inventory movement, a purchase order and
+      an adjustment are attempted against its wildcard variant
+  - order: 4
+    status: passed
+    actual: 'PASA la mitad de la UI: itemType NO aparece en la capa de presentacion del backend (grep en src/presentation:
+      0 hits) y no hay selector de tipo. Para un producto NUEVO el default es physical: item-wizard-submit-payloads.item-type.test.ts:47
+      ''a new product always carries the create default (physical)''.'
+    phase: then
+    text: no UI control offers a product type, and no create payload is accepted that sets a non-physical type
+  - order: 5
+    status: failed
+    actual: 'NO SE CUMPLE UNIVERSALMENTE. ITEM_TYPE_VALUES = [''physical'',''service''] sigue en domain/product.ts:27, con
+      assertValidItemType (:451) y la rama de update (:314-316) intactas. Y el frontend PRESERVA a proposito los items service
+      heredados de punta a punta: '':53 a legacy service item keeps its value on create-shaped forms too'', '':62 edits a
+      legacy service item and keeps it in the save payload'', '':102 buildFormFromProduct -> buildEditProductPayload still
+      carries service end to end''. Para esas filas el wildcard NO es comprable en una OC ni ajustable.'
+    phase: then
+    text: every wildcard variant carries stock, average cost (CPP) and a Cardex, and is purchasable on a Purchase Order —
+      the universal rule, with no carve-out
+  - order: 6
+    status: failed
+    actual: 'ALCANZABLE para items service HEREDADOS, no para nuevos. La cadena es: classifyVariantsTx() lee el item_type
+      PERSISTIDO y devuelve serviceVariantIds; con eso serviceLineHandlingFor(documentType) responde ''reject'' en OC y en
+      ajuste. Como ninguna API acepta itemType, una fila service solo puede venir de datos preexistentes o de una escritura
+      directa a la base — pero el frontend la mantiene viva al editarla.'
+    phase: then
+    text: ServiceNotStockableError is NOT reachable through any admin-facing flow
+  - order: 7
+    status: failed
+    actual: 'CONTRADICCION CONFIRMADA entre el codigo entregado y la regla canonica de SH-1137 (''la regla aplica universalmente,
+      toda variante tecnica tiene stock, CPP y Cardex, y todo producto es comprable en una OC''). Clasificada A04 Insecure
+      Design, severidad Medium: no es clase de exploit, es desviacion spec-vs-implementacion. NO se archivo defecto en Jira
+      todavia — decision de Angie (Regla 7b). El escenario void de SH-1057 NO debe cerrarse en ninguna direccion hasta que
+      haya ruling.'
+    phase: then
+    text: if it IS reachable, this is a BLOCKER to report as a contradiction between shipped code and the canonical rule (SH-1137
+      / SH-1167) — escalate for a product ruling; do not close SH-1057's void scenario either way until that ruling exists
+  notes: 'FAILED por CONTRADICCION SPEC-vs-IMPLEMENTACION, no por bug de codigo. El codigo es coherente y deliberado; lo que
+    no cierra es contra SH-1137. Resolucion precisa del riesgo #2 que traia el TC: la politica de Service esta VIVA y CONSUMIDA
+    (no es codigo muerto), pero solo es ALCANZABLE para items service HEREDADOS: itemType desaparecio de la capa de presentacion,
+    asi que ninguna API puede crear uno nuevo, mientras el dominio conserva ITEM_TYPE_VALUES=[''physical'',''service''] y
+    el frontend preserva a proposito los heredados de punta a punta. Eso es mas preciso que ''hay codigo que contradice la
+    regla'' y que ''la UI ya no ofrece el selector, luego esta resuelto'': ninguna de las dos lecturas era completa. PENDIENTE
+    DE DATO: falta saber si existen filas reales con item_type=''service'' en algun tenant, que es lo que decide el impacto
+    real. SQL entregado a Angie en el resumen. NO se archivo defecto: decision suya por Regla 7b (Medium, no bloqueador de
+    seguridad).'
+summary:
+  total: 8
+  passed: 7
+  failed: 1
+  blocked: 0
+  skipped: 0
+  notRun: 0
+  passRate: 87.5
+history:
+- action: created
+  timestamp: '2026-09-04T16:35:00.000Z'
+  user: codex
+- action: status-changed
+  timestamp: '2026-09-04T16:48:00.000Z'
+  user: codex
+  from: planned
+  to: in-progress
+  reason: Ejecucion terminada. Queda in-progress porque el FAIL del escenario 8 espera la decision de Angie sobre archivar
+    o no el defecto (Regla 7b) y un dato de base que no tengo.
+notes: '## Solution understood
+
+
+  SH-1057 pide que ningun producto exista sin variantes, para que el stock y el costo vivan siempre a nivel de variante. El
+  codigo lo resuelve con lo que llama el WILDCARD (no ''technical variant'': ese nombre no aparece en el codigo), una variante
+  sin combinacion marcada con origin ''implicit''. rebuild-variants.ts tiene DOS brazos de minteo que no pueden coexistir:
+  si el producto no tiene opciones y no queda ninguna fila que cargue la combinacion vacia, mintea UN wildcard despierto (isDefault
+  true, status active) y retorna; si el producto SI tiene opciones y es nuevo, mintea uno DORMIDO (isDefault false, status
+  inactive) cuyo unico proposito es darle casa al SKU base que el comerciante tipeo y que antes se tiraba a la basura. Lo
+  dormido es la mitad que sostiene el diseno: un wildcard despierto al lado de las tallas reales seria vendible, apareceria
+  en el picker de OC y reclamaria el default, lo que daria un 23505 contra el indice unico parcial uq_product_variants_product_default
+  en un guardado ordinario. ensureAtLeastOneDefault corre despues y promueve solo filas SELLABLE, asi que pasa por encima
+  del dormido. En el Cardex nada se mueve por producto: stock y location_stock tienen variant_id en la PK, asi que una fila
+  de movimiento sin variante no es representable.
+
+
+  ## Lo que este run corrige de lo que estaba escrito
+
+
+  1. El plan de SH-1160 daba por abiertos dos riesgos que ya estan cerrados (no existe modulo de Cardex; el sku a nivel de
+  producto no llega al backend). Ambos estan construidos y con tests.
+
+  2. El criterio agregado #1 del ticket pide una fila etiquetada ''technical'' con ''Same SKU as the item''. Fue ANULADO,
+  no olvidado, y las DOS mitades tienen test que protege su ausencia (options-copy.test.ts:163 y :158). No filar defecto sin
+  ruling.
+
+  3. Sobre el carve-out de Service, ni la lectura de Cesar ni la del plan estaban completas. Ver el escenario 8.
+
+  4. Aparente contradiccion que NO lo es: un comentario en options-copy.test.ts dice que la variante nace con sku null, mientras
+  Cesar dice que el SKU del item viaja. Las dos son ciertas — el comentario describe unicamente el caso en que el campo Item
+  SKU se deja vacio ('':265 sends no variants block at all when form.sku is empty'').
+
+
+  ## Costo aceptado a sabiendas, registrado y no filado
+
+
+  Cada producto con opciones carga desde su nacimiento un wildcard dormido que gasta uno de los 24 slots de variante del plan
+  Composite de Salesforce (SHOP_ITEM_SNAPSHOT_MAX_VARIANTS), bajando el techo real a 23 para TODOS los productos. Cesar acepto
+  ese intercambio explicitamente en vez de aplazarlo a un relevamiento. Queda anotado para que nadie lo descubra como sorpresa.
+
+
+  ## Pendiente que no depende de mi
+
+
+  Escenario 8 necesita (a) un ruling de producto sobre la contradiccion con SH-1137 y (b) un dato que no puedo consultar:
+  si existen filas reales con item_type=''service''. Escenario 6 necesita Docker para el round-trip de dormir/despertar.'
+metadata:
+  createdBy: codex
+  createdAt: '2026-09-04T16:35:00.000Z'
+  updatedBy: codex
+  updatedAt: '2026-09-04T16:48:00.000Z'
+  version: 1

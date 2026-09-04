@@ -1,0 +1,166 @@
+schemaVersion: "1.0"
+id: "efdc64e8-d628-406f-913c-bca7bbb7208c"
+key: "TC-74"
+title: "Products — Every Product Has At Least One Variant (Technical / Wildcard)"
+description: "QA coverage for SH-1057 (\"Products · UI and Logic — every product has at least one variant by default\"), QA sub-task SH-1160, under epic SH-793 (Products — create and manage items & variants). Validates that a product created with no options always ends up with exactly one auto-minted variant, that this variant carries the item SKU, and that stock, average cost (CPP) and Cardex movements resolve through the variant rather than the product. IMPLEMENTATION DOMAIN: this story does NOT live in AuctiferaDX — it is the TypeScript Products stack (rebuild-variants.ts, ensure-at-least-one-default.ts, replace-product-options.use-case.ts, post-movement-line-builder.ts, variant-status-transitions.ts, VariantsStep.tsx, item-wizard-submit-payloads.ts, service-inventory-policy.ts), confirmed present in origin/staging by Cesar Tapasco on 2026-09-01. NAMING: the code calls SH-1057's \"technical variant\" the WILDCARD, recorded with origin `implicit` — expect that vocabulary in payloads and DB rows, not the word \"technical\". OPEN RISKS carried into this test case: (1) the story's added scenario 1 asks for a row labeled \"technical\" showing \"Same SKU as the item\" — that label was DELIBERATELY NOT BUILT under decision D26 and a unit test actively guards its absence (options-copy.test.ts:163), so scenario 4 below tests the CORRECTED behaviour and the missing badge must NOT be filed as a defect without a product ruling first; (2) the story's third added scenario (Service-type technical variant has no inventory) is VOID since SH-1137 removed the Product Type selector, but service-inventory-policy.ts with ServiceNotStockableError IS LIVE IN STAGING — shipped code contradicts the canonical rule (SH-1137 / SH-1167) and scenario 8 exists to pin that contradiction, not to sign it off; (3) SH-1160's own plan still carries pre-2026-09-01 risks (\"no Cardex module exists\", \"product-level sku not built\") that Cesar's mapping supersedes — re-read that comment before executing."
+type: "integration"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The SH-1057 code is deployed to the environment under test — confirmed in origin/staging as of 2026-09-01. Verify the promotion before executing: staging promotions in this repo are SQUASH merges, so git ancestry checks give false negatives; compare tree content instead."
+  - "A test tenant with access to the Shop catalog and permission to create products."
+  - "Access to the API response or the database, to inspect the minted variant's id, default flag, origin (`implicit`) and `sku` — the UI alone cannot prove which row is the wildcard."
+  - "Access to the inventory ledger / Cardex read model to verify movement rows are keyed by variantId."
+  - "There is no Product Type selector to choose: SH-1137 made every product physical."
+scenarios:
+  - title: "Creating a product with no options mints exactly one wildcard variant that owns its stock and cost"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "wildcard"
+    given:
+      - "a shop admin opens the New item wizard and fills the item without adding any option or variant"
+    when:
+      - "the product is saved"
+    then:
+      - "exactly ONE variant row exists for that product — not zero, and not two"
+      - "that row is flagged as the default variant and its origin is recorded as `implicit` (the wildcard), per rebuild-variants.ts:266 and the factory at :364"
+      - "the product's stock and average cost (CPP) resolve THROUGH that variant, not from a product-level field"
+      - "the variant's initial stock is 0 and its cost could not be typed at creation time"
+  - title: "An inventory movement on a simple product posts against its wildcard variant in the Cardex"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "cardex"
+    given:
+      - "a simple product created with no options, so its only variant is the wildcard"
+    when:
+      - "an inventory movement is recorded for that product"
+    then:
+      - "the resulting ledger row, stock row and cost read are all keyed by the wildcard's variantId, per post-movement-line-builder.ts:59 and :71 and the rows at :75, :98 and :115"
+      - "the movement is visible in the wildcard variant's Cardex"
+      - "no movement row exists that is keyed by the product alone with a null variantId"
+      - "after the movement the variant's stock and CPP have moved from 0 — confirming stock and cost accrue only from movements, never from typed input"
+  - title: "A product can never be left with zero variants"
+    tags:
+      - "ac-3"
+      - "negative"
+      - "invariant"
+    given:
+      - "a product that currently has real variants generated from its options"
+    when:
+      - "the admin attempts an operation that would remove every remaining variant — clearing all options, or deactivating the last active variant"
+    then:
+      - "the operation is REJECTED rather than silently leaving the product variant-less: NoActiveVariantsRemainError from replace-product-options.use-case.ts:530, and the refusal of the last active variant in variant-status-transitions.ts:200"
+      - "if regeneration leaves no row defaulted, a sellable row is promoted to default instead of the product ending up with none, per ensure-at-least-one-default.ts:93"
+      - "at every point during the operation the product still has at least one variant"
+      - "exactly one variant remains flagged as default — never zero, never two"
+  - title: "A no-variant product shows exactly one UNLABELED variant row inheriting the product name (corrected behaviour)"
+    tags:
+      - "added-scenario-1"
+      - "edge-case"
+      - "missing-doc"
+      - "needs-product-ruling"
+    given:
+      - "a product created with no real options"
+      - "NOTE: the story's added scenario 1 asks for this row to be labeled \"technical\" and to show \"Same SKU as the item\". That half was OVERRULED, not missed — VariantsStep.tsx:1336 records that the single row inherits the parent product's display name under decision D26, with no badge and no special label, and options-copy.test.ts:163 (\"does not badge the single variant as technical\") actively guards the label's absence. Test what was decided, not the 2026-07-27 wording."
+    when:
+      - "the admin opens the Variants step in the wizard, and then the item's Variants grid"
+    then:
+      - "the grid shows exactly ONE variant row, per VariantsStep.tsx:1330"
+      - "that row displays the parent product's name and carries NO \"technical\" badge and NO \"Same SKU as the item\" caption"
+      - "the admin was never asked to define an option to get that row"
+      - "the absence of the badge is recorded as EXPECTED under D26 — do NOT raise it as a defect; if the product owner still wants the label, it needs a product ruling and its own ticket"
+  - title: "A no-variant product shares its SKU with the wildcard variant, on both create and edit"
+    tags:
+      - "added-scenario-2"
+      - "happy-path"
+      - "sku"
+    given:
+      - "a shop admin creates a product with SKU \"MUG-01\" and no variants"
+    when:
+      - "the product is saved, and then re-saved from the edit flow without changing the SKU"
+    then:
+      - "the wildcard variant's base SKU is also \"MUG-01\" — ONE SKU shared between item and variant, not two values"
+      - "the empty-combination variant payload carries the item SKU, per item-wizard-submit-payloads.ts:140, composed rather than spread-clobbered at :162"
+      - "the edit path produces the same shared SKU as the create path — the payload is used on both"
+      - "changing the item SKU and re-saving carries the new value onto the wildcard rather than leaving the variant on the stale one"
+  - title: "A product created WITH options gets a dormant wildcard alongside its real variants"
+    tags:
+      - "edge-case"
+      - "wildcard"
+      - "regression-evidence"
+    given:
+      - "a shop admin creates a product and defines real options (e.g. Size: S, M)"
+    when:
+      - "the product is saved"
+    then:
+      - "one real variant exists per generated combination"
+      - "a dormant wildcard variant is also created, per rebuild-variants.ts:330"
+      - "the dormant wildcard is NOT presented to the admin as a sellable row in the Variants grid alongside the real variants"
+      - "the dormant wildcard is not the default variant while real variants exist, and does not accumulate stock or Cardex movements of its own"
+  - title: "Removing all options from a product that already has stock is not silently collapsed into the wildcard"
+    tags:
+      - "negative"
+      - "edge-case"
+      - "stock-guard"
+    given:
+      - "a product with real variants that currently hold stock"
+    when:
+      - "the admin removes all options without confirming the removal of those variants"
+    then:
+      - "the operation is rejected rather than discarding stock-bearing variants"
+      - "no wildcard is synthesized to replace them until the admin explicitly confirms or the stock is cleared"
+      - "the product's variants and their stock are unchanged after the rejection"
+      - "CROSS-CHECK before filing anything here: SH-1062 (\"add variants to a product that already has movements\", QA plan SH-1163) governs the opposite direction. Confirm which ticket owns the behaviour before raising a defect."
+  - title: "No Service-typed path is reachable, and the live Service inventory policy is pinned as a contradiction"
+    tags:
+      - "missing-doc"
+      - "needs-product-ruling"
+      - "void-scenario-followup"
+      - "sh-1137"
+    given:
+      - "SH-1137 removed the Product Type selector and made every product physical, which VOIDS the story's third added scenario (\"A Service product's technical variant has no inventory\") — that scenario must not be implemented and must not be signed off"
+      - "HOWEVER Cesar Tapasco confirmed on 2026-09-01 that service-inventory-policy.ts IS LIVE in origin/staging: a sale skips the line, and a purchase order or adjustment rejects with ServiceNotStockableError, with matching frontend copy"
+    when:
+      - "the admin creates a product through every available entry point, and an inventory movement, a purchase order and an adjustment are attempted against its wildcard variant"
+    then:
+      - "no UI control offers a product type, and no create payload is accepted that sets a non-physical type"
+      - "every wildcard variant carries stock, average cost (CPP) and a Cardex, and is purchasable on a Purchase Order — the universal rule, with no carve-out"
+      - "ServiceNotStockableError is NOT reachable through any admin-facing flow"
+      - "if it IS reachable, this is a BLOCKER to report as a contradiction between shipped code and the canonical rule (SH-1137 / SH-1167) — escalate for a product ruling; do not close SH-1057's void scenario either way until that ruling exists"
+tags:
+  - "sh-1057"
+  - "sh-1160"
+  - "sh-793"
+  - "products"
+  - "variants"
+  - "technical-variant"
+  - "wildcard"
+  - "inventory"
+  - "cardex"
+  - "sku"
+parameters: []
+links:
+  jira:
+    - key: "SH-1057"
+      url: "https://veevart.atlassian.net/browse/SH-1057"
+      type: "story"
+    - key: "SH-1160"
+      url: "https://veevart.atlassian.net/browse/SH-1160"
+      type: "qa-subtask"
+    - key: "SH-793"
+      url: "https://veevart.atlassian.net/browse/SH-793"
+      type: "epic"
+    - key: "SH-1137"
+      url: "https://veevart.atlassian.net/browse/SH-1137"
+      type: "related"
+  external: []
+estimatedDuration: 95
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-04T00:00:00Z"
+  updatedBy: "codex"
+  updatedAt: "2026-09-04T00:00:00Z"
+  version: 1

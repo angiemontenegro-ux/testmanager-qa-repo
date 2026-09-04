@@ -1,0 +1,52 @@
+DEV UNIT / INTEGRATION TESTS FOUND — SH-1057 slice
+Backend: VeevartBackend @ origin/staging b5ab930e, domains/shop/catalog/api
+Frontend: VeevartFrontend @ main, packages/shop/src/products/item-wizard (static, remote-only)
+
+## Backend specs executed locally (13 files, 148 assertions, all PASS)
+
+test/domain/service-inventory-policy.spec.ts ..............................  7
+test/application/use-cases/rebuild-variants-origin.spec.ts ................ 13
+test/application/use-cases/ensure-at-least-one-default.spec.ts ............ 13
+test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts  8
+test/application/use-cases/post-movement-service-guard.spec.ts ............ 20
+test/application/use-cases/receive-purchase-order-service-policy.spec.ts ..  1
+test/application/use-cases/settle-default-variant.spec.ts .................  9
+test/application/use-cases/replace-product-options-sku-base.spec.ts ....... 12
+test/application/use-cases/update-variant-wildcard-price-guard.spec.ts ....  5
+test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts ...  7
+test/application/use-cases/post-movement.use-case.spec.ts ................. 14
+test/application/use-cases/replace-product-options-removal-facts.spec.ts .. 13
+test/application/use-cases/replace-product-options-archival.spec.ts ....... 26
+
+## Frontend specs inspected statically (NOT executed — repo not checked out)
+
+messages/options-copy.test.ts
+  :158  does not claim the single variant shares the Item SKU
+  :163  does not badge the single variant as technical            <- D0/D26 guard
+components/steps/VariantsStep.test.tsx
+  :1017 describe: a product with no option combination (D0 / D26)
+  :1018 renders exactly one body row, carrying the same five columns
+  :1032 inherits the parent product name and shows no badge or special label
+hooks/item-wizard-submit-payloads.variant-sku.test.ts   (20 cases)
+  :225  describe: create, WITHOUT options — the Item SKU rides the empty combination
+  :233  sends one variant entry naming the empty combination, carrying form.sku
+  :245  reads the Item SKU field, not the disabled grid cell
+  :252  still sends no options key and no top-level sku key
+  :265  sends no variants block at all when form.sku is empty     <- the null-SKU case
+  :404  editing the Item rewrites no existing variant SKU — only the wildcard entry rides
+hooks/item-wizard-submit-payloads.item-type.test.ts
+  :47   a new product always carries the create default (physical)
+  :53   a legacy service item keeps its value on create-shaped forms too
+  :62   edits a legacy service item and keeps it in the save payload
+  :102  buildFormFromProduct -> buildEditProductPayload still carries service end to end
+
+## Blocked (Docker unavailable — 41 integration files total, this one is in scope)
+
+test/infrastructure/persistence/repositories/wildcard-sleep-wake-round-trip.integration.spec.ts
+
+## Coverage verdict
+
+The dev's coverage is unusually complete: every AC and every added scenario of
+SH-1057 has at least one dedicated spec, on BOTH sides of the stack. No AC was
+left for QA to compensate for. The only gap in THIS run is environmental (the
+DB round-trip), not a gap in the dev's coverage.

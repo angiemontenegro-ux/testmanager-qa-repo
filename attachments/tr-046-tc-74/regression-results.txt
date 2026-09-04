@@ -1,0 +1,79 @@
+REGRESSION RESULTS — TC-74 / TR-046
+
+## How the suite was actually run (read this before trusting any verdict)
+
+`pnpm install` CANNOT complete on this machine: ERR_PNPM_FETCH_404 on
+@veevarts/acl-core@0.1.0-alpha.4 ("No authorization header was set") — it is a
+private package and no registry token is present. The dependency graph WAS
+resolved into node_modules/.pnpm, but pnpm never built the symlink tree, so
+node_modules/.bin was empty and every spec that imports a Nest use-case failed
+to RESOLVE (not to assert).
+
+First attempt therefore reported "8 failed | 3 passed" with "Tests 33 passed
+(33)" — eight FILE-level import errors and ZERO failed assertions. Those were
+NOT test failures and are not recorded as such. 1160 packages were then linked
+manually from the .pnpm store and the same 11 files ran green.
+
+Runner: vitest 3.2.6 invoked from the store, config domains/shop/catalog/api/vitest.config.ts.
+Tree:   git worktree at origin/staging b5ab930e ("back-merge main -> staging (#1503)").
+
+## Targeted SH-1057 specs — 11 files, 109/109 PASS
+
+service-inventory-policy.spec.ts .................................  7 PASS
+rebuild-variants-origin.spec.ts .................................. 13 PASS
+ensure-at-least-one-default.spec.ts .............................. 13 PASS
+replace-product-options-wildcard-sleep-wake.spec.ts ..............  8 PASS
+post-movement-service-guard.spec.ts .............................. 20 PASS
+receive-purchase-order-service-policy.spec.ts ....................  1 PASS
+settle-default-variant.spec.ts ...................................  9 PASS
+replace-product-options-sku-base.spec.ts ......................... 12 PASS
+update-variant-wildcard-price-guard.spec.ts ......................  5 PASS
+update-variant-wildcard-manual-guard.spec.ts .....................  7 PASS
+post-movement.use-case.spec.ts ................................... 14 PASS
+
+## Full package suite — 1451 assertions PASS, 0 FAILED, 327 skipped
+
+Test Files  41 failed | 125 passed (166)
+Tests       1451 passed | 327 skipped (1778)
+
+All 41 failing files are `.integration.spec.ts`, and all 41 fail with the same
+cause: "Could not find a working container runtime strategy" (testcontainers
+cannot reach a Docker daemon; `docker info` fails on this host). Verified 1:1 —
+zero non-integration files among them, zero assertion-failure markers in the
+output. Environment gap, NOT a code defect.
+
+One of the blocked files is directly relevant to this test case:
+  wildcard-sleep-wake-round-trip.integration.spec.ts  (SH-793 C2 + C3)
+so the DB round-trip half of the sleep/wake behaviour is UNVERIFIED here even
+though its in-memory counterpart passes. See "Pendiente" in the test run.
+
+## Security verdicts, with the reasoning that matters
+
+A03 (injection) — PASS, and the grep hits are false positives. Eight lines
+matched "(SELECT|INSERT|UPDATE|DELETE)...+". Each was read:
+  - migrations/1717100000000-DeferOptionPositionUnique.ts:34 — a DOC COMMENT.
+  - product-typeorm.repository.ts:145,149,152 and variant-status-sql-predicate.ts:166
+    — `+` joining STATIC literal SQL fragments across lines. No interpolation.
+  - stock-projection-typeorm.repository.ts:82,92 — the `+` is SQL ARITHMETIC
+    (`quantity + EXCLUDED.quantity`), not string concatenation at all.
+The only interpolation anywhere on these paths is `${SCHEMA}`, and
+SCHEMA = CATALOG_SCHEMA = process.env.CATALOG_DB_SCHEMA ?? 'shop_catalog' —
+a server-side env value, never user input, and a schema identifier cannot be
+bound as a parameter in any case. Every user-controlled value is positional:
+`[variantId, locationId, tenant, delta]` -> $1..$4. No Critical filed.
+
+A01 (access control) — PASS for this change. 19 of 22 repository files
+reference tenantId and the write path calls requireTenantId(tenantId) before
+querying. Guard topology is documented in main.ts: ApiKeyGuard (CATALOG_API_KEY)
+plus x-tenant-id on 10 of the 11 controllers, CanonicalJwtGuard (bearer) on
+product-media.controller.ts. SH-1057 touches no guard, profile or scope.
+
+A02 — PASS. The only matches are HEADER NAMES in the CORS allowlist and the
+guard-topology comment in main.ts ('authorization', 'x-api-key'). No literal
+secret, key or private-key block anywhere in the changed surface.
+
+A06 — N/A. Dependency-file change count across #1241 #1278 #1283 #1285 #1287
+#1300 #1337 is ZERO; no package.json or pnpm-lock delta to audit.
+
+A09 / A10 / A08 — N/A. No PII reached a log statement, no outbound HTTP call
+was introduced, no eval / Function / unsafe deserialization in the surface.

@@ -1,0 +1,506 @@
+
+ RUN  v3.2.6 /Users/veevart/Downloads/VeevartBackend-worktrees/sh1057-staging/domains/shop/catalog/api
+
+ ❯ test/infrastructure/persistence/repositories/wildcard-sleep-wake-round-trip.integration.spec.ts (1 test | 1 skipped) 4ms
+   ↓ the wildcard sleeps and wakes (SH-793 C2 + C3) > carries ONE row through create → add options → clear options, never archived
+ ❯ test/infrastructure/persistence/repositories/variant-origin-round-trip.integration.spec.ts (3 tests | 3 skipped) 5ms
+   ↓ variant origin round trip (SH-793 C1) > persists `implicit` on the variant a zero-options save mints, and reads it back
+   ↓ variant origin round trip (SH-793 C1) > leaves the COMBINATION rows of an option-bearing product unmarked
+   ↓ variant origin round trip (SH-793 C1) > persists `implicit` on the survivor of an options-cleared product, driven through the real collapse
+ ❯ test/infrastructure/persistence/repositories/variant-archive-restore.integration.spec.ts (11 tests | 11 skipped) 5ms
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > ARCHIVES a removed combination instead of deleting it, keeping its stock row and its Cardex
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > 27.5.5 — REFUSES a CONFIRMED save that would archive a variant holding a balance, and persists nothing
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > 27.5.2 — refuses over a NEGATIVE balance as well, which `> 0` would wave through
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > RESTORES the same row when the combination comes back — same id, same stock row, same SKU, same average_cost
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > never inserts a second row for a returning combination, so the SKU index cannot collide
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > clears is_default when archiving, so promoting the survivor does not hit the partial unique index
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > hides archived variants from findByProductId by default and returns them on request (B25.4 / D19)
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > 27.6a.1/27.6a.2 — keeps a PAUSED variant on the grid AND in the catalog count
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > excludes archived variants from the catalog list count and its default SKU
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > never takes the catalog list default SKU from an ARCHIVED row
+   ↓ Variant archive + restore (B25 / D133 / D134.1) > drops the archived variant from the response of the save that archived it
+ ❯ test/infrastructure/persistence/repositories/post-movement-service-guard.integration.spec.ts (13 tests | 13 skipped) 5ms
+   ↓ PostMovementUseCase — Service enforcement against Postgres > selling the same Service FIVE times succeeds five times and leaves ZERO rows in inventory_movement_line (task 3.5)
+   ↓ PostMovementUseCase — Service enforcement against Postgres > selling a Service leaves its on-hand unchanged and does NOT drive it to -1 (task 3.6)
+   ↓ PostMovementUseCase — Service enforcement against Postgres > five Service sales leave on-hand at 0, not at -5
+   ↓ PostMovementUseCase — Service enforcement against Postgres > a physical sale in the SAME path still posts exactly one header and one line (task 3.7)
+   ↓ PostMovementUseCase — Service enforcement against Postgres > a MIXED sale posts one header and only the physical line
+   ↓ PostMovementUseCase — Service enforcement against Postgres > rejects a stock adjustment on a Service and writes nothing
+   ↓ PostMovementUseCase — Service enforcement against Postgres > rejects a MIXED adjustment whole — the physical line is not posted and its stock is untouched
+   ↓ PostMovementUseCase — Service enforcement against Postgres > VariantItemTypeReadTypeormRepository > returns only the Service variants of the requested set
+   ↓ PostMovementUseCase — Service enforcement against Postgres > VariantItemTypeReadTypeormRepository > names an id that does not exist as UNKNOWN, never as physical
+   ↓ PostMovementUseCase — Service enforcement against Postgres > VariantItemTypeReadTypeormRepository > names ANOTHER tenant’s Service as UNKNOWN, not as this tenant’s physical item
+   ↓ PostMovementUseCase — Service enforcement against Postgres > VariantItemTypeReadTypeormRepository > returns empty sets for an empty input WITHOUT issuing a query
+   ↓ PostMovementUseCase — Service enforcement against Postgres > VariantItemTypeReadTypeormRepository > the transactional form agrees with the connection-owning one
+   ↓ PostMovementUseCase — Service enforcement against Postgres > VariantItemTypeReadTypeormRepository > the Tx form reads the CALLER’s uncommitted snapshot, the pooled form does not
+ ❯ test/infrastructure/persistence/repositories/post-movement-negative-stock.integration.spec.ts (4 tests | 4 skipped) 4ms
+   ↓ Negative stock + idempotency (SH-1111, write path) > negative stock bypass > rejects an outflow that would go negative when allowNegative is not set -- no row is written
+   ↓ Negative stock + idempotency (SH-1111, write path) > negative stock bypass > allowNegative: true actually inserts a negative running_qty row -- proves chk_line_running_qty_non_negative is gone
+   ↓ Negative stock + idempotency (SH-1111, write path) > negative stock bypass > negative-MWAC end-to-end: -10 on hand @ $10.00, receive 10 @ $4.00 -> qty 0, avg $4.00 (not a divide-by-zero)
+   ↓ Negative stock + idempotency (SH-1111, write path) > document numbering under real concurrency (SH-1111) > N simultaneous posts each get a distinct document_number -- no uq_movement_document_number collision
+ ❯ test/infrastructure/persistence/repositories/receive-purchase-order.integration.spec.ts (9 tests | 9 skipped) 7ms
+   ↓ Receive purchase order (write path) > 27.5.13 — REFUSES a receipt onto an ARCHIVED variant, naming it, its status and the remedy
+   ↓ Receive purchase order (write path) > 27.5.13 — ALLOWS the same receipt onto an INACTIVE variant, and the units land
+   ↓ Receive purchase order (write path) > posts exactly one movement document, updates location_stock/stock, and recomputes average_cost
+   ↓ Receive purchase order (write path) > MWAC end-to-end: 10 on hand @ $10.00, receive 10 @ $4.00 -> running_avg_cost $7.00, on_hand 20
+   ↓ Receive purchase order (write path) > rolls back the PO line, the Cardex insert, and the stock/cost projections together on mid-transaction failure
+   ↓ Receive purchase order (write path) > rolls back the Cardex line, header, and stock/cost projections when the final PO write-back fails mid-transaction
+   ↓ Receive purchase order (write path) > concurrency (SH-1111): two simultaneous receives of the same PO > exactly one commits, the other is rejected cleanly -- no deadlock, no double-post, no lost update
+   ↓ Receive purchase order (write path) > concurrency (SH-1111): two simultaneous receives of the same PO > two concurrent receives against DIFFERENT purchase orders both commit independently (the lock is per-PO, not global)
+   ↓ Receive purchase order (write path) > idempotent retry under real concurrency (SH-1111) > a retried receive with the same idempotencyKey, fired truly concurrently with the original, still applies the receipt exactly once
+ ❯ test/infrastructure/persistence/repositories/variant-patch-write-path.integration.spec.ts (13 tests | 13 skipped) 15ms
+   ↓ PATCH variant write path against real Postgres > archiving one variant must not destroy a SIBLING archived row (D164) > stamps the sibling's combination BEFORE the write that deletes its links
+   ↓ PATCH variant write path against real Postgres > archiving one variant must not destroy a SIBLING archived row (D164) > restores that sibling with its real combination, not with an empty one
+   ↓ PATCH variant write path against real Postgres > archiving one variant must not destroy a SIBLING archived row (D164) > leaves an already-stamped sibling alone rather than re-deriving it
+   ↓ PATCH variant write path against real Postgres > the archiving write translates a 23505 like its sibling does (D169 item 1) > answers a typed SKU conflict when the archiving PATCH also takes a taken SKU
+   ↓ PATCH variant write path against real Postgres > the archiving write translates a 23505 like its sibling does (D169 item 1) > answers the SAME typed conflict for the byte-identical payload WITHOUT the status
+   ↓ PATCH variant write path against real Postgres > the manual archive arm runs D11 stock guard (D165) > refuses to archive a variant holding units, naming it
+   ↓ PATCH variant write path against real Postgres > the manual archive arm runs D11 stock guard (D165) > refuses an OVERSOLD variant too — the case `quantity > 0` waved through
+   ↓ PATCH variant write path against real Postgres > a PATCH addressed to the WRONG product is a 404 (D169 item 2) > refuses before taking any lock or writing anything
+   ↓ PATCH variant write path against real Postgres > findVariantIdsWithStock — the query nothing graded (D171 item 1) > never counts another tenant’s rows — the predicate no unit spec reaches
+   ↓ PATCH variant write path against real Postgres > findVariantIdsWithStock — the query nothing graded (D171 item 1) > the Tx form reads the CALLER’s uncommitted rows; the pooled form cannot
+   ↓ PATCH variant write path against real Postgres > findVariantIdsWithStock — the query nothing graded (D171 item 1) > counts an ALL-NEGATIVE balance, and a MIXED one, and not a zero one
+   ↓ PATCH variant write path against real Postgres > the transaction runner’s lock_timeout is scoped to its transaction > does not leak onto the pooled connection it borrowed
+   ↓ PATCH variant write path against real Postgres > the transaction runner’s lock_timeout is scoped to its transaction > still lets an ordinary variant write through
+ ❯ test/infrastructure/persistence/repositories/variant-search-typeorm.repository.integration.spec.ts (18 tests | 18 skipped) 4ms
+   ↓ VariantSearchTypeormRepository (search) > matches an accented product name with an unaccented, lowercase search term
+   ↓ VariantSearchTypeormRepository (search) > matches a lowercase option value with an uppercase search term
+   ↓ VariantSearchTypeormRepository (search) > matches a variant purely by option value, not product name or SKU
+   ↓ VariantSearchTypeormRepository (search) > builds variantLabel from option values ordered by option position
+   ↓ VariantSearchTypeormRepository (search) > reports unitCost from average_cost, and null when never costed
+   ↓ VariantSearchTypeormRepository (search) > never returns another tenant's variants
+   ↓ VariantSearchTypeormRepository (search) > paginates with limit/offset while total reflects the full filtered set
+   ↓ VariantSearchTypeormRepository (search) > never offers an ARCHIVED variant, and does not count it in the total
+   ↓ VariantSearchTypeormRepository (search) > 27.6a.4 — offers the PAUSED variant with `status: inactive`, never the archived one
+   ↓ VariantSearchTypeormRepository (search) > 27.6a.4 — offers a PAUSED variant matched by its own SKU
+   ↓ VariantSearchTypeormRepository (search) > never offers an ARCHIVED variant matched by its own SKU
+   ↓ VariantSearchTypeormRepository (search) > reports quantityByLocation as owned on-hand per location, omitting locations with no stock
+   ↓ VariantSearchTypeormRepository (search) > reports an empty quantityByLocation for a variant with no owned stock anywhere
+   ↓ VariantSearchTypeormRepository (search) > never leaks another tenant's owned stock into quantityByLocation
+   ↓ VariantSearchTypeormRepository (search) > returns an empty result set when nothing matches the search term
+   ↓ VariantSearchTypeormRepository (search) > Service exclusion (D5) > omits a Service variant from an unfiltered listing, and from the total
+   ↓ VariantSearchTypeormRepository (search) > Service exclusion (D5) > omits a Service variant even when the search term matches it exactly
+   ↓ VariantSearchTypeormRepository (search) > Service exclusion (D5) > does not drop a page: 3 physical + 2 Service pages as 3, not as 5 with 2 holes
+ ❯ test/infrastructure/persistence/repositories/variant-patch-concurrency.integration.spec.ts (4 tests | 4 skipped) 5ms
+   ↓ PATCH variant status against real Postgres > lets exactly ONE of two simultaneous archives through, and refuses the other
+   ↓ PATCH variant status against real Postgres > refuses NEITHER of two archives on a THREE-variant product — no false 409
+   ↓ PATCH variant status against real Postgres > reports a default-flag 23505 as a DEFAULT conflict, not as a SKU conflict
+   ↓ PATCH variant status against real Postgres > still reports a real SKU 23505 as a SKU conflict, naming the SKU
+ ❯ test/infrastructure/persistence/repositories/wildcard-sku-base.integration.spec.ts (9 tests | 9 skipped) 4ms
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > mints the wildcard at birth on a product created WITH options, dormant and holding the typed base
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > lands a NEW base on that same row on a later save, without re-minting the siblings
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > hands that base back on the collapse, instead of promoting a size into it
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > mints it with the product base price when the merchant typed no SKU at all
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > leaves a product created WITHOUT options exactly as it was — one awake, default wildcard
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > wakes at the item's CURRENT price after a reprice it slept through (D264)
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > tracks the item's price on a product that NEVER had options (D264.1)
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > mints the wildcard carrying the item's compare-at price, on both births
+   ↓ the wildcard owns the item SKU base (SH-793 §2.3a / I8) > tracks a LATER compare-at raise on every save that touches it, wake included
+ ❯ test/infrastructure/persistence/repositories/variant-type-option-typeorm.repository.integration.spec.ts (8 tests | 8 skipped) 5ms
+   ↓ VariantTypeOptionTypeormRepository > refuses a case-insensitive duplicate label within the SAME category, translated to VariantTypeOptionLabelAlreadyExistsError (23505)
+   ↓ VariantTypeOptionTypeormRepository > refuses two options at the same position under the SAME category, translated to VariantTypeOptionPositionConflictError (23505)
+   ↓ VariantTypeOptionTypeormRepository > allows the same label under a DIFFERENT category
+   ↓ VariantTypeOptionTypeormRepository > countUsageByLabel matches case-insensitively over product_option_values, scoped to the tenant
+   ↓ VariantTypeOptionTypeormRepository > countUsageByLabel returns 0 for an unreferenced label
+   ↓ VariantTypeOptionTypeormRepository > findByVariantTypeId and findById never cross tenants
+   ↓ VariantTypeOptionTypeormRepository > findActiveByVariantTypeIds returns only active options grouped by type, scoped to the tenant
+   ↓ VariantTypeOptionTypeormRepository > findActiveByVariantTypeIds returns an empty map for an empty id list, with no query
+ ❯ test/infrastructure/persistence/repositories/post-donation.integration.spec.ts (2 tests | 2 skipped) 6ms
+   ↓ Inventory donations (SH-1242, write path) > posts one donation header with no partner and one inbound line, and raises on-hand
+   ↓ Inventory donations (SH-1242, write path) > leaves the item-global average UNCHANGED (enters at the current average)
+ ❯ test/infrastructure/persistence/repositories/variant-inactive-stock-reads.integration.spec.ts (16 tests | 16 skipped) 16ms
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > GET /v1/inventory (InventoryViewTypeormRepository.pageVariants) > reports the deactivated variant and its 7 units
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > GET /v1/inventory (InventoryViewTypeormRepository.pageVariants) > counts the deactivated variant in `total`, and still omits the archived one
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > GET /v1/locations/list (LocationTypeormRepository.listAllWithStock) > counts the deactivated variant in onHand and in stockValue
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > GET /v1/locations/list (LocationTypeormRepository.listAllWithStock) > excludes the archived variant, which contributes zero rows to the grid
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > D147: the two reads agree, per location, on the paused variant > names the inactive variant on both sides, at both locations
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > D147: the two reads agree, per location, on the paused variant > agrees per location, comparing the two answers to each other
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Negative on-hand is legal and is reported, not clamped (SH-1111 / D169) > reports a paused, oversold variant at -3 on both reads
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Negative on-hand is legal and is reported, not clamped (SH-1111 / D169) > a variant at +5 in one location and -5 in another sums to 0 across them
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Zero and missing-row cases (BR-017) > a paused variant with no stock rows appears in the grid with an empty breakdown
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Zero and missing-row cases (BR-017) > a location_stock row with no stock row: counted by the rollup, invisible to the grid
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Tenancy: neither read leaks another tenant (SH-793 / global rule) > the grid returns only this tenant, with `total` unchanged
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Tenancy: neither read leaks another tenant (SH-793 / global rule) > the rollup returns only this tenant, with onHand and stockValue unchanged
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Tenancy: a variant whose PRODUCT belongs to another tenant > the grid drops the row entirely rather than rendering the foreign product
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Tenancy: a variant whose PRODUCT belongs to another tenant > the rollup drops its 4 units too, so the two reads still agree
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Tenancy: a product whose CATEGORY belongs to another tenant > renders this tenant’s own category name
+   ↓ A deactivated variant still counts in both stock reads (B27.6b / D147) > Tenancy: a product whose CATEGORY belongs to another tenant > keeps the row but resolves NO category name for the foreign link
+ ❯ test/infrastructure/persistence/repositories/product-base-sku.integration.spec.ts (8 tests | 8 skipped) 9ms
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > scenario 1 — dormant wildcard + sized variants: baseSku stays the wildcard SKU, defaultVariantSku moves to the size
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > scenario 2 — simple product, awake wildcard: baseSku and defaultVariantSku agree
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > scenario 3 — a legacy SIMPLE product with no origin=implicit row falls back to its one default variant
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > scenario 3b — an OPTIONED legacy product with no origin=implicit row stays null (the fallback must not name a size)
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > scenario 3c (Judge A sibling) — a HAND-ARCHIVED wildcard does not unlock the zero-options fallback, even when another row still holds is_default
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > scenario 4 — no-fan-out proof: TWO origin=implicit rows on one product still return it exactly once
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > behavioural coverage for baseSkuSql’s two unpinned conjuncts > excludes an ARCHIVED implicit row even when it would otherwise win the ORDER BY
+   ↓ baseSku is the wildcard SKU, independent of defaultVariantSku (SH-793 QA) > behavioural coverage for baseSkuSql’s two unpinned conjuncts > never lets another tenant’s implicit row supply this tenant’s baseSku
+ ❯ test/infrastructure/persistence/repositories/variant-type-typeorm.repository.integration.spec.ts (7 tests | 7 skipped) 4ms
+   ↓ VariantTypeTypeormRepository > refuses a case-insensitive duplicate name for the same tenant, translated to VariantTypeNameAlreadyExistsError (23505)
+   ↓ VariantTypeTypeormRepository > allows the same name for a DIFFERENT tenant
+   ↓ VariantTypeTypeormRepository > findByName is case-insensitive and tenant-scoped
+   ↓ VariantTypeTypeormRepository > countUsageByName matches case-insensitively, scoped to the tenant
+   ↓ VariantTypeTypeormRepository > countUsageByName returns 0 for an unreferenced name
+   ↓ VariantTypeTypeormRepository > findByTenantId and findById never cross tenants
+   ↓ VariantTypeTypeormRepository > refuses to hard-delete a type that still has a child option, at the DATABASE level (FK RESTRICT), bypassing the use-case pre-check
+ ❯ test/infrastructure/persistence/repositories/inventory-view-service-exclusion.integration.spec.ts (8 tests | 8 skipped) 4ms
+   ↓ InventoryViewTypeormRepository — Service exclusion > omits a Service variant from the page and from the total
+   ↓ InventoryViewTypeormRepository — Service exclusion > omits a Service variant that carries stock — the exclusion is by TYPE, not by quantity
+   ↓ InventoryViewTypeormRepository — Service exclusion > omits a Service variant from a status-filtered read too
+   ↓ InventoryViewTypeormRepository — Service exclusion > omits a Service variant matched by the search term
+   ↓ InventoryViewTypeormRepository — Service exclusion > does not drop a page: 3 physical + 2 Service pages as 3
+   ↓ InventoryViewTypeormRepository — Service exclusion > omits an ARCHIVED variant from the page and from the total
+   ↓ InventoryViewTypeormRepository — Service exclusion > omits an ARCHIVED variant that still carries stock
+   ↓ InventoryViewTypeormRepository — Service exclusion > still returns physical variants unchanged
+ ❯ test/infrastructure/persistence/repositories/product-variant-count-dormant-wildcard.integration.spec.ts (5 tests | 5 skipped) 8ms
+   ↓ the dormant wildcard is not counted (SH-793) > counts the AWAKE wildcard — an optionless item sells exactly one thing
+   ↓ the dormant wildcard is not counted (SH-793) > drops it from the count once the product gains options — three sizes read 3, not 4
+   ↓ the dormant wildcard is not counted (SH-793) > counts it again when the options are cleared and it WAKES
+   ↓ the dormant wildcard is not counted (SH-793) > still counts a wildcard PAUSED BY HAND on an optionless product — that is not dormancy
+   ↓ the dormant wildcard is not counted (SH-793) > never excludes an ordinary paused combination row
+ ❯ test/infrastructure/persistence/repositories/stock-projection-signed-sum.integration.spec.ts (23 tests | 23 skipped) 8ms
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — "is this shelf empty" is per ROW and `<> 0` (D177) > counts a shelf whose rows CANCEL across two variants
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — "is this shelf empty" is per ROW and `<> 0` (D177) > counts an ALL-NEGATIVE shelf
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — "is this shelf empty" is per ROW and `<> 0` (D177) > still reports a genuinely empty shelf as empty — zero rows, and rows AT zero
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — "is this shelf empty" is per ROW and `<> 0` (D177) > never counts another tenant’s rows
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — "is this shelf empty" is per ROW and `<> 0` (D177) > drops a row whose variant belongs to ANOTHER tenant (the join’s own tenant predicate)
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — "is this shelf empty" is per ROW and `<> 0` (D177) > deactivates an archived-only shelf even when a LIVE variant holds units elsewhere (the join KEY)
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — archived rows stop counting, inactive ones do not (D180.6) > lets a location whose ONLY balance sits on an ARCHIVED variant deactivate
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — archived rows stop counting, inactive ones do not (D180.6) > still refuses when the balance sits on an INACTIVE variant
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — archived rows stop counting, inactive ones do not (D180.6) > still refuses when an archived row hides a live one on the same shelf
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — archived rows stop counting, inactive ones do not (D180.6) > still refuses when an archived row and an INACTIVE one share the shelf
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — consigned stock is stock (the port’s ALL-ownership clause) > refuses a shelf holding ONLY a consignment row on a live variant
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > locationHoldsStock — consigned stock is stock (the port’s ALL-ownership clause) > still excludes an ARCHIVED variant’s consigned row — ownership is a separate axis
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > returns −3 for a variant at on-hand −3, not 0 and not 3 (D29)
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > keeps the sign through a cross-location sum: +5 and −8 is −3
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > omits a variant with NO stock row so the caller reads 0, never null (BR-017)
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > returns a real 0 for a variant whose rows sum to zero
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > returns a NUMBER, not the bigint string node-postgres hands back for SUM()
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > batches a whole variant set in one call and keeps each row separate
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > never counts another tenant’s rows for the same variant
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > refuses a blank tenant id instead of reporting "nothing on hand"
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > returns an empty map for an empty batch without touching the database
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > every method refuses a blank tenant id (defence in depth) > rejects on all seven methods, not just the one the guard shipped on
+   ↓ StockProjectionTypeormRepository — signed batch sum (B2) > every method refuses a blank tenant id (defence in depth) > refuses BEFORE writing anything on the write paths
+ ❯ test/infrastructure/persistence/repositories/location-typeorm.repository.integration.spec.ts (15 tests | 15 skipped) 7ms
+   ↓ LocationTypeormRepository.setDefaultReceiving (SH-1005 PR2 fix) > happy path: atomically clears the prior default and sets the new one
+   ↓ LocationTypeormRepository.setDefaultReceiving (SH-1005 PR2 fix) > translates a concurrent default-receiving conflict (Postgres 23505) to LocationDefaultReceivingConflictError, preserving the one-default invariant
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > excludes consigned stock entirely -- a location with ONLY consigned stock reports onHand=0, stockValue=0.00
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > mixed ownership: reports ONLY the owned portion, excluding the consigned portion
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > regression: a location with ONLY owned stock still reports the correct owned sum
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > rounds a half-cent away from zero across the SQL-sum seam (3 @ 33.335 -> 100.01)
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > rounds a NEGATIVE half-cent away from zero across the same seam (-3 @ 33.335 -> -100.01)
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > LEFT JOIN preserved: a zero-stock location still appears, at onHand=0, stockValue=0.00
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > Service exclusion agrees with the inventory read (B3 / D5) > a location holding ONLY legacy Service stock reports onHand=0 and stockValue=0.00
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > Service exclusion agrees with the inventory read (B3 / D5) > a mixed location reports ONLY the physical portion
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > Service exclusion agrees with the inventory read (B3 / D5) > LEFT JOIN preserved: a Service-only location still APPEARS in the list
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > Service exclusion agrees with the inventory read (B3 / D5) > a physical-only location is unaffected by the Service predicate
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > archived variants are excluded from both sums (D133 / B25) > excludes an archived variant’s stock, matching the inventory read
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > archived variants are excluded from both sums (D133 / B25) > reports ONLY the active portion when a location holds both
+   ↓ LocationTypeormRepository.listAllWithStock (SH-1005 PR3 fix) > archived variants are excluded from both sums (D133 / B25) > LEFT JOIN preserved: an archived-only location still appears, at zero
+ ❯ test/infrastructure/persistence/repositories/stranded-archived-stock-gate.integration.spec.ts (7 tests | 7 skipped) 6ms
+   ↓ D231.5 stranded-stock gate query > answers ZERO ROWS on a clean database — the pass condition
+   ↓ D231.5 stranded-stock gate query > names the tenant when `stock` holds a balance on an archived variant
+   ↓ D231.5 stranded-stock gate query > names the tenant when `location_stock` holds one and `stock` does NOT
+   ↓ D231.5 stranded-stock gate query > counts a CONSIGNED archived balance too — `stock` has no such row to find
+   ↓ D231.5 stranded-stock gate query > ignores rows at zero and rows on non-archived variants
+   ↓ D231.5 stranded-stock gate query > does not report a row that points at ANOTHER tenant’s archived variant
+   ↓ D231.5 stranded-stock gate query > reports BOTH projections when both are stranded, so neither hides the other
+ ❯ test/infrastructure/persistence/repositories/variant-archived-status-read.integration.spec.ts (10 tests | 10 skipped) 4ms
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > returns the ARCHIVED ids and nothing else — active and inactive are both absent
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > never reports ANOTHER tenant’s archived variant
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > HOLDS the rows it was asked about — including the ones it did not return
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > returns an empty set for an empty input, taking no lock and issuing no statement
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > refuses a blank tenant id rather than reading across every tenant
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > the authoring form (D239) — same answer, no lock > returns the ARCHIVED ids and nothing else — active and inactive are both absent
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > the authoring form (D239) — same answer, no lock > never reports ANOTHER tenant’s archived variant
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > the authoring form (D239) — same answer, no lock > does NOT WAIT on a row a posting transaction is holding
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > the authoring form (D239) — same answer, no lock > returns an empty set for an empty input, issuing no statement
+   ↓ VariantArchivedStatusReadTypeormRepository (D188) > the authoring form (D239) — same answer, no lock > refuses a blank tenant id rather than reading across every tenant
+ ❯ test/infrastructure/persistence/migrations/1716700000000-RepairProductItemTypeAndTaxMapping.integration.spec.ts (3 tests | 3 skipped) 8ms
+   ↓ RepairProductItemTypeAndTaxMapping migration > is idempotent when item_type/tax_mapping_id already exist (regression: EntityPropertyNotFoundError)
+   ↓ RepairProductItemTypeAndTaxMapping migration > item_type is NOT NULL, defaults to physical, length 20, with its check constraint
+   ↓ RepairProductItemTypeAndTaxMapping migration > tax_mapping_id exists, nullable, length 64
+ ❯ test/infrastructure/persistence/migrations/1716990000000-WidenStatusEnums.integration.spec.ts (23 tests | 23 skipped) 9ms
+   ↓ WidenStatusEnums1716990000000 migration > runs after everything in MIGRATIONS_BEFORE, by TIMESTAMP — which is what TypeORM orders on
+   ↓ WidenStatusEnums1716990000000 migration > lists the chain in strictly increasing timestamp order
+   ↓ WidenStatusEnums1716990000000 migration > is registered in TEST_MIGRATIONS and in the directory the production glob reads, in the same order
+   ↓ WidenStatusEnums1716990000000 migration > found the PostgreSQL auto-generated constraint names, not the ones the plan assumed
+   ↓ WidenStatusEnums1716990000000 migration > rejected inactive on products BEFORE the migration
+   ↓ WidenStatusEnums1716990000000 migration > rejected inactive on product_variants BEFORE the migration
+   ↓ WidenStatusEnums1716990000000 migration > replaced both auto-named constraints with the explicit chk_ names
+   ↓ WidenStatusEnums1716990000000 migration > left every other check constraint on both tables untouched
+   ↓ WidenStatusEnums1716990000000 migration > kept every pre-existing products row on the value it had
+   ↓ WidenStatusEnums1716990000000 migration > kept every pre-existing product_variants row on the value it had
+   ↓ WidenStatusEnums1716990000000 migration > accepts inactive on products AFTER the migration
+   ↓ WidenStatusEnums1716990000000 migration > accepts inactive on product_variants AFTER the migration
+   ↓ WidenStatusEnums1716990000000 migration > still accepts draft on products — the fourth value is additive
+   ↓ WidenStatusEnums1716990000000 migration > still rejects draft on product_variants — a variant is born sellable
+   ↓ WidenStatusEnums1716990000000 migration > rejects a value outside the widened set on products
+   ↓ WidenStatusEnums1716990000000 migration > rejects a value outside the widened set on product_variants
+   ↓ WidenStatusEnums1716990000000 migration > refuses down() rather than corrupting on rollback, and says why
+   ↓ WidenStatusEnums1716990000000 migration > prints the EXACT recovery statements — both value sets and both names
+   ↓ WidenStatusEnums1716990000000 migration > tells the operator to delete the registry row, without which the revert is not real
+   ↓ WidenStatusEnums1716990000000 migration > tells the operator to set search_path, because every statement it prints is unqualified
+   ↓ WidenStatusEnums1716990000000 migration > cannot touch the database on down() — the signature hands it no QueryRunner
+   ↓ WidenStatusEnums1716990000000 migration > is safe to apply a second time — which is what the extra DROPs buy
+   ↓ WidenStatusEnums1716990000000 migration > fails loudly when a narrow status CHECK survives the IF EXISTS drops
+ ❯ test/infrastructure/persistence/repositories/product-option-permutation.integration.spec.ts (11 tests | 11 skipped) 5ms
+   ↓ D276 — option identity survives rename, reorder and permutation > swapping two VALUE labels inside one option keeps both rows and both junctions
+   ↓ D276 — option identity survives rename, reorder and permutation > swapping two OPTION names at fixed positions keeps each row with its own values
+   ↓ D276 — option identity survives rename, reorder and permutation > reordering two options keeps both rows, their values and their junctions
+   ↓ D276 — option identity survives rename, reorder and permutation > a full 3-cycle of option positions survives, with no free slot to park in
+   ↓ D276 — option identity survives rename, reorder and permutation > renaming AND reordering an option in one save reuses the row by ID
+   ↓ D276 — option identity survives rename, reorder and permutation > renaming a value and re-adding its old label keeps the RENAMED row
+   ↓ D276 — option identity survives rename, reorder and permutation > refuses a request that claims the same option-value id twice
+   ↓ D276 — option identity survives rename, reorder and permutation > refuses a request that claims the same option id twice
+   ↓ D276 — option identity survives rename, reorder and permutation > an id that resolves to nothing falls back to the label instead of refusing
+   ↓ D276 — option identity survives rename, reorder and permutation > a CHAIN of value renames survives, not just a swap
+   ↓ D276 — option identity survives rename, reorder and permutation > a CHAIN of option renames survives, not just a swap
+ ❯ test/infrastructure/persistence/repositories/inventory-view-dormant-wildcard.integration.spec.ts (5 tests | 5 skipped) 4ms
+   ↓ GET /v1/inventory labels the dormant wildcard instead of hiding it (SH-793 QA) > keeps the DORMANT wildcard in the page and in total, flagged true (I3)
+   ↓ GET /v1/inventory labels the dormant wildcard instead of hiding it (SH-793 QA) > flags the AWAKE wildcard false — an optionless item is a real, sellable variant
+   ↓ GET /v1/inventory labels the dormant wildcard instead of hiding it (SH-793 QA) > flags an ordinary ACTIVE sized variant false
+   ↓ GET /v1/inventory labels the dormant wildcard instead of hiding it (SH-793 QA) > flags an ordinary PAUSED combination row false — the NULL-unsafe trap (D229 population)
+   ↓ GET /v1/inventory labels the dormant wildcard instead of hiding it (SH-793 QA) > does not fan out — a product with two options still yields one row per variant
+ ❯ test/infrastructure/persistence/repositories/post-transfer.integration.spec.ts (3 tests | 3 skipped) 8ms
+   ↓ Inventory transfers (SH-1077, write path) > posts one transfer header with two lines; moves stock and conserves the total
+   ↓ Inventory transfers (SH-1077, write path) > does NOT change the item-global average cost (ADR-COST-001)
+   ↓ Inventory transfers (SH-1077, write path) > rejects a transfer of more than the origin holds and rolls back atomically
+ ❯ test/infrastructure/persistence/repositories/options-save-archive-lock.integration.spec.ts (6 tests | 6 skipped) 6ms
+   ↓ The options save locks its variants where the guard runs (D231.3) > holds EVERY variant row of the product while the stock guard reads — standalone route
+   ↓ The options save locks its variants where the guard runs (D231.3) > holds them on the COMPOSED route too, inside the caller’s transaction
+   ↓ The options save locks its variants where the guard runs (D231.3) > the COMPOSED route answers CATALOG_WRITE_CONFLICT too, and archives nothing
+   ↓ The options save locks its variants where the guard runs (D231.3) > acquires its row locks in ID order, which is what the posting path also uses
+   ↓ The options save locks its variants where the guard runs (D231.3) > a save that cannot get the lock answers CATALOG_WRITE_CONFLICT instead of racing
+   ↓ The options save locks its variants where the guard runs (D231.3) > a REAL receipt racing the archive never strands units on an archived row
+ ❯ test/infrastructure/persistence/repositories/post-adjustment.integration.spec.ts (5 tests | 5 skipped) 9ms
+   ↓ Inventory adjustments (SH-1076, write path) > persists the reason on the header round-trip (AddAdjustmentReason migration)
+   ↓ Inventory adjustments (SH-1076, write path) > chk_movement_reason rejects a reason outside the canonical set
+   ↓ Inventory adjustments (SH-1076, write path) > a positive (found) delta posts an inbound line and raises on-hand
+   ↓ Inventory adjustments (SH-1076, write path) > a loss below zero still posts (negative stock always allowed, ADR-045 §D)
+   ↓ Inventory adjustments (SH-1076, write path) > a zero delta posts nothing
+ ❯ test/infrastructure/persistence/migrations/1716970000000-AddLocationTypeActiveDefault.integration.spec.ts (5 tests | 5 skipped) 8ms
+   ↓ AddLocationTypeActiveDefault migration > type is NOT NULL, varchar(20), with its check constraint
+   ↓ AddLocationTypeActiveDefault migration > backfills a row inserted before the NOT NULL tightening to type=warehouse
+   ↓ AddLocationTypeActiveDefault migration > active is NOT NULL boolean defaulting to true
+   ↓ AddLocationTypeActiveDefault migration > is_default_receiving is NOT NULL boolean defaulting to false
+   ↓ AddLocationTypeActiveDefault migration > enforces at most one default-receiving location per tenant via a partial unique index
+ ❯ test/infrastructure/persistence/repositories/variant-search-dormant-wildcard.integration.spec.ts (7 tests | 7 skipped) 5ms
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > withholds the DORMANT wildcard — three sizes offer 3 rows, not 4
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > withholds it even when the search term is its own SKU
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > offers the AWAKE wildcard — an optionless item is a real, sellable variant
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > offers the wildcard again once the options are cleared and it WAKES
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > still offers a wildcard PAUSED BY HAND on an optionless product — that is not dormancy
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > never withholds an ordinary PAUSED combination row (D229)
+   ↓ the dormant wildcard is not orderable (SH-793 · I4) > leaves ordinary ACTIVE combination rows untouched, and their statuses intact
+ ❯ test/infrastructure/persistence/repositories/product-option-identity-diff.integration.spec.ts (2 tests | 2 skipped) 6ms
+   ↓ B23.0 — option-value identity survives a save (real Postgres) > a save that changes nothing keeps the SAME product_option_values.id
+   ↓ B23.0 — option-value identity survives a save (real Postgres) > cascade to product_variant_options stays correct across the diff
+ ❯ test/infrastructure/persistence/repositories/product-list-default-status.integration.spec.ts (12 tests | 12 skipped) 8ms
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > with no status: the ARCHIVED product is absent
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > with no status: the INACTIVE product is present — pausing is not archiving
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > with no status: the DRAFT product is present — the ruling's own witness (D238)
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > with no status: exactly three of the four come back
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > with ?status=archived: the archived product comes BACK
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > an explicit status still means EXACTLY that status, on every one of the four
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the population > the default is tenant-scoped like everything else — another tenant's rows never appear
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the filter is in the QUERY, not after the fetch (D186.4) > a limited page is FULL — five requested, five visible rows returned
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the filter is in the QUERY, not after the fetch (D186.4) > offset walks the FILTERED population, not the raw table
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > the filter is in the QUERY, not after the fetch (D186.4) > an explicit ?status=archived paginates over the archived rows the same way
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > findByTenantId — the sibling read takes the same default > excludes archived and keeps draft, exactly like the list read
+   ↓ The catalog list hides archived by default (B27.8 / D186 / D238) > findByTenantId — the sibling read takes the same default > still honours an explicit status
+ ❯ test/infrastructure/persistence/repositories/inventory-movements-read-typeorm.repository.integration.spec.ts (11 tests | 11 skipped) 5ms
+   ↓ InventoryMovementsReadTypeormRepository (B1) > answers TRUE for a variant with a full ledger and ZERO on-hand
+   ↓ InventoryMovementsReadTypeormRepository (B1) > answers FALSE for a variant that holds stock but never moved
+   ↓ InventoryMovementsReadTypeormRepository (B1) > answers FALSE when the only movements belong to ANOTHER tenant
+   ↓ InventoryMovementsReadTypeormRepository (B1) > excludes another tenant from the batch form too
+   ↓ InventoryMovementsReadTypeormRepository (B1) > refuses a blank tenant id instead of answering "no history"
+   ↓ InventoryMovementsReadTypeormRepository (B1) > answers TRUE at product level when exactly ONE of three variants has moved
+   ↓ InventoryMovementsReadTypeormRepository (B1) > answers FALSE at product level when NONE of three variants has moved
+   ↓ InventoryMovementsReadTypeormRepository (B1) > does not leak a sibling product’s movements into the product-level answer
+   ↓ InventoryMovementsReadTypeormRepository (B1) > returns an empty set for an empty batch without touching the database
+   ↓ InventoryMovementsReadTypeormRepository (B1) > query plan (task 1.4 — report it, never add an index to force it) > rides idx_inventory_replay_order on its (tenant_id, variant_id) prefix
+   ↓ InventoryMovementsReadTypeormRepository (B1) > query plan (task 1.4 — report it, never add an index to force it) > rides the same index on the product-level and batch forms
+ ❯ test/infrastructure/persistence/repositories/option-reorder-variant-identity.integration.spec.ts (3 tests | 3 skipped) 7ms
+   ↓ D276 — reordering options preserves variant identity > a pure two-option reorder keeps the SAME row, its SKU, its stock and its junctions
+   ↓ D276 — reordering options preserves variant identity > a THREE-option 3-cycle survives — a rule that merely picks a direction cannot pass this
+   ↓ D276 — reordering options preserves variant identity > reordering the VALUES inside one option is transparent too
+ ❯ test/infrastructure/persistence/repositories/cardex-retroactive-replay.integration.spec.ts (6 tests | 6 skipped) 9ms
+   ↓ Cardex retroactive replay + reconciliation (SH-1086) > a retroactive receipt rewrites later-dated lines to the fiscal-order replay
+   ↓ Cardex retroactive replay + reconciliation (SH-1086) > projects the variant average_cost to the replay end value after a retroactive entry
+   ↓ Cardex retroactive replay + reconciliation (SH-1086) > reconciles the stored on-hand against the replayed ledger, difference exactly zero
+   ↓ Cardex retroactive replay + reconciliation (SH-1086) > a forward-only sequence needs no rewrite and still reconciles
+   ↓ Cardex retroactive replay + reconciliation (SH-1086) > rewrites ONLY running_qty / running_avg_cost — quantity and unit_cost_input are untouched
+   ↓ Cardex retroactive replay + reconciliation (SH-1086) > replays by occurred_at fiscal day even when entries are recorded out of order (bitemporal)
+ ❯ test/infrastructure/persistence/repositories/archived-variant-restore-label-only.integration.spec.ts (3 tests | 3 skipped) 4ms
+   ↓ Phase 5 — archived-variant restore stays label-based, permanently (D274 withdrawn) > a value re-added under its archived label restores the SAME row, by label
+   ↓ Phase 5 — archived-variant restore stays label-based, permanently (D274 withdrawn) > no archive-time id marker column exists on product_variants
+   ↓ Phase 5 — archived-variant restore stays label-based, permanently (D274 withdrawn) > no `archivedOptionValueIds` (or equivalent) symbol exists anywhere in the restore path — the guard against reintroduction
+ ❯ test/infrastructure/persistence/migrations/1716995000000-AddVariantOriginColumn.integration.spec.ts (12 tests | 12 skipped) 5ms
+   ↓ AddVariantOriginColumn1716995000000 migration > did not exist before the migration
+   ↓ AddVariantOriginColumn1716995000000 migration > exists after it, as a nullable varchar(20) with no default
+   ↓ AddVariantOriginColumn1716995000000 migration > left every existing row in place, reading NULL
+   ↓ AddVariantOriginColumn1716995000000 migration > added the origin CHECK under the name the rollback SQL prints
+   ↓ AddVariantOriginColumn1716995000000 migration > accepts the one recognised marker
+   ↓ AddVariantOriginColumn1716995000000 migration > accepts NULL, which is what almost every row holds
+   ↓ AddVariantOriginColumn1716995000000 migration > refuses an unknown value, and the refusal is the CHECK by name
+   ↓ AddVariantOriginColumn1716995000000 migration > refuses a near-miss typo — the case the raw-SQL backfill can actually produce
+   ↓ AddVariantOriginColumn1716995000000 migration > refuses down() rather than destroying the only copy of the marker, and says why
+   ↓ AddVariantOriginColumn1716995000000 migration > prints the EXACT recovery statements, including the registry delete
+   ↓ AddVariantOriginColumn1716995000000 migration > cannot touch the database on down() — the signature hands it no QueryRunner
+   ↓ AddVariantOriginColumn1716995000000 migration > is safe to apply a second time — which is what the DROP CONSTRAINT buys
+ ❯ test/infrastructure/persistence/repositories/purchase-order-expenses-no-cartesian.integration.spec.ts (7 tests | 7 skipped) 4ms
+   ↓ Purchase order reads never multiply lines by expenses > findById returns exactly 3 lines for a PO with 3 lines and 2 expenses
+   ↓ Purchase order reads never multiply lines by expenses > findByIdForUpdateTx — the path that feeds the allocator — returns 3 lines too
+   ↓ Purchase order reads never multiply lines by expenses > list() returns 3 lines per order as well
+   ↓ Purchase order reads never multiply lines by expenses > replaceExpensesTx replaces the whole set and keeps the roll-up in agreement
+   ↓ Purchase order reads never multiply lines by expenses > an empty set clears the expenses and zeroes the roll-up
+   ↓ Purchase order reads never multiply lines by expenses > rejects an expense type outside the SH-1199 enum at the database boundary
+   ↓ Purchase order reads never multiply lines by expenses > deletes the expenses when the purchase order is deleted (ON DELETE CASCADE)
+ ❯ test/infrastructure/persistence/repositories/movement-document-type.integration.spec.ts (2 tests | 2 skipped) 4ms
+   ↓ inventory_movement_header.document_type > accepts every value MOVEMENT_DOCUMENT_TYPES declares
+   ↓ inventory_movement_header.document_type > declares every value the constraint accepts — a type added to a migration cannot hide
+ ❯ test/infrastructure/persistence/repositories/variant-type-option-reorder-permutation.integration.spec.ts (2 tests | 2 skipped) 4ms
+   ↓ D5 — VariantTypeOptionTypeormRepository.reorder survives a saturated full-set permutation > a full 3-cycle of option positions survives, with no free slot to park in
+   ↓ D5 — VariantTypeOptionTypeormRepository.reorder survives a saturated full-set permutation > a partial reorder (two of three options swapped) also survives
+ ❯ test/infrastructure/persistence/repositories/variant-stock-guard-tx.integration.spec.ts (5 tests | 5 skipped) 5ms
+   ↓ ProductVariantTypeormRepository — BR-033 guard, pooled vs Tx > reads UNCOMMITTED rows of the caller’s transaction; the pooled form cannot
+   ↓ ProductVariantTypeormRepository — BR-033 guard, pooled vs Tx > agrees with the pooled form once the rows are committed
+   ↓ ProductVariantTypeormRepository — BR-033 guard, pooled vs Tx > answers false for a committed combination holding nothing
+   ↓ ProductVariantTypeormRepository — BR-033 guard, pooled vs Tx > never counts another tenant’s stock, on either form
+   ↓ ProductVariantTypeormRepository — BR-033 guard, pooled vs Tx > returns false for an empty id set without touching the database, on either form
+ ✓ test/infrastructure/dtos/location.dto.spec.ts (16 tests) 349ms
+   ✓ LocationsController — GET /v1/locations shape freeze (SH-1005 PR3 Phase 8) > each row has exactly {id,name} even when the use-case result carries extra location fields  346ms
+ ✓ test/domain/variant-status-sites.spec.ts (23 tests) 35ms
+[33m[Nest] 12723  - [39m09/04/2026, 11:43:48 AM [33m   WARN[39m [38;5;3m[PurchaseOrdersController] [39m[33mPurchase-order write conflict (SQLSTATE 55P03). The transaction rolled back in full; the client can retry.[39m
+ ✓ test/infrastructure/purchase-orders.controller-error-mapping.spec.ts (16 tests) 100ms
+ ✓ test/infrastructure/products.controller.spec.ts (38 tests) 115ms
+ ✓ test/infrastructure/dtos/variant-override-empty-option-labels.spec.ts (10 tests) 128ms
+ ✓ test/infrastructure/health.controller.spec.ts (6 tests) 99ms
+ ✓ test/infrastructure/variant-delete-route.spec.ts (27 tests) 126ms
+ ✓ test/application/use-cases/save-product-with-options-acl-publish.spec.ts (11 tests) 19ms
+ ✓ test/infrastructure/variants.controller.spec.ts (35 tests) 15ms
+ ✓ test/application/use-cases/update-variant.use-case.spec.ts (44 tests) 26ms
+ ✓ test/infrastructure/product-media.controller.spec.ts (16 tests) 20ms
+[33m[Nest] 12738  - [39m09/04/2026, 11:43:48 AM [33m   WARN[39m [38;5;3m[PurchaseOrdersController] [39m[33mPurchase-order write conflict (SQLSTATE 55P03). The transaction rolled back in full; the client can retry.[39m
+[33m[Nest] 12738  - [39m09/04/2026, 11:43:48 AM [33m   WARN[39m [38;5;3m[PurchaseOrdersController] [39m[33mPurchase-order write conflict (SQLSTATE 55P03). The transaction rolled back in full; the client can retry.[39m
+ ✓ test/infrastructure/purchase-orders.controller.spec.ts (45 tests) 40ms
+ ✓ test/infrastructure/openapi-document.smoke.spec.ts (3 tests) 65ms
+ ✓ test/domain/product-domain-events.spec.ts (36 tests) 8ms
+ ✓ test/infrastructure/variants.controller-error-mapping.spec.ts (62 tests) 33ms
+ ✓ test/application/use-cases/replace-product-options-archival.spec.ts (26 tests) 19ms
+ ✓ test/domain/product-status.spec.ts (26 tests) 22ms
+ ✓ test/application/use-cases/archive-product-acl-publish.spec.ts (6 tests) 11ms
+ ✓ test/application/use-cases/update-purchase-order.use-case.spec.ts (21 tests) 9ms
+ ✓ test/infrastructure/s3-product-media-storage.adapter.spec.ts (17 tests) 7ms
+ ✓ test/application/use-cases/create-purchase-order.use-case.spec.ts (30 tests) 6ms
+ ✓ test/infrastructure/controller-error-log-payload-leak.spec.ts (5 tests) 17ms
+ ✓ test/infrastructure/locations.controller-error-mapping.spec.ts (16 tests) 39ms
+ ✓ test/application/use-cases/replace-product-options-removal-facts.spec.ts (13 tests) 23ms
+ ✓ test/application/use-cases/save-product-with-options-acl-variant-graph.spec.ts (15 tests) 21ms
+ ✓ test/application/use-cases/delete-category.use-case.spec.ts (4 tests) 4ms
+ ✓ test/infrastructure/messaging/eventbridge-shop-item-event-publisher.adapter.spec.ts (9 tests) 17ms
+ ✓ test/infrastructure/persistence/transaction-runner.adapter.spec.ts (7 tests) 7ms
+ ✓ test/application/use-cases/list-variants.use-case.spec.ts (11 tests) 13ms
+ ✓ test/application/use-cases/save-product-with-options-confirm-passthrough.spec.ts (5 tests) 7ms
+ ✓ test/infrastructure/variant-search.controller.spec.ts (4 tests) 10ms
+ ✓ test/infrastructure/movements.controller.spec.ts (22 tests) 7ms
+ ✓ test/application/use-cases/replace-product-options-lock-order.spec.ts (5 tests) 12ms
+ ✓ test/infrastructure/product-image-typeorm.repository.spec.ts (5 tests) 5ms
+ ✓ test/infrastructure/resolve-catalog-tenant-id.spec.ts (10 tests) 5ms
+ ✓ test/domain/product-item-type.spec.ts (9 tests) 5ms
+ ✓ test/infrastructure/locations.controller.spec.ts (13 tests) 14ms
+ ✓ test/application/use-cases/replace-product-options-sku-base.spec.ts (12 tests) 8ms
+ ✓ test/application/use-cases/update-product.use-case.spec.ts (5 tests) 13ms
+ ✓ test/application/use-cases/replace-product-options-rename-identity.spec.ts (10 tests) 8ms
+ ✓ test/application/use-cases/receive-purchase-order.use-case.spec.ts (23 tests) 9ms
+ ✓ test/infrastructure/variant-ledger.controller.spec.ts (7 tests) 8ms
+ ✓ test/application/use-cases/replace-product-options-variant-cap.spec.ts (3 tests) 8ms
+ ✓ test/application/use-cases/product-dto.spec.ts (48 tests) 22ms
+ ✓ test/domain/service-inventory-policy.spec.ts (7 tests) 3ms
+ ✓ test/domain/variant-generator.spec.ts (24 tests) 11ms
+ ✓ test/application/use-cases/list-variant-type.use-case.spec.ts (2 tests) 6ms
+ ✓ test/domain/inventory-status-sql-predicate.spec.ts (14 tests) 2ms
+ ✓ test/application/use-cases/replace-product-options-wildcard-sleep-wake.spec.ts (8 tests) 7ms
+ ✓ test/application/use-cases/post-movement-service-guard.spec.ts (20 tests) 11ms
+ ✓ test/application/use-cases/get-inventory-view.use-case.spec.ts (15 tests) 5ms
+ ✓ test/application/use-cases/get-active-variant-library.use-case.spec.ts (2 tests) 4ms
+ ✓ test/infrastructure/categories.controller-error-mapping.spec.ts (5 tests) 4ms
+ ✓ test/domain/variant-type-option.spec.ts (12 tests) 7ms
+ ✓ test/application/use-cases/update-variant-guard-and-lock.spec.ts (16 tests) 9ms
+ ✓ test/domain/variant-type.spec.ts (12 tests) 3ms
+ ✓ test/domain/product-variant-origin.spec.ts (14 tests) 5ms
+ ✓ test/application/use-cases/save-product-with-options-br-s14.spec.ts (10 tests) 7ms
+ ✓ test/application/use-cases/list-variant-type-option.use-case.spec.ts (3 tests) 4ms
+ ✓ test/infrastructure/dtos/category.dto.spec.ts (9 tests) 5ms
+ ✓ test/infrastructure/dtos/variant.dto.spec.ts (8 tests) 14ms
+ ✓ test/application/use-cases/replace-purchase-order-expenses.use-case.spec.ts (10 tests) 3ms
+ ✓ test/application/use-cases/update-variant-wildcard-manual-guard.spec.ts (7 tests) 6ms
+ ✓ test/application/use-cases/transition-purchase-order.use-case.spec.ts (9 tests) 3ms
+ ✓ test/application/use-cases/post-donation.use-case.spec.ts (3 tests) 4ms
+ ✓ test/domain/moving-average-cost.spec.ts (14 tests) 3ms
+ ✓ test/application/use-cases/post-movement.use-case.spec.ts (14 tests) 7ms
+ ✓ test/infrastructure/shop-catalog-config-schema.spec.ts (2 tests) 5ms
+ ✓ test/infrastructure/categories.controller.spec.ts (3 tests) 3ms
+ ✓ test/application/use-cases/reorder-variant-type-option.use-case.spec.ts (4 tests) 3ms
+ ✓ test/application/use-cases/diff-options-by-identity.spec.ts (16 tests) 10ms
+ ✓ test/domain/category.spec.ts (12 tests) 3ms
+ ✓ test/application/use-cases/post-adjustment.use-case.spec.ts (10 tests) 5ms
+ ✓ test/infrastructure/api-key-or-canonical-jwt.guard.spec.ts (6 tests) 3ms
+ ✓ test/application/use-cases/replace-product-options-sku-conflict.spec.ts (5 tests) 9ms
+ ✓ test/application/use-cases/settle-default-variant.spec.ts (9 tests) 9ms
+ ✓ test/application/use-cases/post-transfer.use-case.spec.ts (5 tests) 4ms
+ ✓ test/application/use-cases/delete-variant-type-option.use-case.spec.ts (4 tests) 4ms
+ ✓ test/application/use-cases/reconcile-variant-ledger.use-case.spec.ts (5 tests) 3ms
+ ✓ test/application/use-cases/get-product.use-case.spec.ts (4 tests) 6ms
+ ✓ test/infrastructure/variant-library.controller-error-mapping.spec.ts (4 tests) 5ms
+ ✓ test/application/use-cases/save-product-with-options-productid-derivation.spec.ts (7 tests) 5ms
+ ✓ test/application/use-cases/list-products.use-case.spec.ts (11 tests) 5ms
+ ✓ test/application/use-cases/post-movement-archived-variant-guard.spec.ts (10 tests) 5ms
+ ✓ test/domain/variant-status.spec.ts (26 tests) 3ms
+ ✓ test/domain/stock-value.spec.ts (19 tests) 8ms
+ ✓ test/infrastructure/persistence/variant-result-order.spec.ts (2 tests) 6ms
+ ✓ test/domain/location.spec.ts (14 tests) 8ms
+ ✓ test/application/use-cases/diff-variants-by-label-ambiguity.spec.ts (4 tests) 9ms
+ ✓ test/application/use-cases/update-variant-type-option.use-case.spec.ts (5 tests) 3ms
+ ✓ test/application/use-cases/in-memory-stock-projection.repository.spec.ts (8 tests) 7ms
+ ✓ test/domain/product-variant-archive-restore.spec.ts (24 tests) 5ms
+ ✓ test/application/use-cases/rebuild-variants-origin.spec.ts (13 tests) 5ms
+ ✓ test/infrastructure/product-media-storage-config.spec.ts (18 tests) 3ms
+ ✓ test/application/use-cases/receive-purchase-order-service-policy.spec.ts (1 test) 3ms
+ ✓ test/application/use-cases/ensure-at-least-one-default.spec.ts (13 tests) 7ms
+ ✓ test/domain/expense-allocation.spec.ts (13 tests) 5ms
+ ✓ test/domain/product-option.spec.ts (3 tests) 3ms
+ ✓ test/domain/options-variants.errors.spec.ts (4 tests) 3ms
+ ✓ test/application/use-cases/list-locations-management.use-case.spec.ts (4 tests) 3ms
+ ✓ test/application/use-cases/create-variant-type.use-case.spec.ts (3 tests) 3ms
+ ✓ test/infrastructure/inventory.controller.spec.ts (3 tests) 8ms
+ ✓ test/domain/purchase-order-status.spec.ts (28 tests) 3ms
+ ✓ test/application/use-cases/create-product.use-case.spec.ts (8 tests) 8ms
+ ✓ test/application/use-cases/post-movement-retroactive-recompute.spec.ts (3 tests) 25ms
+ ✓ test/application/use-cases/update-location.use-case.spec.ts (8 tests) 3ms
+ ✓ test/application/use-cases/update-variant-wildcard-price-guard.spec.ts (5 tests) 6ms
+ ✓ test/application/use-cases/create-location.use-case.spec.ts (4 tests) 2ms
+ ✓ test/application/use-cases/list-purchase-orders.use-case.spec.ts (6 tests) 6ms
+ ✓ test/application/use-cases/list-movements.use-case.spec.ts (5 tests) 7ms
+ ✓ test/application/use-cases/update-category.use-case.spec.ts (7 tests) 5ms
+ ✓ test/application/use-cases/get-usage-variant-type.use-case.spec.ts (3 tests) 2ms
+ ✓ test/application/use-cases/delete-variant-type.use-case.spec.ts (4 tests) 11ms
+ ✓ test/domain/ledger-replay.spec.ts (7 tests) 3ms
+ ✓ test/application/use-cases/update-variant-type.use-case.spec.ts (6 tests) 3ms
+ ✓ test/application/use-cases/get-usage-variant-type-option.use-case.spec.ts (3 tests) 2ms
+ ✓ test/application/use-cases/create-variant-type-option.use-case.spec.ts (4 tests) 3ms
+ ✓ test/application/use-cases/search-variants.use-case.spec.ts (4 tests) 5ms
+ ✓ test/infrastructure/persistence/repositories/product-variant-row.mapper.spec.ts (11 tests) 5ms
+ ✓ test/domain/location.errors.spec.ts (3 tests) 1ms
+ ✓ test/application/use-cases/archive-product.use-case.spec.ts (2 tests) 2ms
+ ✓ test/domain/inventory-status.spec.ts (6 tests) 5ms
+ ✓ test/infrastructure/persistence/inventory-ledger-sequence-bootstrap.spec.ts (3 tests) 3ms
+ ✓ test/infrastructure/catalog-composite-guard.contract.spec.ts (9 tests) 3ms
+ ✓ test/domain/variant-id-signature.spec.ts (5 tests) 2ms
+
+ Test Files  41 failed | 125 passed (166)
+      Tests  1451 passed | 327 skipped (1778)
+   Start at  11:43:43
+   Duration  11.32s (transform 2.97s, setup 0ms, collect 46.10s, tests 2.21s, environment 17ms, prepare 7.58s)
+

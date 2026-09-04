@@ -1,0 +1,29 @@
+REGRESSION PLAN — TC-74 / TR-046 / SH-1057 (wildcard "technical variant")
+Scope: aggregate of ~14 merged epic-labeled SH-793 PRs. No PR carries SH-1057.
+  VeevartBackend (local worktree @ origin/staging b5ab930e): #1241 #1271 #1278 #1283 #1285 #1287 #1300 #1337
+  VeevartFrontend (remote-only, main):                        #462 #508 #520 #526 #543 #570
+
+| Item                                                                 | Type      | Risk   | Check method                                              | Verdict |
+|----------------------------------------------------------------------|-----------|--------|-----------------------------------------------------------|---------|
+| ensureAtLeastOneDefault must not promote the dormant wildcard        | Technical | High   | ensure-at-least-one-default.spec + settle-default-variant | PASS    |
+| Dormant wildcard must stay off the PO picker (#1285 / I4)           | Technical | High   | receive-purchase-order-service-policy.spec + PO specs     | PASS    |
+| uq_product_variants_product_default (partial unique) 23505 risk      | Technical | High   | dormant born isDefault:false; sleep/wake specs            | PASS    |
+| Sleep/wake round-trip through the DB                                 | Technical | Medium | wildcard-sleep-wake-round-trip.integration.spec.ts        | BLOCKED |
+| Movement posting keyed by variantId (no product-level rows)          | Technical | Medium | post-movement.use-case.spec + post-movement-service-guard | PASS    |
+| Wildcard price/SKU guards on update (D264/D265)                      | Technical | Medium | update-variant-wildcard-price-guard + manual-guard specs  | PASS    |
+| Variant cap: dormant row consumes 1 of 24 snapshot slots (-> 23)     | Technical | Medium | rebuild-variants.ts D262 comment; replace-...-variant-cap | PASS*   |
+| Existing combination rows must stay origin NULL (no mass-marking)    | Technical | Low    | rebuild-variants-origin.spec 'every cartesian row stays unmarked' | PASS |
+| Frontend: Item SKU is the single writer of the base SKU              | Technical | Medium | item-wizard-submit-payloads.variant-sku.test.ts (20 cases)| PASS    |
+| A03 string-concatenated SQL in the catalog repositories              | Security  | High   | grep + manual read of each hit                            | PASS    |
+| A02 secrets / credentials in the changed surface                     | Security  | High   | grep password/api-key/secret/bearer/BEGIN                 | PASS    |
+| A09 PII in logs                                                      | Security  | Medium | grep console/logger x email|phone|ssn|dob|address         | PASS    |
+| A06 new or bumped dependencies                                       | Security  | Medium | dependency-file change count across all 7 backend PRs = 0 | N/A     |
+| A01 tenant scoping on the variant/product repositories               | Security  | High   | tenantId reference count + requireTenantId + guard topology| PASS   |
+| A10 outbound HTTP introduced (SSRF)                                  | Security  | Low    | grep fetch/axios/got/request                              | N/A     |
+| A08 eval / unsafe deserialization                                    | Security  | Low    | grep eval/new Function/yaml.load/pickle                   | N/A     |
+
+PASS*  = passes as built AND matches the ruling, but the ruling itself carries a knowingly-accepted
+         cost: every optioned product now carries a dormant wildcard from birth, spending one of the
+         24 SHOP_ITEM_SNAPSHOT_MAX_VARIANTS Salesforce Composite slots, so the real ceiling is 23 for
+         ALL products. Cesar accepted that trade rather than deferring. Recorded, not filed.
+BLOCKED = Docker/container runtime unavailable on this machine; see regression-results.txt.
