@@ -4,8 +4,8 @@ project:
   prefix: "TC"
   counters:
     testCase: 76
-    testSuite: 5
-    testPlan: 16
+    testSuite: 8
+    testPlan: 22
     testRun: 47
 settings:
   defaultPriority: "medium"
