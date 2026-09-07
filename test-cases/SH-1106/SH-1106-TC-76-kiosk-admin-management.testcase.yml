@@ -1,6 +1,6 @@
 schemaVersion: "1.0"
 id: "98d6cb9d-3764-4990-a186-2518d1129354"
-key: "TC-46"
+key: "TC-76"
 title: "Kiosk Admin management — Locations, Kiosks and Configuration"
 description: "QA coverage for SH-1106: functional/CRUD automation of the Kiosk Admin SPA (Locations home, per-location Kiosks list, and Kiosk Configuration). Complements TC-12 (SH-810), which covers signed-link authentication. Automated end-to-end in the automation-test repo (Cucumber + Playwright); the authenticated session is obtained via a real Salesforce-signed link (no signing secret required)."
 type: "functional"
