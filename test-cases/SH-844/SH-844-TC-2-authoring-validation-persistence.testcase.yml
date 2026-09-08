@@ -2,14 +2,14 @@ schemaVersion: "1.0"
 id: "9953ee27-f7ce-4a38-8210-3a83df6c3033"
 key: "TC-2"
 title: "Discount authoring — validation, persistence & customer-facing codes"
-description: "QA coverage for SH-844: percent-only enforcement (fixed-amount rejected at the contract boundary), percentage bounds, at-least-one-rule, module gating, and the customer_facing_code rules that depend on kind (Discount Code / Automatic / Membership Benefit) and the Ticketing rule's application_mode."
+description: "QA coverage for SH-844: supported discount types, percentage bounds, at-least-one-rule, module gating, and the customer_facing_code rules that depend on kind (Discount Code / Automatic / Membership Benefit) and the Ticketing rule's application_mode.\n\nREVISED 2026-09-08 after product rulings on four scenarios that did not match the deployed engine (Martin Campo, 7-8 Sep):\n- The percent-only premise is DEAD. AMOUNT_OFF is a supported type for every module: 'El motor debe permitir agregar porcentages o valores fijo. por ejemplo 5 usd de descuento'. Fixed-amount coverage now lives in TC-77; scenario 2 here was rewritten around a genuinely unsupported type.\n- Scenarios 7 and 8 were RIGHT and the engine is WRONG. Both branches of guardCustomerFacingCode reject what product says should be accepted. Filed as SH-1284 and marked BLOCKED here rather than softened, so the expected behaviour on record stays the correct one.\n- Scenario 9 is not an engine-API scenario at all: code generation is client-side (VeevartFrontend generateDiscountCode), and the engine owns only uniqueness. Reframed."
 type: "functional"
 priority: "high"
 status: "active"
 format: "gherkin"
 preconditions:
   - "The admin has permission to manage discounts and the Discounts Engine is reachable."
-  - "The engine enforces percent-only discounts; fixed-amount authoring has been removed."
+  - "The engine supports both PERCENT_OFF and AMOUNT_OFF discount types (product confirmed 2026-09-07)."
 scenarios:
   - title: "Create a Discount Code with a percent value"
     tags:
@@ -24,17 +24,18 @@ scenarios:
       - "the engine creates the Promotion record with discount_type = PERCENT_OFF"
       - "the customer-facing code is stored as unique within the tenant"
       - "status = Active is stored when explicitly set and created_at / updated_at are recorded"
-  - title: "Reject any fixed-amount discount at the contract boundary"
+  - title: "Reject a discount type the engine does not support"
     tags:
       - "negative"
-      - "percent-only"
     given:
       - "the admin submits a discount payload"
     when:
-      - "discount_type is anything other than PERCENT_OFF, or a fixed-amount field (fixed_amount, amount_off) is present"
+      - "discount_type is neither PERCENT_OFF nor AMOUNT_OFF, or the fixedAmountFields array names a legacy field (fixed_amount, amount_off, fixedAmount, amountOff)"
     then:
-      - "the engine returns 400 with error code DISCOUNT_TYPE_NOT_ALLOWED (or FIXED_AMOUNT_NOT_ALLOWED for a fixed-amount field)"
+      - "the engine returns 400 with error code DISCOUNT_TYPE_NOT_ALLOWED (or FIXED_AMOUNT_NOT_ALLOWED when fixedAmountFields names one)"
       - "the engine does not persist any record"
+      - "AMOUNT_OFF is NOT rejected — it is a supported type for every module, so the old percent-only wording no longer applies; fixed-amount coverage is TC-77"
+      - "a stray top-level fixed-amount key is caught earlier by the DTO whitelist as VALIDATION_FAILED, not as FIXED_AMOUNT_NOT_ALLOWED"
   - title: "Validate percentage bounds"
     tags:
       - "negative"
@@ -77,10 +78,11 @@ scenarios:
     then:
       - "the engine returns 400 with error code CUSTOMER_FACING_CODE_REQUIRED"
       - "if the submitted code already exists in the tenant the engine returns 409 CUSTOMER_FACING_CODE_TAKEN"
-  - title: "Membership Benefit requires a code only when a Ticketing rule needs one"
+  - title: "[BLOCKED BY SH-1284] Membership Benefit requires a code only when a Ticketing rule needs one"
     tags:
       - "edge-case"
       - "customer-facing-code"
+      - "blocked"
     given:
       - "the admin submits a discount payload with kind = Membership Benefit"
     when:
@@ -88,34 +90,41 @@ scenarios:
     then:
       - "the engine returns 400 with error code CUSTOMER_FACING_CODE_REQUIRED"
       - "when no Ticketing rule needs a code, customer_facing_code is optional and the engine accepts the payload either way"
-  - title: "Automatic kind must not carry a customer-facing code or application_mode"
+      - "BLOCKED: the deployed guard does the opposite — it throws CUSTOMER_FACING_CODE_NOT_ALLOWED_FOR_KIND whenever the code is PRESENT, unconditionally, so a benefit meant for code redemption cannot be authored at all"
+      - "This scenario is CORRECT and stays on record as written. Product (Martin Campo, 2026-09-07): \"si pone el code required y es un beneficio de membresia, debe poner el customer facing code para poder redimir ese beneficio\". Defect filed as SH-1284 branch A; not automated until the engine is fixed"
+  - title: "[BLOCKED BY SH-1284] Automatic kind ignores a customer-facing code rather than rejecting it"
     tags:
-      - "negative"
+      - "edge-case"
       - "customer-facing-code"
+      - "blocked"
     given:
       - "the admin submits a discount payload with kind = Automatic"
     when:
       - "customer_facing_code is non-null"
     then:
-      - "the engine returns 400 with error code CUSTOMER_FACING_CODE_NOT_ALLOWED_FOR_KIND"
-      - "if any Ticketing rule has application_mode in (Code Required, Both) the engine returns 400 APPLICATION_MODE_NOT_ALLOWED_FOR_KIND"
-      - "the engine does not persist any record"
-  - title: "Generate a unique customer-facing code on demand"
+      - "the engine accepts the payload and persists the promotion, ignoring the customer_facing_code value — the Automatic setting wins the hierarchy and the discount applies without the customer entering anything"
+      - "BLOCKED: the deployed guard returns 400 CUSTOMER_FACING_CODE_NOT_ALLOWED_FOR_KIND instead. REWRITTEN 2026-09-08 — this scenario previously asserted that rejection as correct, which was covering a defect"
+      - "Product (Martin Campo, 2026-09-08): \"Si le puse automatic y en el campo customer facing code tiene algun valor, no importa, omiti el valor que en el customer facing code, el descuento se agrega automaticamente, ahi la jeraquia la tiene la opcion seteada en automatic\". Defect filed as SH-1284 branch B; same guard as scenario 7, so one fix covers both"
+      - "STILL OPEN, not asserted here: whether the same hierarchy makes APPLICATION_MODE_NOT_ALLOWED_FOR_KIND wrong too. Product answered about the code field, not the rule mode"
+  - title: "Generate a unique customer-facing code on demand (UI-level; the engine owns uniqueness only)"
     tags:
       - "happy-path"
       - "customer-facing-code"
+      - "ui-level"
     given:
-      - "the admin requests a generated customer-facing code"
+      - "the admin opens the discount wizard on Step 1"
     when:
-      - "the engine generates the code"
+      - "the code field is auto-populated, or the admin clicks the regenerate control beside it"
     then:
-      - "the engine returns a unique alphanumeric code not currently used by another active promotion in the tenant"
-      - "the engine does not persist the code until the discount is saved"
+      - "the field receives a unique alphanumeric code, and regenerating replaces it with a different one"
+      - "the engine confirms availability via GET /promotions/code-availability, and a collision at save surfaces as CUSTOMER_FACING_CODE_TAKEN"
+      - "no code is persisted until the discount is saved"
+      - "SCOPE CORRECTED 2026-09-08: generation is CLIENT-SIDE (VeevartFrontend generateDiscountCode, crypto.getRandomValues, 8 chars) and there is no engine generation endpoint by design. This is a UI scenario; the engine half is the availability check and the uniqueness gate. SH-1054 already closed Won't Do on this, verified live in the UI"
 tags:
   - "sh-844"
   - "discount-authoring"
   - "validation"
-  - "percent-only"
+  - "product-ruled"
 parameters: []
 links:
   jira:
@@ -127,6 +136,6 @@ estimatedDuration: 45
 metadata:
   createdBy: "codex"
   createdAt: "2026-07-07T14:18:36Z"
-  updatedBy: "codex"
-  updatedAt: "2026-07-07T14:18:36Z"
-  version: 1
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-09-08T00:00:00Z"
+  version: 2
