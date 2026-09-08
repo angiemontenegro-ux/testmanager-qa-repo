@@ -182,11 +182,8 @@ results:
           - name: flsrepro-functional-scenario.apex
             path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-functional-scenario.apex
             mimeType: text/plain
-          - name: flsrepro-inventory-history-orphan-single-row.png
-            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-inventory-history-orphan-single-row.png
-            mimeType: image/png
-          - name: flsrepro-navbar-no-inventory-history-tab.png
-            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-navbar-no-inventory-history-tab.png
+          - name: flsrepro-orphan-row-and-missing-nav-tab.png
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-orphan-row-and-missing-nav-tab.png
             mimeType: image/png
       - order: 3
         status: passed
