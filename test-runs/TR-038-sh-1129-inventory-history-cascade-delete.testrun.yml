@@ -173,6 +173,18 @@ results:
           - name: validateInventoryHistoryDedupSH1142.apex
             path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/dedup-validated-scratch-org/validateInventoryHistoryDedupSH1142.apex
             mimeType: text/plain
+          - name: flsrepro-dedup-run.log
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-dedup-run.log
+            mimeType: text/plain
+          - name: flsrepro-dedup-key-in-code.txt
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-dedup-key-in-code.txt
+            mimeType: text/plain
+          - name: flsrepro-functional-scenario.apex
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-functional-scenario.apex
+            mimeType: text/plain
+          - name: flsrepro-orphan-row-and-missing-nav-tab.png
+            path: attachments/SH-1129/TR-38/scenario-4-batch-not-invocable/revalidated-2026-09-08-fls-repro/flsrepro-orphan-row-and-missing-nav-tab.png
+            mimeType: image/png
       - order: 3
         status: passed
         actual: "PASS. Tras correr el batch para un IPL NUEVO de la misma combinacion Shop Item + Variant + Location, quedo 1 sola fila de Inventory_History__c. Sin el cambio de dedup key habrian quedado 2, porque la huerfana (Item_per_location__c en null) nunca coincidiria con el Id del IPL nuevo."
@@ -335,9 +347,14 @@ history:
     timestamp: "2026-08-19T21:10:00.000Z"
     user: claude
     reason: "Scenario 4 pasa de blocked a passed. Se ejecuto en el scratch org sh1174qa2, que es el unico tipo de org donde es posible, y se declara explicitamente en las notas porque este run es el de UAT y la evidencia viene de otro org. La restriccion de fondo NO cambia: el batch sigue sin ser invocable desde un suscriptor, y TC-69 conserva su tag scratch-org-only. Resultado: tras borrar un IPL y crear otro para la misma combinacion Shop Item + Variant + Location, el batch dejo 1 sola fila para hoy en vez de 2 - la dedup key de negocio de SH-1142 funciona. Se llamo execute() directamente en vez de Database.executeBatch para poder asertar en la misma transaccion. El run queda en 5 passed / 1 failed, sin blocked ni not-run: el unico rojo es el Scenario 6, el layout, con SH-1201 abierto."
+  - action: updated
+    timestamp: "2026-09-08T15:35:00.000Z"
+    user: claude
+    reason: "Re-validacion del Scenario 4 en org vivo. NO cambia el status (sigue passed): reemplaza la evidencia de sh1174qa2, que expiro, por una corrida nueva en el scratch org fls-repro del 2026-09-08, y agrega las dos capturas que faltaban. La corrida agrega un paso que la original no tenia: compara la dedup key VIEJA contra la NUEVA sobre la MISMA fila huerfana - la clave por Item_per_location__c encuentra 0 filas existentes (insertaria un segundo snapshot) y la clave de negocio encuentra 1 (reconoce la huerfana y no inserta). Cierre: 1 sola fila para hoy, Item_per_location__c en null, Inventory Value 50.00. Sigue siendo cierto que esto solo corre donde el codigo fuente esta desplegado, porque InventoryHistoryBatch es public y no global. Trampa encontrada al re-correrlo, documentada en el header del script: si la query del IPL no trae Shop_Item__r / Item_Variant__r, InventoryHistoryRecorder.hasEnoughInformation() saltea el registro en silencio y el batch inserta 0 filas, que se lee como FAIL sin serlo. Hallazgo colateral verificado en el mismo org: Auctifera__Inventory_History__c tiene 0 CustomTab y 0 ListView, o sea que el valor de este fix es inobservable para el usuario final - confirma SH-1244 de forma independiente."
+
 metadata:
   createdBy: claude
   createdAt: "2026-08-13T13:45:00.000Z"
   updatedBy: claude
-  updatedAt: "2026-08-19T21:10:00.000Z"
-  version: 8
+  updatedAt: "2026-09-08T15:35:00.000Z"
+  version: 9
