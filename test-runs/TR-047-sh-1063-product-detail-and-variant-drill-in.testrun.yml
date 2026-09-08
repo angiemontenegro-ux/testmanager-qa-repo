@@ -4,7 +4,7 @@ key: TR-047
 title: 'Run: SH-1063 la vista de detalle de producto — datos directos del producto simple, resumen de stock por SUMA, drill-in
   por variante en modal read-only, solo lectura y ausencia de estado Service (TC-75) contra develop de VeevartFrontend (PR
   #659) y origin/develop de VeevartBackend, SH-1063 / QA Sub-task SH-1164'
-status: in-progress
+status: completed
 environment:
   name: local-source
   buildVersion: 'UI / Frontend-dominante (React/TS read-only) con verificacion de las APIs de lectura del backend. ENTORNO:
@@ -24,6 +24,7 @@ environment:
     de costo en el resumen — contradice el AC2 Y la decision D9 que lo corrigio). Regresion tecnica 7/7 PASS, seguridad 7/7
     PASS, OWASP 3 aplicables (A03, A04, A10) los 3 PASS y 7 N/A justificados, 0 bloqueadores de seguridad.'
 startedAt: '2026-09-04T17:40:00.000Z'
+completedAt: '2026-09-08T17:27:57.000Z'
 results:
 - testCaseId: 07ad4fe9-dbdd-4362-b6a3-bc88fbba8788
   testCaseKey: TC-75
@@ -231,6 +232,22 @@ results:
     phase: then
     text: 'distinguish the two costs when reporting: `product_variants.cost` is the merchant-typed unit cost, while `product_variants.average_cost`
       is the MWAC/PMP valuation. An average of the former would NOT be CPP (decisions.md:302-303)'
+  notes: 'AMPLIACION 2026-09-08 — re-verificacion de frescura, NO re-ejecucion. El arbol bajo prueba NO cambio desde este
+    run: el ultimo commit que toca packages/shop/src/products/item-detail en develop de VeevartFrontend es a9f86ba5 (PR #675,
+    SH-1060, 2026-09-04T16:51Z), ANTERIOR a la ventana de ejecucion de este run (17:40-18:05Z), y la consulta de commits
+    con since=2026-09-04T18:00:00Z devuelve lista vacia. FALSO POSITIVO DESCARTADO: la PR #699 "fix(shop): add the missing
+    BFF proxy for variant images SH-1060" se mergeo a las 19:22Z, DESPUES de este run, y por titulo y fecha parecia invalidar
+    el hallazgo de imagenes; no lo hace. Sus cuatro archivos viven en apps/shared/portal/app/api/shop/products/ (la ruta
+    proxy de imagenes por variante) y en packages/shop/src/products/errors/ — NINGUNO en item-detail. Es plomeria para el
+    uploader del item-wizard, no para esta superficie read-only, y no altera ningun veredicto de este run. Leccion de proceso:
+    verificar los PATHS de una PR, no solo su titulo y su fecha de merge. HALLAZGO NUEVO que AFINA H2 de SH-1269 sin invalidarlo:
+    resolve-product-image.ts en develop ahora documenta la razon real de que el modal siga mostrando la foto del producto
+    PADRE — variantSchema de option-variant.ts, el tipo que consume esta superficie read-only, TODAVIA no declara images
+    ni imagesInherited, y agregarlos obligaria a tocar todos los fixtures de variantes de la suite del item-wizard, mas una
+    decision de UI sobre como mostrar "propia vs heredada". El backend ya persiste imagenes por variante via PUT /variants/:variantId/images
+    y VariantResponseDto ya expone images + imagesInherited. O sea: el gap de imagenes del AC3 dejo de ser "falta plomeria"
+    y paso a ser "falta CONSUMO en el frontend", enunciado mas accionable para quien tome SH-1269. El FAIL de ESTE escenario
+    (ninguna cifra de costo a nivel de producto) queda INTACTO: ni #675 ni #699 lo tocan.'
   defects:
   - jiraKey: SH-1269
     url: https://veevart.atlassian.net/browse/SH-1269
@@ -692,6 +709,14 @@ notes: '## Solucion entendida
   SH-1137 / SH-1167. Lo que sigue pendiente no es de QA sino de producto: el ruling sobre si se construye el CPP
 
   ponderado o se corrigen el AC2 y D9.'
+summary:
+  total: 8
+  passed: 7
+  failed: 1
+  blocked: 0
+  skipped: 0
+  notRun: 0
+  passRate: 87
 history:
 - action: created
   timestamp: '2026-09-04T17:40:00.000Z'
@@ -708,9 +733,25 @@ history:
   user: codex
   reason: 'SH-1269 archivado agrupando H1 (el FAIL del escenario 3), H2 y H3 por decision de Angie: un solo defecto en vez
     de tres, para no fragmentar la reconciliacion AC vs implementacion.'
+- action: updated
+  timestamp: '2026-09-08T17:27:57.000Z'
+  user: codex
+  reason: 'Re-verificacion de frescura pedida al re-invocar el executor sobre SH-1164. No se genero un TR nuevo porque el
+    arbol bajo prueba no cambio (ver notes del escenario 3). Se agrego al escenario 3 el hallazgo que afina H2 de SH-1269:
+    el gap de imagenes por variante es de CONSUMO en el frontend (variantSchema de option-variant.ts no declara images ni
+    imagesInherited), no de plomeria ausente. Se agrego tambien el bloque summary que faltaba.'
+- action: status-changed
+  timestamp: '2026-09-08T17:27:57.000Z'
+  user: codex
+  from: in-progress
+  to: completed
+  reason: 'Cierre del run. El unico FAIL (escenario 3) ya quedo adjudicado: Angie decidio agrupar los hallazgos y SH-1269
+    esta archivado, enlazado a SH-1063, en Not started. No queda ningun escenario not-run ni blocked, y ningun veredicto
+    depende de evidencia pendiente, asi que el run deja de estar in-progress. Lo que sigue abierto NO es de QA sino de producto:
+    el ruling sobre si se construye el CPP ponderado o se corrigen el AC2 y la decision D9.'
 metadata:
   createdBy: codex
   createdAt: '2026-09-04T17:40:00.000Z'
   updatedBy: codex
-  updatedAt: '2026-09-04T18:35:00.000Z'
-  version: 1
+  updatedAt: '2026-09-08T17:27:57.000Z'
+  version: 2

@@ -6,7 +6,7 @@
   "trKey": "TR-047",
   "prNumber": 659,
   "startedAt": "2026-09-04T17:40:00Z",
-  "lastUpdated": "2026-09-04T18:05:00Z",
+  "lastUpdated": "2026-09-08T17:27:57Z",
   "status": "completed",
   "completedSteps": [
     1,
@@ -36,7 +36,63 @@
     },
     "regression": "technical 7/7 PASS, security 7/7 PASS",
     "owasp": "3 applicable (A03,A04,A10) all PASS, 7 N/A",
-    "defectsRaised": [],
-    "commitHeld": "Rule 7b/10 - awaiting Angie's decision on filing H1 as a defect"
+    "defectsRaised": [
+      {
+        "jiraKey": "SH-1269",
+        "url": "https://veevart.atlassian.net/browse/SH-1269",
+        "scenarioIndex": 2,
+        "severity": "medium",
+        "summary": "Products - Item detail: tres desalineaciones AC vs implementacion en SH-1063 (sin resumen de costo, imagenes por variante diferidas, redaccion de cost read-only). Agrupadas por decision de Angie."
+      }
+    ],
+    "commitHeld": "Rule 7b/10 - awaiting Angie's decision on filing H1 as a defect",
+    "scenarioResults": [
+      {
+        "scenarioIndex": 0,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 1,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 2,
+        "status": "failed"
+      },
+      {
+        "scenarioIndex": 3,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 4,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 5,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 6,
+        "status": "passed"
+      },
+      {
+        "scenarioIndex": 7,
+        "status": "passed"
+      }
+    ],
+    "freshnessRecheck": {
+      "date": "2026-09-08T17:27:57Z",
+      "verdict": "tree unchanged since execution; no TR-048 warranted",
+      "lastCommitUnderTest": "a9f86ba5 (PR #675, SH-1060, 2026-09-04T16:51Z) — predates the 17:40-18:05Z run window",
+      "falsePositiveRuledOut": "VeevartFrontend PR #699 merged 19:22Z touches apps/shared/portal/app/api and products/errors only — nothing in item-detail",
+      "newFinding": "resolve-product-image.ts documents that variantSchema (option-variant.ts) still lacks images/imagesInherited — the AC3 image gap is frontend CONSUMPTION, not missing plumbing; sharpens SH-1269 H2",
+      "evidence": "attachments/tr-047-tc-75/freshness-recheck-2026-09-08.txt"
+    },
+    "runClosedOut": {
+      "from": "in-progress",
+      "to": "completed",
+      "at": "2026-09-08T17:27:57Z",
+      "reason": "sole FAIL adjudicated via SH-1269; no not-run or blocked scenarios remain"
+    }
   }
 }

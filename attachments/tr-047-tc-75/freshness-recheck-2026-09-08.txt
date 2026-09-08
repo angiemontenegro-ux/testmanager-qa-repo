@@ -1,0 +1,100 @@
+RE-VERIFICACION DE FRESCURA — TR-047 / TC-75 / SH-1063 (QA Sub-task SH-1164)
+Fecha: 2026-09-08T17:27Z
+Motivo: se re-invoco el executor sobre SH-1164. El .skill-state-completed.json ya marcaba
+        status: completed, asi que en vez de generar un TR nuevo se verifico si el arbol
+        bajo prueba cambio desde la ejecucion original (2026-09-04T17:40-18:05Z).
+
+VEREDICTO: EL ARBOL NO CAMBIO. Un TR-048 re-derivaria veredictos identicos.
+           TR-047 se cierra (in-progress -> completed) en vez de re-ejecutarse.
+
+--------------------------------------------------------------------------------
+1. HISTORIA DE COMMITS DE LA SUPERFICIE BAJO PRUEBA
+--------------------------------------------------------------------------------
+Superficie: Veevarts/VeevartFrontend @ develop
+            packages/shop/src/products/item-detail
+
+  $ gh api "repos/Veevarts/VeevartFrontend/commits?sha=develop\
+            &path=packages/shop/src/products/item-detail\
+            &since=2026-09-04T18:00:00Z"
+  -> []                                  <-- LISTA VACIA
+
+  $ gh api ".../commits?sha=develop&path=<misma>&per_page=6"
+  -> 2026-09-04T16:51  a9f86ba5  feat(shop): unblock per-variant images in the item wizard SH-1060 (#675)
+     2026-09-01T19:06  f4348575  feat(shop): variant row click opens a read-only detail modal (SH-1058) (#659)
+     2026-08-22T02:55  562ed44f  feat(shop): paginate item-detail inventory and variants (#569)
+     2026-08-20T11:39  fce123ec  feat(shop): read-only product detail preview panel (#536)
+
+  El commit mas reciente (a9f86ba5, 16:51Z) es ANTERIOR a la ventana de ejecucion de
+  TR-047 (17:40-18:05Z). O sea: TR-047 ya leyo el arbol vigente hoy.
+
+--------------------------------------------------------------------------------
+2. FALSO POSITIVO DESCARTADO — PR #699
+--------------------------------------------------------------------------------
+  Veevarts/VeevartFrontend #699
+  "fix(shop): add the missing BFF proxy for variant images SH-1060"
+  base: develop | mergeada: 2026-09-04T19:22:02Z | +267/-0 | 4 archivos
+
+  Por titulo y por fecha (DESPUES del run) parecia invalidar el hallazgo de imagenes
+  del AC3. NO lo invalida. Sus cuatro archivos:
+
+    apps/shared/portal/app/api/shop/products/[id]/variants/[variantId]/images/route.ts
+    apps/shared/portal/app/api/shop/products/[id]/variants/[variantId]/images/route.test.ts
+    packages/shop/src/products/errors/use-catalog-error-message.ts
+    packages/shop/src/products/errors/use-catalog-error-message.test.tsx
+
+  NINGUNO vive en item-detail. Es la ruta proxy que alimenta al uploader del
+  item-wizard, no la superficie read-only de detalle. Cero impacto en los veredictos.
+
+  LECCION DE PROCESO: verificar los PATHS de una PR, no solo su titulo y su fecha
+  de merge. Una PR que menciona la misma clave (SH-1060) y la misma palabra
+  ("variant images") puede tocar otra superficie por completo.
+
+--------------------------------------------------------------------------------
+3. HALLAZGO NUEVO — AFINA H2 DE SH-1269, NO LO INVALIDA
+--------------------------------------------------------------------------------
+Archivo: packages/shop/src/products/item-detail/resolve-product-image.ts @ develop
+
+  El modal de variante SIGUE mostrando la foto del producto PADRE, con caption
+  visible. Lo nuevo es que el codigo ahora documenta la razon real:
+
+    "variantSchema (option-variant.ts) -- el tipo que consume esta superficie
+     READ-ONLY -- no declara todavia images / imagesInherited; agregarlos es un
+     cambio de schema con ripple ancho (todos los fixtures de variantes de la
+     suite del item-wizard necesitarian los dos campos nuevos), y decidir como
+     mostrar 'propia vs heredada' es una decision de UI aparte. Las dos cosas
+     quedan diferidas como follow-up."
+
+  Y confirma que el lado de datos YA existe:
+    - VariantResponseDto lleva images + imagesInherited (Phase 3)
+    - PUT /v1/products/:id/variants/:variantId/images persiste de verdad
+    - el proxy BFF que faltaba llego en #699
+
+  RE-ENCUADRE: el gap de imagenes del AC3 dejo de ser "falta plomeria" y paso a ser
+  "falta CONSUMO en el frontend". Enunciado mas accionable para quien tome SH-1269.
+
+  El FAIL del escenario 3 (ninguna cifra de costo a nivel de producto) queda INTACTO:
+  ni #675 ni #699 lo tocan.
+
+--------------------------------------------------------------------------------
+4. ESTADO DE LA ADJUDICACION (Regla 7b) — RESUELTA
+--------------------------------------------------------------------------------
+  SH-1269  Bug | Medium | Not started | sin asignar | enlazado a SH-1063
+           https://veevart.atlassian.net/browse/SH-1269
+           Agrupa H1 (el FAIL del escenario 3), H2 (imagenes diferidas) y H3
+           (redaccion de "cost read-only") en una sola conversacion de
+           reconciliacion AC vs implementacion, por decision de Angie.
+           H4 (itemType vivo en la API) queda FUERA a proposito: ya esta como FAIL
+           en TR-046 escenario 8 y pertenece a SH-1137 / SH-1167.
+
+  Ningun escenario quedo not-run ni blocked. Ningun veredicto depende de evidencia
+  pendiente. Por eso el run pasa a completed.
+
+  LO QUE SIGUE ABIERTO NO ES DE QA, ES DE PRODUCTO: el ruling sobre si se construye
+  el CPP ponderado o se corrigen el AC2 y la decision D9.
+
+--------------------------------------------------------------------------------
+5. PENDIENTE DE HIGIENE QUE NO CIERRA ESTE ARCHIVO
+--------------------------------------------------------------------------------
+  SH-1164 (esta QA Sub-task) sigue en "To Do" mientras el padre SH-1063 ya paso a
+  "In QA Review". La sub-task nunca se transiciono ni recibio el resultado de la
+  ejecucion. Decision de Angie si se reporta ahi.
