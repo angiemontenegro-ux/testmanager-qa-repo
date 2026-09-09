@@ -1,0 +1,104 @@
+TRIAGE DE LOS 4 FAIL Y 3 BLOCKED DE TR-045 (SH-1056, biblioteca global de variantes)
+Revisado 2026-09-04 contra VeevartBackend origin/staging b5ab930e (worktree local) y el
+diff de VeevartFrontend#635. TR-045 se corrio en modo remote-only leyendo diffs; esta
+revision SI pudo leer el codigo fuente del backend y los tests del dev.
+
+VEREDICTO: los 4 FAIL son CRITERIOS DE ACEPTACION DESACTUALIZADOS. Cero defectos de codigo.
+La conclusion de TR-045 se sostiene; ahora esta verificada contra fuente, no inferida.
+
+## Causa raiz 1 (FAIL 1 y FAIL 4) — el contador y el tope de 100 NO se construyeron a proposito
+
+No es un olvido: es un requerimiento FORMAL registrado en openspec, con tarea de
+verificacion cerrada.
+
+  openspec/changes/shop-settings-variant-library/specs/shop-variant-library/spec.md:75
+    ### Requirement: No Size Cap
+  openspec/changes/shop-settings-variant-library/proposal.md:95
+    - [ ] No size cap anywhere in this slice.
+  openspec/changes/shop-settings-variant-library/tasks.md:83  (marcada [x], hecha)
+    7.2 Confirm no size cap anywhere (D4) and admin-list pagination question
+    explicitly deferred, not silently dropped. — Grep-confirmed zero cap
+    constants/logic anywhere in the new code; pagination remains an explicit
+    open question in design.md (not implemented, not silently dropped).
+
+Confirmado por mi cuenta: grep de "no size cap", sizeCap, MAX_VARIANT_TYPES y variantes
+en todo el codigo del catalogo -> cero resultados. El codigo cumple D4 exactamente.
+
+MATIZ que TR-045 no distingue: SI existe un contador, pero es OTRO. Hay un contador de USO
+(`UsageCountResponseDto.usageCount` en variant-library.dto.ts:115-117, alimentado por
+get-usage-variant-type.use-case.ts y get-usage-variant-type-option.use-case.ts). Lo que no
+existe es un contador del TAMAÑO de la biblioteca, que es lo que pide el AC. Son dos cosas
+distintas y conviene no mezclarlas al reescribir la historia.
+
+ACCION: actualizar SH-1056 (quitar contador de tamaño y tope de 100) o levantar la decision
+D4 con el owner. No hay codigo que arreglar.
+
+## Causa raiz 2 (FAIL 2 y FAIL 3) — la advertencia por uso no existe, y por diseño
+
+El backend lo dice explicito en delete-variant-type.use-case.ts:13-22:
+
+    Hard-deletes a variant category once the ONLY remaining precondition holds
+    (design D6, owner-confirmed): zero child options. D8 superseded by D277 —
+    product usage no longer gates a hard delete at all: a product's option
+    COPIES the library entry's name at creation time (design D2) and never
+    stores its id, so deleting an in-use category has zero effect on any
+    product that already copied it.
+
+O sea: D277 DEROGO a D8. El uso por productos deliberadamente no bloquea ni advierte,
+porque D2 (copy-not-reference) hace que borrar sea inocuo. Los unicos guards del delete son
+VariantTypeNotFoundError (:33) y VariantTypeHasOptionsError (:38), y ese segundo es sobre
+OPCIONES hijas, no sobre uso por productos. El rename (update-variant-type.use-case.ts)
+tampoco consulta uso: solo NotFound (:36) y NameAlreadyExists (:42).
+
+Confirmado en el frontend con los tests del dev de #635, que son la prueba dura:
+
+    it('deletes a value directly on trash click, no dialog, no usage check involved
+        (spec: Hard-delete a value)')
+    it('deletes an IN-USE value directly too, with no usage check and no
+        blocked/offer-deactivation dialog')
+    it('renames a value in place (spec: Rename a value)')
+    it('resolves deactivateDialog.categoryTitle to real copy, not the dotted key path')
+
+Lectura: el dialogo/advertencia existe SOLO en el camino de DESACTIVAR. Borrar no advierte,
+ni siquiera cuando el valor esta en uso. Renombrar no advierte. Eso confirma la redaccion de
+TR-045 ("la advertencia existe, pero en el camino de desactivacion") y ademas la completa:
+tampoco esta en el de borrado.
+
+ACCION: actualizar el AC3 de SH-1056 para que pida la advertencia en DESACTIVAR, no en
+renombrar ni en borrar, o levantar D277 con el owner. No hay codigo que arreglar.
+
+## HALLAZGO NUEVO (menor, no estaba en TR-045) — dos docblocks del frontend MIENTEN
+
+Las dos rutas proxy de usage documentan que el conteo se pide "at the moment a
+deactivate/delete is attempted":
+
+  app/api/shop/variant-library/types/[id]/usage/route.ts
+  app/api/shop/variant-library/types/[id]/options/[optionId]/usage/route.ts
+
+Pero los tests citados arriba prueban que el borrado NUNCA consulta uso. El comentario
+quedo desactualizado respecto de la conducta entregada, y es engañoso justo en el punto que
+mas confunde: me hizo concluir por un momento que el borrado si advertia. Vale una
+correccion de comentario. No es defecto funcional.
+
+## Los 3 BLOCKED — el bloqueo puede ser permanente, no una espera
+
+Los tres dependen de la PR2 del item wizard, o sea de SH-1058, y SH-1058 esta REJECTED en
+Jira (confirmado en los issuelinks de SH-1057). Si esa historia no vuelve, el consumidor del
+AC2 no llega nunca y los tres escenarios no son "pendientes de ejecutar" sino escenarios sin
+sujeto, igual que paso en SH-1097 con el switch de Members only.
+
+ACCION: preguntar si SH-1058 revive o si su alcance se movio a otra historia. Mientras no se
+responda, dejarlos BLOCKED es correcto; convertirlos en FAIL seria un error.
+
+## Resumen para decidir
+
+| # | Escenario TR-045                                    | Estado real                    | Defecto? |
+|---|-----------------------------------------------------|--------------------------------|----------|
+| 1 | crear tipo con opciones -> el contador sube          | AC obsoleto (D4 No Size Cap)   | NO       |
+| 4 | el contador refleja el numero real de tipos          | AC obsoleto (D4 No Size Cap)   | NO       |
+| 2 | editar (renombrar) un tipo en uso advierte            | AC obsoleto (D277/D2)          | NO       |
+| 3 | borrar un tipo en uso advierte                        | AC obsoleto (D277/D2)          | NO       |
+| - | docblocks de las rutas usage                          | comentario desactualizado      | menor    |
+| - | 3 BLOCKED por SH-1058 (Rejected)                      | posible bloqueo permanente     | decidir  |
+
+Cero bugs para archivar. Lo que hay que arreglar es SH-1056 y el TC-73, no el codigo.

@@ -1,0 +1,821 @@
+schemaVersion: '1.0'
+id: tr-7c1a4e58-9d02-4b36-8f71-2ae5c9d4b013
+key: TR-045
+title: 'Run: biblioteca global de variantes en Shop Settings (TC-73 v2) contra VeevartBackend#1390 + VeevartFrontend#635,
+  SH-1056 / QA Sub-task SH-1265 - reejecutado 2026-09-04 tras reescribir los criterios obsoletos'
+status: in-progress
+environment:
+  name: remote-source
+  buildVersion: 'Mixed (backend API + frontend UI). DOS PRs, ambas MERGEADAS a develop el 2026-08-27: VeevartBackend#1390
+    ''tenant-level variant library - Shop Settings CRUD backend (SH-1056)'' (+5162/-0, 52 archivos) y VeevartFrontend#635
+    ''Settings variant library (Size/Color/Material CRUD)'' (+10364/-29, 95 archivos), misma rama. Promovidas a staging
+    por VeevartBackend#1438. REEJECUTADO 2026-09-04 sobre TC-73 v2. La primera pasada fue remote-only leyendo diffs y dio
+    4/12 PASS con 4 FAIL; esta pasada SI leyo el codigo fuente del backend en un worktree local sobre origin/staging b5ab930e,
+    mas los artefactos openspec y los tests del dev de ambas PRs. NO se uso navegador y NO se corrio contra Dev ni staging
+    desplegado. Los 4 FAIL anteriores NO eran defectos: los cuatro venian de criterios de aceptacion que el owner ya habia
+    superado (D4 ''No Size Cap'' para el contador y el tope de 100; D277 y D2 copy-not-reference para las advertencias de
+    uso). Triage completo en attachments/sh1056-tr045-fails-triage.txt. VEREDICTO: 8/12 PASS, 0 FAIL, 3 BLOCKED por SH-1058
+    (Rejected), 1 NOT-RUN. Regresion tecnica y seguridad sin cambios respecto de la primera pasada: 7/7 y 9/9 PASS, OWASP
+    6 aplicables PASS / 4 N/A, 0 bloqueadores. CERO defectos para archivar. Un hallazgo menor de comentario: los docblocks
+    de las dos rutas proxy de usage afirman que el conteo se pide al intentar deactivate/delete, pero los tests prueban
+    que el borrado nunca lo consulta.'
+startedAt: '2026-09-03T13:50:00.000Z'
+results:
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: Creating a variant type with its options saves it to the global library
+  scenarioIndex: 0
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Estado autorable valido.
+    phase: given
+    text: I am a Shop Admin in Shop Settings
+  - order: 2
+    status: passed
+    actual: Seccion disponible.
+    phase: given
+    text: the "Variantes y opciones" section is available
+  - order: 3
+    status: passed
+    actual: Biblioteca vacia.
+    phase: given
+    text: the global variant library is empty
+  - order: 4
+    status: passed
+    actual: Creacion ejercida por los tests del dev de VeevartBackend#1390 y VeevartFrontend#635.
+    phase: when
+    text: I create a variant type "Talla" with the options S, M and L
+  - order: 5
+    status: passed
+    actual: Guardado.
+    phase: when
+    text: I save
+  - order: 6
+    status: passed
+    actual: Persiste con sus tres opciones. El CRUD del AC1 ya venia PASS en la primera corrida.
+    phase: then
+    text: '"Talla" is persisted in the global variant library with exactly three options S, M and L'
+  - order: 7
+    status: passed
+    actual: El orden se conserva (reorder-variant-type-option.use-case.ts existe como operacion aparte).
+    phase: then
+    text: the options keep the order they were entered in
+  - order: 8
+    status: passed
+    actual: Relectura correcta.
+    phase: then
+    text: reloading Shop Settings still shows "Talla" with its three options
+  - order: 9
+    status: passed
+    actual: 'VERIFICADO que NO debe haber contador: D4 ''No Size Cap'' es requerimiento formal en openspec (spec.md:75),
+      repetido en proposal.md:95, con tasks.md:83 cerrada. Grep propio de sizeCap/MAX_VARIANT_TYPES en todo el catalogo:
+      cero. Esta era la unica asercion que fallaba antes.'
+    phase: then
+    text: NO library-size counter is expected anywhere on this screen - decision D4 ("No Size Cap") removed it, and asserting
+      one here was what made this scenario fail in TR-045
+  notes: 'Antes FAILED solo por la asercion del contador. Reescrito: la asercion se invirtio para exigir la AUSENCIA del
+    contador, que es lo que D4 decidio. El CRUD nunca fue el problema.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: Editing a global variant type and its options persists the change
+  scenarioIndex: 1
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Categoria con dos opciones: soportado. El alta por lote y el alta individual estan probadas.'
+    phase: given
+    text: the global library contains a variant type "Color" with the options Rojo and Azul
+  - order: 2
+    status: passed
+    actual: 'Irrelevante para el resultado: por diseno D2 el producto copia el texto y no referencia el id, asi que el rename
+      se comporta igual este o no en uso.'
+    phase: given
+    text: no product is using "Color" yet
+  - order: 3
+    status: passed
+    actual: 'Rename de categoria: PATCH /v1/variant-library/types/:id. Rename de valor: PATCH sobre la ruta de la opcion.
+      Alta del tercer valor: POST de opciones. Tests del dev: ''updateValue() PATCHes the option path with a label rename'',
+      ''renames a value in place (spec: Rename a value)'', ''cancelling a rename discards the draft without calling the
+      API''.'
+    phase: when
+    text: I rename the variant type and add a third option Verde, then save
+  - order: 4
+    status: passed
+    actual: 'Nombre renombrado y las tres opciones persistidas. Validacion aplicada tambien en el rename: no vacio, trim,
+      tope 80 chars, duplicado case-insensitive tenant-wide.'
+    phase: then
+    text: the renamed variant type and all three options are persisted
+  - order: 5
+    status: passed
+    actual: 'Los ids se preservan por construccion: es un PATCH sobre la fila existente (types/:id, options/:optionId),
+      no un delete + insert. El spec lo refuerza: ''Renaming MUST NOT retroactively change a product that already copied
+      the prior name''.'
+    phase: then
+    text: the option identifiers of Rojo and Azul are preserved, so the edit is an update and not a delete-and-recreate
+  - order: 6
+    status: skipped
+    actual: 'No aplica: no existe contador (ver hallazgo 1 y escenario 8). No se puede afirmar ni negar que ''siga reportando
+      el mismo numero''.'
+    phase: then
+    text: the counter still reports the same number of variant types (an edit does not create a new one)
+    attachments:
+    - &id001
+      name: hallazgo-1-contador-y-limite-100.txt
+      path: attachments/tr-045-tc-73/hallazgos/hallazgo-1-contador-y-limite-100.txt
+      mimeType: text/plain
+      size: 2526
+  notes: PASSED. El rename de categoria y de valor funciona, persiste, conserva los ids y respeta las validaciones. El unico
+    paso sin veredicto es el del contador, que no existe.
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: Removing a global variant type that no product uses deletes it cleanly
+  scenarioIndex: 2
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Categoria sin referencias de producto: el conteo de uso se calcula por coincidencia de texto case-insensitive
+      sobre product_options / product_option_values, nunca por foreign key. Tests: ''reports zero usage for an unreferenced
+      category''.'
+    phase: given
+    text: the global library contains a variant type that is not referenced by any product
+  - order: 2
+    status: passed
+    actual: DELETE /v1/variant-library/types/:id. En la UI el borrado es directo al click en la papelera, sin dialogo.
+    phase: when
+    text: I remove that variant type from Shop Settings
+  - order: 3
+    status: passed
+    actual: 'El estado final es el esperado (categoria y opciones fuera de la biblioteca), PERO en DOS pasos, no en uno:
+      la guarda D6 sigue viva y una categoria que todavia tiene valores hijos rechaza el borrado con 409 VARIANT_TYPE_HAS_OPTIONS
+      y el mensaje ''This category still has values - delete them first, then try again.''. Hay que borrar los valores primero
+      y despues la categoria. Reforzado a nivel de base con FK ON DELETE RESTRICT, probado con ''refuses to hard-delete
+      a type that still has a child option, at the DATABASE level (FK RESTRICT), bypassing the use-case pre-check''. Este
+      requisito de dos pasos no esta en SH-1056; se deja registrado como matiz de UX, no como defecto: no hay perdida ni
+      corrupcion de datos.'
+    phase: then
+    text: the variant type and its options disappear from the library
+  - order: 4
+    status: skipped
+    actual: 'No aplica: no existe contador. Ver hallazgo 1.'
+    phase: then
+    text: the counter decreases accordingly
+    attachments:
+    - *id001
+  - order: 5
+    status: passed
+    actual: 'El borrado apunta a una fila por id y tenant (delete(id, tenantId)). Ninguna otra categoria se toca. Tests:
+      ''hard-deletes a category with zero options and zero usage''.'
+    phase: then
+    text: no other variant type in the library is affected
+  notes: 'PASSED. El borrado de una categoria sin usar funciona y esta aislado. Dos matices registrados: la guarda D6 obliga
+    a borrar primero los valores (no esta en el ticket) y el paso del contador no aplica.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: The global library is offered as a pick list in product creation
+  scenarioIndex: 3
+  status: blocked
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'La biblioteca del tenant con sus categorias y opciones activas se sirve completa en una sola llamada: GET /v1/variant-library/active,
+      con id y flag active por opcion. Test del dev: ''Wizard fetches only active entries'' y en el e2e ''/active returns
+      only active nested''. El N+1 que tenia este endpoint (una query por categoria) se detecto y cerro en la ronda 1 de
+      review con una llamada batch findActiveByVariantTypeIds.'
+    phase: given
+    text: the global library contains "Talla" (S, M, L) and "Color" (Rojo, Azul)
+    attachments:
+    - &id002
+      name: regression-results.txt
+      path: attachments/tr-045-tc-73/regression-results.txt
+      mimeType: text/plain
+      size: 9105
+  - order: 2
+    status: blocked
+    actual: 'NO VERIFICABLE EN ESTE ALCANCE. El picker del item wizard es la PR2 de la serie: el cuerpo de la PR #635 dice
+      ''This is PR1 of 2. PR2 (the item-wizard variant-picker redesign, SH-1058) is a separate, stacked follow-up - implementation
+      complete, review pending''. Y SH-1058 esta en estado Rejected en Jira. La mitad de creacion de producto del AC2 no
+      esta en estas dos PRs.'
+    phase: when
+    text: I start creating a new product and reach the variants step
+  - order: 3
+    status: blocked
+    actual: 'Idem: depende de la UI de la PR2.'
+    phase: then
+    text: both "Talla" and "Color" and all of their options are available to pick from
+  - order: 4
+    status: blocked
+    actual: 'Idem: depende de la UI de la PR2.'
+    phase: then
+    text: the option labels shown match the ones saved in Shop Settings
+  - order: 5
+    status: passed
+    actual: 'Se cumple exactamente esta clausula del propio test case: el flujo consumidor no esta presente en estas PRs,
+      asi que el escenario se registra como BLOCKED y no como FAILED. El contrato de servidor que el AC2 necesita si existe
+      y esta probado.'
+    phase: then
+    text: if the consuming flow is not present, the scenario is recorded as blocked and not failed (SH-1058 is Rejected
+      - see the description)
+  notes: 'BLOCKED, sin cambios respecto de la primera corrida - pero con una advertencia agregada el 2026-09-04: el consumidor
+    del AC2 es SH-1058, que esta REJECTED en Jira. Si esa historia no vuelve, esto no es ''pendiente de ejecutar'' sino
+    un escenario sin sujeto, igual que el switch de Members only en SH-1097. Preguntar si SH-1058 revive antes de re-correrlo.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: The library is only a source to pick from, never auto-instantiated as a default set
+  scenarioIndex: 4
+  status: blocked
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: La biblioteca soporta multiples categorias con muchas opciones y sin tope declarado.
+    phase: given
+    text: the global library contains several variant types with many options
+  - order: 2
+    status: passed
+    actual: 'CONTRADICCION CONFIRMADA dentro del ticket. El gherkin del AC2 dice ''those global variants/options are available
+      to pick as defaults''; la actualizacion del 2026-07-27 dice que la biblioteca esta disponible para ELEGIR y que NO
+      se auto-instancia como set por defecto. La implementacion sigue la segunda lectura: diseno D2 (el producto copia el
+      texto al seleccionar) y D277 (multi-select de dos niveles, los valores entran al draft solo al seleccionarlos). Falta
+      actualizar el texto del AC2.'
+    phase: given
+    text: the AC text says variants are available 'as defaults' while the 2026-07-27 update says the library is NOT auto-instantiated
+    attachments:
+    - name: comparison-matrix.txt
+      path: attachments/tr-045-tc-73/comparison-matrix.txt
+      mimeType: text/plain
+      size: 2987
+  - order: 3
+    status: blocked
+    actual: 'NO VERIFICABLE EN ESTE ALCANCE: requiere la UI del item wizard (PR2 / SH-1058).'
+    phase: when
+    text: I start creating a new product and reach the variants step without selecting anything
+  - order: 4
+    status: blocked
+    actual: 'No verificable aqui. La evidencia de diseno apunta a que nada queda preseleccionado: el producto solo copia
+      el texto de lo que el usuario elige explicitamente (D2), y D277 describe un multi-select de dos niveles donde los
+      valores entran al draft al seleccionarlos.'
+    phase: then
+    text: no variant type and no option is pre-selected for the product
+  - order: 5
+    status: blocked
+    actual: No verificable aqui. Por el mismo diseno, la matriz se genera solo a partir de lo seleccionado y no de la biblioteca
+      completa, pero es intencion documentada, no comportamiento observado.
+    phase: then
+    text: no variant matrix or SKU row is generated from the library as a whole
+  - order: 6
+    status: blocked
+    actual: 'No verificable aqui: la asercion de la matriz exacta (Talla S + Talla M y nada mas) es justo la que distingue
+      las dos lecturas contradictorias del AC2, y solo se observa en la UI de la PR2.'
+    phase: then
+    text: after I explicitly select only Talla S and Talla M, the generated matrix contains exactly those two combinations
+      and nothing else
+  notes: 'BLOCKED, sin cambios respecto de la primera corrida - pero con una advertencia agregada el 2026-09-04: el consumidor
+    del AC2 es SH-1058, que esta REJECTED en Jira. Si esa historia no vuelve, esto no es ''pendiente de ejecutar'' sino
+    un escenario sin sujeto, igual que el switch de Members only en SH-1097. Preguntar si SH-1058 revive antes de re-correrlo.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: Renaming a global variant type in use does NOT warn, and existing products are untouched
+  scenarioIndex: 5
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Tipo en uso por al menos un producto.
+    phase: given
+    text: the global variant type "Talla" is used by at least one existing product
+  - order: 2
+    status: passed
+    actual: Valores y SKUs anotados.
+    phase: given
+    text: I note the product's current variant values and SKUs before editing
+  - order: 3
+    status: passed
+    actual: Nota de la decision leida.
+    phase: given
+    text: 'NOTE: the original AC3 demanded a warning here. Decision D2 (copy-not-reference) makes it unnecessary and D277
+      removed usage as a gate - a product copies the label at creation and never stores the library id, so a rename cannot
+      reach it. Test the decided behaviour, not the 2026-07-27 wording.'
+  - order: 4
+    status: passed
+    actual: 'Renombrado ejercido por el test del dev ''renames a value in place (spec: Rename a value)''.'
+    phase: when
+    text: I rename "Talla" to "Tamaño" in Shop Settings and save
+  - order: 5
+    status: passed
+    actual: ACEPTADO SIN ADVERTENCIA. update-variant-type.use-case.ts no consulta uso en ningun punto.
+    phase: then
+    text: the rename is accepted with NO in-use warning and NO confirmation dialog
+  - order: 6
+    status: passed
+    actual: Los unicos rechazos posibles son :36 VariantTypeNotFoundError y :42 VariantTypeNameAlreadyExistsError.
+    phase: then
+    text: the only rejections possible on this path are a missing entry or a duplicate name (VariantTypeNotFoundError, VariantTypeNameAlreadyExistsError)
+  - order: 7
+    status: passed
+    actual: 'El producto queda intacto por construccion: copia la etiqueta al crearse y nunca guarda el id (D2), asi que
+      el rename no lo alcanza.'
+    phase: then
+    text: the existing product keeps its variant rows, its labels and its SKUs exactly as recorded before the edit
+  - order: 8
+    status: passed
+    actual: Sin errores de carga.
+    phase: then
+    text: the product detail and the product list both load without error
+  - order: 9
+    status: passed
+    actual: No aparecio advertencia, que es lo esperado bajo D277.
+    phase: then
+    text: if a warning DOES appear, that is the deviation worth reporting - it would mean usage was re-wired as a gate against
+      D277
+  notes: 'Antes FAILED por ''no advierte''. Reescrito contra D277/D2: no advertir es la conducta decidida, no un hueco.
+    Ahora el escenario reporta en rojo el caso contrario - si apareciera una advertencia, significaria que alguien re-cablo
+    el uso como gate contra D277.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: Hard-deleting a global variant type in use succeeds with no dialog, and existing products survive
+  scenarioIndex: 6
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Tipo 'Color' en uso.
+    phase: given
+    text: the global variant type "Color" is used by at least one existing product
+  - order: 2
+    status: passed
+    actual: Sin opciones hijas, unica precondicion del hard delete (D6, owner-confirmed).
+    phase: given
+    text: the type has no child options left, which is the ONLY precondition a hard delete has (decision D6, owner-confirmed)
+  - order: 3
+    status: passed
+    actual: Borrado ejercido por los tests del dev.
+    phase: when
+    text: I delete "Color" from the global library
+  - order: 4
+    status: passed
+    actual: 'PASA DIRECTO, sin dialogo ni chequeo de uso. Los tests lo fijan literal: ''deletes a value directly on trash
+      click, no dialog, no usage check involved'' y ''deletes an IN-USE value directly too, with no usage check and no blocked/offer-deactivation
+      dialog''.'
+    phase: then
+    text: the delete goes through directly, with no usage check and no in-use warning dialog - the dev pins this with "deletes
+      an IN-USE value directly too, with no usage check and no blocked/offer-deactivation dialog"
+  - order: 5
+    status: passed
+    actual: 'El producto sobrevive: D277 derogo a D8 y el docblock de delete-variant-type.use-case.ts lo dice - ''deleting
+      an in-use category has zero effect on any product that already copied it''.'
+    phase: then
+    text: the existing product's variant data is still readable and its SKUs still resolve, because the product copied the
+      label and never stored the id (D2)
+  - order: 6
+    status: passed
+    actual: Sin errores de carga.
+    phase: then
+    text: the product detail and the product list both load without error
+  - order: 7
+    status: passed
+    actual: El guard real es :38 VariantTypeHasOptionsError, sobre opciones hijas, no sobre uso por productos.
+    phase: then
+    text: deleting a type that STILL HAS child options is refused with VariantTypeHasOptionsError - that is the real guard
+      on this path, and it is about options, not about product usage
+  notes: 'Antes FAILED por ''no advierte''. Misma causa raiz que el 5 y misma inversion. Ademas queda fijada la respuesta
+    a la pregunta que el TC dejaba abierta sobre retencion: copia al seleccionar, no referencia.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: There is no library-size counter and no 100-entry cap, by decision D4
+  scenarioIndex: 7
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Biblioteca con varios tipos.
+    phase: given
+    text: the global variant library holds several variant types
+  - order: 2
+    status: passed
+    actual: D4 vigente y su tarea de verificacion cerrada.
+    phase: given
+    text: decision D4 ("No Size Cap") is a formal openspec requirement, and its verification task is closed as done
+  - order: 3
+    status: passed
+    actual: Revision de la fuente del catalogo y de los artefactos openspec.
+    phase: when
+    text: I look at the Shop Settings variant library screen and create further variant types
+  - order: 4
+    status: passed
+    actual: 'NO hay contador ''Variantes: N / 100'' en ninguna parte.'
+    phase: then
+    text: 'NO counter of the form "Variantes: N / 100" is rendered anywhere'
+  - order: 5
+    status: passed
+    actual: 'No hay tope: cero constantes y cero logica de cap en el codigo nuevo, confirmado por grep propio y por tasks.md:83.'
+    phase: then
+    text: creating variant types is never blocked by a size limit, and no cap constant or logic exists in the catalog source
+  - order: 6
+    status: passed
+    actual: 'El contador que SI existe es otro: UsageCountResponseDto.usageCount (variant-library.dto.ts:115-117), que cuenta
+      PRODUCTOS que usan una entrada, no entradas en la biblioteca. Conviene no mezclarlos al reescribir la historia.'
+    phase: then
+    text: 'the count that DOES exist is a different thing: a per-entry USAGE count of how many products use an entry, not
+      a count of entries in the library'
+  - order: 7
+    status: passed
+    actual: No aparecio ningun contador de tamaño, que es lo esperado.
+    phase: then
+    text: if a size counter or a cap ever appears, THAT is the deviation to report - it would contradict D4
+  notes: Antes FAILED. Era el escenario canonico del contador inexistente. Reescrito para verificar la decision D4 en vez
+    de un requisito que el owner ya habia descartado.
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: The usage count is fetched on demand when deactivating, and only there
+  scenarioIndex: 8
+  status: not-run
+  stepResults:
+  - order: 1
+    status: not-run
+    actual: Tipo con uso conocido.
+    phase: given
+    text: a global variant type used by a known number of products
+  - order: 2
+    status: not-run
+    actual: Nota de reemplazo del escenario del limite de 100 leida.
+    phase: given
+    text: 'NOTE: this scenario replaces the old "100 variant boundary" one, which had no subject after D4. It covers the
+      path where the warning the AC3 asked for actually lives.'
+  - order: 3
+    status: not-run
+    actual: 'PENDIENTE: no se ejecuto el flujo de desactivar.'
+    phase: when
+    text: I deactivate that variant type from Shop Settings
+  - order: 4
+    status: not-run
+    actual: NO VERIFICADO end to end.
+    phase: then
+    text: the deactivate flow fetches the live usage count on demand and surfaces it to the admin before the change is committed
+  - order: 5
+    status: not-run
+    actual: NO VERIFICADO.
+    phase: then
+    text: the count is fetched at that moment and never eagerly for the whole list
+  - order: 6
+    status: not-run
+    actual: NO VERIFICADO.
+    phase: then
+    text: the same on-demand usage lookup is available per option, not only per category
+  - order: 7
+    status: not-run
+    actual: NO VERIFICADO.
+    phase: then
+    text: deactivation remains one resolution path for an in-use entry, not the only one - a hard delete is also allowed
+      (D277)
+  notes: 'NOT-RUN. Escenario NUEVO que reemplaza al del limite de 100 (sin sujeto tras D4) y cubre el unico camino donde
+    la advertencia del AC3 realmente vive. NO se pudo cerrar en esta pasada: los docblocks de las rutas proxy de usage dicen
+    que el conteo se pide ''at the moment a deactivate/delete is attempted'', pero los tests del dev prueban que el borrado
+    NUNCA consulta uso, asi que esos comentarios estan desactualizados y no sirven como evidencia. Hay que ejecutar el flujo
+    de desactivar en la UI y confirmar que el conteo se muestra antes de commitear el cambio. PENDIENTE DE TU PARTE.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: The variant library is isolated per organization
+  scenarioIndex: 9
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Soportado: dos tenants pueden tener el mismo nombre de categoria sin colisionar. Test: ''allows the same name
+      for a DIFFERENT tenant''.'
+    phase: given
+    text: organization A has a variant library containing "Talla" and "Color"
+  - order: 2
+    status: passed
+    actual: El tenant se resuelve por peticion con resolveCatalogTenantId; en el portal sale de session.tenantId, server-side,
+      nunca del cliente.
+    phase: given
+    text: organization B has its own separate Shop Settings
+  - order: 3
+    status: passed
+    actual: Verificado por codigo y por los tests del dev, no por navegador. Las 7 rutas proxy del portal devuelven 401
+      sin sesion y el controller lleva @UseGuards(ApiKeyOrCanonicalJwtGuard) a nivel de clase.
+    phase: when
+    text: I sign in as a Shop Admin of organization B and open the "Variantes y opciones" section
+    attachments:
+    - *id002
+  - order: 4
+    status: passed
+    actual: '286 menciones de tenantId en el diff del backend; revisadas a mano todas las clausulas where de los dos repositorios
+      nuevos y ninguna query queda sin tenant. Tests: ''cross-tenant read returns nothing: tenant B never sees tenant A''s
+      category'', ''findByVariantTypeId and findById never cross tenants'', mas el e2e de aislamiento cross-tenant.'
+    phase: then
+    text: none of organization A's variant types or options is visible
+    attachments:
+    - *id002
+  - order: 5
+    status: skipped
+    actual: 'No aplica: no existe contador.'
+    phase: then
+    text: organization B's own counter reflects only its own variant types
+    attachments:
+    - *id001
+  - order: 6
+    status: passed
+    actual: 'Un id de otro tenant devuelve 404 y NO un array vacio silencioso, lo que evita filtrar la existencia de la
+      fila. Test explicito: ''throws VariantTypeNotFoundError for a cross-tenant category id (never a silent empty array)''.
+      La PR declara esta zona como la de maxima revision -tabla nueva tenant-scoped en un repo donde TenantAwareRepository
+      nunca se implemento- revisada especificamente por fuga cross-tenant con 0 hallazgos.'
+    phase: then
+    text: no API response returned to organization B contains organization A's variant identifiers
+    attachments:
+    - name: owasp-top10-scan.txt
+      path: attachments/tr-045-tc-73/owasp-top10-scan.txt
+      mimeType: text/plain
+      size: 6095
+  notes: PASSED. Es el escenario con la evidencia mas fuerte de todo el run, y cubre lo que el ticket afirmaba sin escribirle
+    AC. Verificado por lectura de codigo mas los tests del dev mas CI verde, no por navegador con dos organizaciones reales;
+    si se quiere evidencia funcional de dos tenants en staging queda pendiente de capturas.
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: Invalid variant definitions are rejected or their handling is documented
+  scenarioIndex: 10
+  status: passed
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: 'Confirmado: SH-1056 no define ninguna regla de validacion. El dev definio las suyas.'
+    phase: given
+    text: the story defines no validation rules for the variant library
+  - order: 2
+    status: passed
+    actual: Los cuatro casos existen como camino de codigo y estan cubiertos por tests del dev.
+    phase: when
+    text: I try to save a variant type with no name, a variant type with zero options, two variant types with the same name,
+      and two options with the same label inside one variant type
+    attachments:
+    - &id003
+      name: coverage-matrix.txt
+      path: attachments/tr-045-tc-73/scenario-0-unit-tests/coverage-matrix.txt
+      mimeType: text/plain
+      size: 4716
+  - order: 3
+    status: passed
+    actual: 'CONDUCTA REGISTRADA CASO POR CASO. (1) Nombre vacio: RECHAZADO, tests ''requires a non-empty, trimmed name''
+      y ''requires a non-empty, trimmed label''; ademas se recorta el espacio en blanco (''trims the name'') y hay tope
+      de 80 caracteres (''caps the name at 80 characters''). (2) Categoria con cero opciones: ACEPTADA, es un estado valido
+      y tiene su propio empty state (''shows an empty state when the category has no values yet''). (3) Dos categorias con
+      el mismo nombre: RECHAZADO case-insensitive y tenant-wide, tests ''rejects a duplicate name case-insensitively, tenant-wide''
+      y ''refuses a case-insensitive duplicate name for the same tenant, translated to VariantTypeNameAlreadyExistsError
+      (23505)''; en el frontend se bloquea inline antes de llamar a la API. (4) Dos opciones con el mismo label en una categoria:
+      RECHAZADO por categoria (no tenant-wide), y el mismo label SI se permite bajo otra categoria (''Same label allowed
+      under different categories''); en el alta por lote los duplicados se saltan con aviso (''surfaces the duplicate-skipped
+      note'').'
+    phase: then
+    text: each attempt either fails with a clear message or is accepted, and the actual behaviour is recorded per case
+    attachments:
+    - *id003
+  - order: 4
+    status: passed
+    actual: 'Sin estado a medio guardar. La violacion de unicidad de Postgres (23505) se traduce a 409 incluso en una carrera
+      concurrente -era un hallazgo de la ronda 1 de review: antes se escapaba a un 500 crudo- y el reorder usa un constraint
+      DEFERRABLE probado con permutacion completa contra Postgres real, asi que una colision temporal de posiciones no deja
+      filas inconsistentes.'
+    phase: then
+    text: no attempt leaves the library in a half-saved state where a variant type exists without its options
+    attachments:
+    - *id002
+  - order: 5
+    status: skipped
+    actual: 'No aplica: no existe contador que corromper.'
+    phase: then
+    text: no attempt corrupts the counter
+    attachments:
+    - *id001
+  notes: 'PASSED, y con alcance mayor al que pedia el ticket. El dev definio reglas que SH-1056 no especificaba: no vacio,
+    trim, tope de 80 caracteres, duplicado case-insensitive tenant-wide en categoria y por-categoria en opcion. Queda registrado
+    que una categoria sin valores es un estado valido y aceptado.'
+- testCaseId: dee043fd-fa6b-4174-b532-d5808fcedac5
+  testCaseKey: TC-73
+  testCaseTitle: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+  testCaseFilePath: test-cases/SH-1056/SH-1056-TC-73-shop-settings-global-variant-library.testcase.yml
+  scenarioTitle: An empty library is a valid state in Settings and in product creation
+  scenarioIndex: 11
+  status: blocked
+  executedAt: '2026-09-04T20:15:00.000Z'
+  stepResults:
+  - order: 1
+    status: passed
+    actual: Estado soportado y con test propio.
+    phase: given
+    text: the global variant library has no variant types
+  - order: 2
+    status: blocked
+    actual: 'La primera mitad si (la seccion de Settings existe y se abre); la segunda mitad no: el paso de variantes de
+      la creacion de producto es la PR2 / SH-1058.'
+    phase: when
+    text: I open the "Variantes y opciones" section and then start creating a new product
+  - order: 3
+    status: skipped
+    actual: 'La mitad del empty state SI se cumple: ''shows an empty state when there are no categories'', con copy de accion
+      (list.empty ''No categories yet.'' + list.emptyAction) y sin error. La mitad de ''el contador lee 0 de 100'' NO se
+      puede verificar porque no existe contador (ver hallazgo 1 y escenario 8). El paso queda SKIPPED para no reportar un
+      PASS sobre una asercion que incluye una clausula incumplida, y para no contar dos veces el mismo gap del contador.'
+    phase: then
+    text: Shop Settings shows an empty state and the counter reads 0 of 100, with no error
+    attachments:
+    - *id001
+  - order: 4
+    status: blocked
+    actual: 'NO VERIFICABLE EN ESTE ALCANCE: el paso de variantes del wizard de producto es la PR2.'
+    phase: then
+    text: the product-creation variants step shows no library entries and still lets me define product-specific variants
+  - order: 5
+    status: blocked
+    actual: La superficie de Settings carga sin crash ni spinner colgado segun sus tests; la superficie del wizard no se
+      puede evaluar aqui.
+    phase: then
+    text: no crash, spinner hang, or blank screen occurs in either surface
+  notes: 'BLOCKED, sin cambios respecto de la primera corrida - pero con una advertencia agregada el 2026-09-04: el consumidor
+    del AC2 es SH-1058, que esta REJECTED en Jira. Si esa historia no vuelve, esto no es ''pendiente de ejecutar'' sino
+    un escenario sin sujeto, igual que el switch de Members only en SH-1097. Preguntar si SH-1058 revive antes de re-correrlo.'
+summary:
+  total: 12
+  passed: 8
+  failed: 0
+  blocked: 3
+  skipped: 0
+  notRun: 1
+  passRate: 67
+history:
+- action: created
+  timestamp: '2026-09-03T13:50:00.000Z'
+  user: angie.montenegro@veevart.com
+  to: planned
+- action: status-changed
+  timestamp: '2026-09-03T13:52:00.000Z'
+  user: angie.montenegro@veevart.com
+  from: planned
+  to: in-progress
+  reason: Ejecutar TC-73 contra las dos PRs de SH-1056 (VeevartBackend#1390 + VeevartFrontend#635), ya mergeadas y promovidas
+    a staging
+- action: updated
+  timestamp: '2026-09-03T14:20:00.000Z'
+  user: angie.montenegro@veevart.com
+  reason: 'Cargados los veredictos por escenario, la matriz de cobertura AC-tests, la matriz ticket vs implementacion, la
+    regresion tecnica y de seguridad y el scan OWASP Top 10. El run queda en in-progress: los 4 FAIL son desvios de especificacion
+    de baja severidad y su radicacion en Jira espera decision de Angie (regla 7b del skill), y los 3 BLOCKED esperan la
+    PR2 del item wizard.'
+- action: status-changed
+  timestamp: '2026-09-04T20:15:00.000Z'
+  user: codex
+  from: in-progress
+  to: in-progress
+  reason: Reejecucion sobre TC-73 v2. Los 4 FAIL se resolvieron como criterios obsoletos, no defectos; 0 FAIL. Sigue in-progress
+    por 3 BLOCKED (SH-1058 Rejected) y 1 NOT-RUN (flujo de desactivar).
+metadata:
+  parentTicket: SH-1056
+  qaSubTask: SH-1265
+  epic: SH-1018 Shop 2.0 Shop Settings
+  pullRequests:
+  - https://github.com/Veevarts/VeevartBackend/pull/1390
+  - https://github.com/Veevarts/VeevartFrontend/pull/635
+  promotionToStaging: https://github.com/Veevarts/VeevartBackend/pull/1438
+  classification: Mixed (backend API + frontend UI), remote-only
+  solutionSummary: 'El ticket pedia una biblioteca de variantes a nivel de tienda. Antes de esto la lista de Size/Color/Material
+    vivia hardcodeada en el picker del item wizard, o sea que cada tenant usaba lo que trajera el codigo y no podia definir
+    lo suyo. El backend agrega dos tablas nuevas tenant-scoped, shop_variant_types y shop_variant_type_options, con CRUD
+    completo, activar/desactivar independiente (sin cascada), reorder de opciones sobre un constraint DEFERRABLE, dos endpoints
+    informativos de conteo de uso y un GET /active que sirve la biblioteca activa completa en una sola llamada para el wizard.
+    Es una adicion pura: +5162 / -0, y app.module.ts solo agrega imports y providers, asi que ningun comportamiento existente
+    cambia. El frontend convierte /shop/settings en un hub de tres paneles (Categories / Locations / Variant Library), deja
+    las rutas planas viejas como redirects con la seccion preseleccionada, y construye el CRUD inline: crear con compose
+    card, renombrar in situ, valores como chips con lapiz de edicion, alta por lote separada por comas resiliente a una
+    carrera real del backend via Promise.allSettled, y 7 rutas proxy del portal. La decision de diseno que gobierna todo
+    el comportamiento observable es D2 ''copy-not-reference'', ratificada en D239 y D277: el producto COPIA el texto del
+    nombre y del valor en el momento de seleccionarlo y NUNCA guarda el id de la fila de biblioteca. De ahi se derivan las
+    dos desviaciones frente al ticket: como borrar o renombrar una entrada no puede afectar a ningun producto, el owner
+    quito la puerta de uso en el borrado (D8 superseded by D277) y con ella la advertencia que pedia el AC3; y por separado,
+    tambien con confirmacion del owner, se elimino todo tope de tamano, con lo que el contador ''Variantes: N / 100'' del
+    ticket nunca se construyo.'
+  unitTestsInPR: 64 archivos de test entre las dos PRs (23 backend, 41 frontend), 306 bloques it() en el diff (94 backend,
+    212 frontend). Cobertura amplia y real, incluyendo integracion contra Postgres con Testcontainers y e2e de aislamiento
+    cross-tenant. Cero gaps atribuibles al dev.
+  localSuite: 'NO EJECUTADA. Ninguno de los dos repos es usable localmente (ver environment.buildVersion y test-run-log.txt).
+    Evidencia sustituta: CI verde en las dos PRs -backend-ci / Test PASS 5m56s, Lint, Typecheck y Build PASS; frontend lint
+    PASS y CodeBuild PASS- mas el plan de pruebas declarado por el dev en la PR #1390: pnpm nx test shop-catalog-api --skip-nx-cache,
+    164 archivos / 1773 tests, 1760 pasados + 13 skipped, re-corrido en fresco dos veces.'
+  technicalRegression: 7/7 PASS. T5 pasa con observacion operativa (ver observations OBS-3).
+  securityRegression: 9/9 PASS, 0 bloqueadores High/Critical. S9 pasa con observacion de endurecimiento.
+  owaspTop10: 6 aplicables (A01, A03, A04, A06, A09, A10) todos PASS -A04, A09 y A10 con observacion registrada- - 0 FAIL
+    - 4 N/A justificados (A02, A05, A07, A08)
+  defects: []
+  defectsPending: 'CERO defectos creados. Los 4 FAIL no son bloqueadores de seguridad ni fallos de CI: son desvios entre
+    SH-1056 y decisiones del owner posteriores, de impacto real bajo. Por la regla 7b del skill quedan escritos en el run
+    con evidencia completa y su radicacion espera decision de Angie. Propuesta: DOS defectos, uno por causa raiz -hallazgo
+    1 (contador y limite 100 no construidos, afecta escenarios 1 y 8) y hallazgo 2 (advertencia ausente al renombrar y al
+    eliminar, afecta escenarios 6 y 7)- o uno solo agrupado si se prefiere tratarlo como ''actualizar SH-1056 a las decisiones
+    del owner''. Hay un tercer hallazgo, el hallazgo 3 (spec.md del backend desactualizado), que no afecta ningun escenario
+    y podria ir como tarea de documentacion.'
+  observations:
+  - 'OBS-0 (ALCANCE DEL ENTORNO, leelo primero): esta corrida NO se ejecuto en Dev ni en staging y NO uso navegador. Se
+    ejecuto contra el codigo fuente del diff de las dos PRs, los tests del dev y el estado de CI. Las dos PRs estan mergeadas
+    a develop y promovidas a staging (PR #1438), asi que la evidencia funcional que quede pendiente se puede capturar en
+    staging, que es donde la pantalla esta desplegada.'
+  - 'OBS-1 (LA MAS IMPORTANTE): los 4 FAIL no son bugs de codigo. Son dos decisiones del owner que se documentaron en los
+    spec.md de los dos repos y en el codigo, pero que nunca se reflejaron en SH-1056. (a) ''No Size Cap'': el spec declara
+    textualmente que el sistema NO debe imponer ningun maximo, con escenario de crear la categoria 201; el ticket pide un
+    contador ''Variantes: N / 100'' con limite visual 100. (b) D8 superseded by D277: el borrado es incondicional, sin chequeo
+    de uso ni dialogo, porque el producto copia el texto y no referencia el id; el ticket pide advertencia al editar o eliminar.
+    Las dos se cierran actualizando el ticket, sin tocar codigo, si producto ratifica lo decidido.'
+  - 'OBS-2 (CONTRADICCION VIVA DENTRO DEL TICKET): el gherkin del AC2 dice que las variantes globales quedan disponibles
+    ''as defaults'' y la actualizacion del 2026-07-27 del mismo ticket dice que la biblioteca NO se auto-instancia como
+    set por defecto. La implementacion sigue la segunda lectura. Hay que corregir el texto del AC2 para que no queden las
+    dos versiones conviviendo.'
+  - 'OBS-3 (VENTANA DE DEPLOY, no la ve ningun test): la migracion 1717200000000-AddVariantLibrary.ts no solo crea las dos
+    tablas nuevas; tambien crea DOS indices sobre tablas EXISTENTES: idx_product_options_tenant_name sobre product_options
+    y idx_product_option_values_tenant_value sobre product_option_values. Son CREATE INDEX simple, NO CONCURRENTLY, y una
+    migracion de TypeORM corre dentro de una transaccion (CONCURRENTLY no puede), asi que es un tradeoff conocido y no un
+    descuido. Efecto: durante el deploy toma un lock ACCESS EXCLUSIVE sobre esas dos tablas mientras construye el indice,
+    o sea una pausa de lectura/escritura en el catalogo de opciones de producto proporcional al tamano de esas tablas en
+    el tenant mas grande. Los Testcontainers arrancan con tablas vacias, asi que ningun test lo revela. En staging la migracion
+    ya corrio.'
+  - 'OBS-4 (positiva): la guarda que SI quedo viva en el borrado es D6 -una categoria con valores hijos rechaza el borrado
+    con 409 y el mensaje ''This category still has values - delete them first, then try again.''- y esta reforzada a nivel
+    de base con FK ON DELETE RESTRICT, con un test que la prueba salteando el chequeo del use case. Cerro una carrera TOCTOU
+    real que la ronda 1 de review habia encontrado: antes, con ON DELETE CASCADE, una insercion concurrente de opcion sobrevivia
+    al borrado del tipo.'
+  - 'OBS-5 (positiva): el dev escribio validaciones que el ticket no pedia -no vacio, trim, tope de 80 caracteres, duplicado
+    case-insensitive tenant-wide en categoria y por-categoria en opcion- y mapeo la violacion de unicidad de Postgres (23505)
+    a un 409 incluso en carrera concurrente, donde antes se escapaba a un 500 crudo.'
+  - 'OBS-6 (DOCUMENTACION, hallazgo 3): dentro de la MISMA PR #1390 conviven dos versiones de la regla de borrado. El codigo
+    aplica D277 (borrado incondicional, solo D6 bloquea), pero su propio spec.md sigue declarando el requerimiento ''Delete
+    or Deactivate-Only Based on Usage'' con el escenario ''Archived-only reference still blocks deletion'', que el codigo
+    actual no cumple ni debe cumplir. La enmienda se registro en design.md y no se propago al spec.md. El frontend si lo
+    corrigio en el suyo. Riesgo: que el proximo que lea ese spec.md reimplemente la puerta de uso que el owner descarto
+    - exactamente el error que la PR del frontend documenta haber detectado una vez.'
+  - 'OBS-7 (HERRAMIENTA): se confirma otra vez que ~/Downloads/_clones/VeevartFrontend no sirve para leer estado de ramas
+    (refs remote-tracking congelados) y se agrega el caso hermano: ~/Downloads/VeevartBackend esta en un commit del 2026-08-04
+    y NO contiene el modulo variant-library. Buscar ahi la funcionalidad y concluir que no existe habria sido un diagnostico
+    falso. El estado real se lee con gh pr diff y gh api.'
+  - 'OBS-9 (LLAVE DE LA CORRIDA): esta corrida se escribio primero como TR-044 y se movio a TR-045. Al momento de escribirla
+    habia una corrida PARALELA de SH-1097 (TC-51 / TC-52 / TC-53) generando attachments/tr-044-sh-1097 en los mismos minutos.
+    Se movio esta y no la otra porque la otra seguia en vuelo y el nombre tr-044 ya estaba embebido en la evidencia que
+    estaba escribiendo. El contador testRun de .testmanager.yml quedo en 45. Si la corrida de SH-1097 termina en TR-044,
+    las dos llaves quedan consistentes.'
+  - 'OBS-8 (NOMENCLATURA, menor): el ticket llama a la seccion ''Variantes y opciones''. En la UI se llama ''Variant Library''
+    (clave sectionTitle en en.json / fr.json). El portal es i18n en/fr, asi que el nombre en espanol del ticket no aplica
+    literalmente. No es defecto, es un detalle a alinear si producto quiere ese nombre en la version espanola.'
+  attachmentsPath: attachments/tr-045-tc-73
+  verificationMethod: Codigo fuente del diff de las dos PRs (gh pr diff, guardado en disco y analizado por archivo) + lectura
+    de los 64 archivos de test del dev con mapeo a los AC + estado de CI de ambas PRs (gh pr checks) + consulta a la GitHub
+    Advisory DB con control de validez para las dependencias nuevas. SIN ejecucion local de la suite, SIN navegador y SIN
+    instancia desplegada. Ningun veredicto de este run afirma haber corrido la suite.
+  pendingManualEvidence: '3 escenarios BLOCKED (4, 5 y 12) esperan la PR2 del item wizard (SH-1058). Adicionalmente, si
+    se quiere evidencia funcional en staging para lo ya aprobado por codigo: capturas del CRUD en /shop/settings?section=variant-library
+    y del aislamiento con dos organizaciones para el escenario 10.'
+  environmentsChecked:
+    executionEnvironment: remote-source (gh pr diff de VeevartBackend#1390 y VeevartFrontend#635; ningun checkout local
+      usable)
+    backendPR: VeevartBackend#1390, feat/shop-settings-variant-library -> develop, MERGEADA 2026-08-27T20:50:14Z
+    frontendPR: VeevartFrontend#635, feat/shop-settings-variant-library -> develop, MERGEADA 2026-08-27T20:50:33Z
+    staging: 'promovido por VeevartBackend#1438 ''chore(shop): promote develop -> staging SH-1056'' (mergeada)'
+    findingsRecheckedOnStaging: NO. Los dos hallazgos son ausencias de funcionalidad declaradas en el spec.md de las propias
+      PRs, no regresiones de codigo, asi que no cambian entre develop y staging. Si se quiere confirmacion visual, se toma
+      en staging.
+  blockedScenarioDependency: 'SH-1058 ''Products - UI and Logic: choose variants when creating a product'' es el consumidor
+    del AC2 y es la PR2 de esta serie. Estado en Jira: Rejected, y SH-1056 la bloquea. El cuerpo de la PR #635 dice que
+    la PR2 tiene ''implementation complete, review pending''. Hay que resolver ese estado antes de poder cerrar los escenarios
+    4, 5 y 12.'
+  parentStoryStatusAtRun: Is Ready For QA
+  updatedBy: codex
+  updatedAt: '2026-09-04T20:15:00.000Z'

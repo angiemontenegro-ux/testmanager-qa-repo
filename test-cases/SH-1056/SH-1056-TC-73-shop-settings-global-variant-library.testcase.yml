@@ -1,0 +1,297 @@
+schemaVersion: '1.0'
+id: dee043fd-fa6b-4174-b532-d5808fcedac5
+key: TC-73
+title: 'Shop Settings global variant library: CRUD of variant types and options, and safe reuse in product creation'
+description: 'QA coverage for SH-1056 (Shop Settings - UI and Logic - create variants and options for the whole shop), tracked
+  under QA Sub-task SH-1265, epic SH-1018 (Shop 2.0 Shop Settings). IMPLEMENTATION DOMAIN: Veevart 2.0, NOT the AuctiferaDX
+  Salesforce package. Backend in VeevartBackend under domains/shop/catalog/api (variant-type and variant-type-option use
+  cases, TypeORM repositories, variant-library controller); Shop Settings UI in VeevartFrontend under apps/shared/portal/app/(dashboard)/shop/settings/variant-library
+  and packages/shop/src/products/variant-library. Shipped as VeevartBackend#1390 + VeevartFrontend#635, both merged to develop
+  2026-08-27 and promoted to staging by VeevartBackend#1438.
+
+
+  REWRITTEN 2026-09-04 (v2), after triaging TR-045. The first version was written against the story''s acceptance criteria,
+  and TR-045 came back 4/12 PASS with 4 FAIL. Every one of those four failures traced to an ACCEPTANCE CRITERION THAT THE
+  OWNER HAD ALREADY SUPERSEDED, not to a code defect - verified against origin/staging b5ab930e and the dev''s own tests,
+  and written up in attachments/sh1056-tr045-fails-triage.txt. This version tests the decisions that actually govern the
+  build, so a red result means a real problem again.
+
+
+  WHAT CHANGED AND WHY:
+
+  (1) THE SIZE COUNTER AND THE 100 LIMIT DO NOT EXIST, BY DECISION D4. It is a formal openspec requirement titled ''No Size
+  Cap'' (specs/shop-variant-library/spec.md:75), restated in proposal.md:95, with the verification task tasks.md:83 closed
+  as done (''Grep-confirmed zero cap constants/logic anywhere in the new code''). Independently confirmed: no cap constant
+  or logic exists in the catalog source. The old scenarios 7 and 8 asserted a counter reading ''Variantes: N / 100'' that
+  was never going to be built. Do not confuse this with the USAGE count, which does exist (UsageCountResponseDto.usageCount)
+  and counts products using an entry, not entries in the library.
+
+  (2) USAGE BY PRODUCTS DOES NOT GATE OR WARN ON RENAME OR DELETE, BY DECISIONS D277 AND D2. delete-variant-type.use-case.ts
+  states it outright: ''D8 superseded by D277 - product usage no longer gates a hard delete at all: a product''s option
+  COPIES the library entry''s name at creation time (design D2) and never stores its id, so deleting an in-use category
+  has zero effect on any product that already copied it.'' The dev''s frontend tests prove the shipped behaviour: ''deletes
+  a value directly on trash click, no dialog, no usage check involved'' and ''deletes an IN-USE value directly too, with
+  no usage check and no blocked/offer-deactivation dialog''. The warning the old AC3 scenarios demanded would be warning
+  about a risk that structurally cannot occur.
+
+  (3) THE WARNING DOES EXIST - ON DEACTIVATE. That path is where usage is fetched on demand, and it had no scenario at all.
+  A new one covers it.
+
+
+  OPEN RISKS THAT SURVIVE THIS REWRITE:
+
+  - The AC2 consumer is SH-1058, which is REJECTED in Jira. Scenarios 3, 4 and 11 depend on the item-wizard PR2 and stay
+  BLOCKED. If SH-1058 does not come back, they are scenarios without a subject rather than pending work, and the AC2 half
+  of this story needs a product decision - the same shape as the removed ''Members only'' switch in SH-1097. Ask before
+  re-running them.
+
+  - Two frontend docblocks are stale and actively misleading: the usage proxy routes (app/api/shop/variant-library/types/[id]/usage/route.ts
+  and .../options/[optionId]/usage/route.ts) both claim the count is fetched ''at the moment a deactivate/delete is attempted'',
+  but the dev''s tests prove delete never checks usage. Comment-only defect, no functional impact - recorded so the next
+  reader is not misled the way this triage briefly was.'
+type: functional
+priority: medium
+status: active
+format: gherkin
+preconditions:
+- SH-1056 is deployed to the target Veevart 2.0 environment (staging or UAT) and the Shop Settings module is reachable.
+- User is authenticated as a Shop Admin with permission to read and write Shop Settings.
+- The organization used for testing starts with a known variant library state (ideally empty) so counter assertions are
+  deterministic.
+- A second organization is available for the multi-tenant isolation scenario, with its own Shop Admin credentials.
+- At least one existing product is available that can be assigned variants, for the AC3 in-use scenarios.
+- The product-creation flow that consumes the global library is identified (see the SH-1058 Rejected risk in the description)
+  before running the AC2 scenarios.
+scenarios:
+- title: Creating a variant type with its options saves it to the global library
+  tags:
+  - ac-1
+  - happy-path
+  - crud-create
+  given:
+  - I am a Shop Admin in Shop Settings
+  - the "Variantes y opciones" section is available
+  - the global variant library is empty
+  when:
+  - I create a variant type "Talla" with the options S, M and L
+  - I save
+  then:
+  - '"Talla" is persisted in the global variant library with exactly three options S, M and L'
+  - the options keep the order they were entered in
+  - reloading Shop Settings still shows "Talla" with its three options
+  - NO library-size counter is expected anywhere on this screen - decision D4 ("No Size Cap") removed it, and asserting
+    one here was what made this scenario fail in TR-045
+- title: Editing a global variant type and its options persists the change
+  tags:
+  - ac-1
+  - happy-path
+  - crud-update
+  given:
+  - the global library contains a variant type "Color" with the options Rojo and Azul
+  - no product is using "Color" yet
+  when:
+  - I rename the variant type and add a third option Verde, then save
+  then:
+  - the renamed variant type and all three options are persisted
+  - the option identifiers of Rojo and Azul are preserved, so the edit is an update and not a delete-and-recreate
+  - the counter still reports the same number of variant types (an edit does not create a new one)
+- title: Removing a global variant type that no product uses deletes it cleanly
+  tags:
+  - ac-1
+  - happy-path
+  - crud-delete
+  - counter
+  given:
+  - the global library contains a variant type that is not referenced by any product
+  when:
+  - I remove that variant type from Shop Settings
+  then:
+  - the variant type and its options disappear from the library
+  - the counter decreases accordingly
+  - no other variant type in the library is affected
+- title: The global library is offered as a pick list in product creation
+  tags:
+  - ac-2
+  - integration
+  - product-creation
+  - sh-1058-dependency
+  given:
+  - the global library contains "Talla" (S, M, L) and "Color" (Rojo, Azul)
+  when:
+  - I start creating a new product and reach the variants step
+  then:
+  - both "Talla" and "Color" and all of their options are available to pick from
+  - the option labels shown match the ones saved in Shop Settings
+  - if the consuming flow is not present, the scenario is recorded as blocked and not failed (SH-1058 is Rejected - see
+    the description)
+- title: The library is only a source to pick from, never auto-instantiated as a default set
+  tags:
+  - ac-2
+  - missing-doc
+  - edge-case
+  - product-decision-2026-07-27
+  given:
+  - the global library contains several variant types with many options
+  - the AC text says variants are available 'as defaults' while the 2026-07-27 update says the library is NOT auto-instantiated
+  when:
+  - I start creating a new product and reach the variants step without selecting anything
+  then:
+  - no variant type and no option is pre-selected for the product
+  - no variant matrix or SKU row is generated from the library as a whole
+  - after I explicitly select only Talla S and Talla M, the generated matrix contains exactly those two combinations and
+    nothing else
+- title: Renaming a global variant type in use does NOT warn, and existing products are untouched
+  tags:
+  - ac-3
+  - happy-path
+  - copy-not-reference
+  - d277
+  - rewritten-2026-09-04
+  given:
+  - the global variant type "Talla" is used by at least one existing product
+  - I note the product's current variant values and SKUs before editing
+  - 'NOTE: the original AC3 demanded a warning here. Decision D2 (copy-not-reference) makes it unnecessary and D277 removed
+    usage as a gate - a product copies the label at creation and never stores the library id, so a rename cannot reach it.
+    Test the decided behaviour, not the 2026-07-27 wording.'
+  when:
+  - I rename "Talla" to "Tamaño" in Shop Settings and save
+  then:
+  - the rename is accepted with NO in-use warning and NO confirmation dialog
+  - the only rejections possible on this path are a missing entry or a duplicate name (VariantTypeNotFoundError, VariantTypeNameAlreadyExistsError)
+  - the existing product keeps its variant rows, its labels and its SKUs exactly as recorded before the edit
+  - the product detail and the product list both load without error
+  - if a warning DOES appear, that is the deviation worth reporting - it would mean usage was re-wired as a gate against
+    D277
+- title: Hard-deleting a global variant type in use succeeds with no dialog, and existing products survive
+  tags:
+  - ac-3
+  - edge-case
+  - copy-not-reference
+  - d277
+  - rewritten-2026-09-04
+  given:
+  - the global variant type "Color" is used by at least one existing product
+  - the type has no child options left, which is the ONLY precondition a hard delete has (decision D6, owner-confirmed)
+  when:
+  - I delete "Color" from the global library
+  then:
+  - the delete goes through directly, with no usage check and no in-use warning dialog - the dev pins this with "deletes
+    an IN-USE value directly too, with no usage check and no blocked/offer-deactivation dialog"
+  - the existing product's variant data is still readable and its SKUs still resolve, because the product copied the label
+    and never stored the id (D2)
+  - the product detail and the product list both load without error
+  - deleting a type that STILL HAS child options is refused with VariantTypeHasOptionsError - that is the real guard on
+    this path, and it is about options, not about product usage
+- title: There is no library-size counter and no 100-entry cap, by decision D4
+  tags:
+  - ac-1
+  - edge-case
+  - d4-no-size-cap
+  - rewritten-2026-09-04
+  given:
+  - the global variant library holds several variant types
+  - decision D4 ("No Size Cap") is a formal openspec requirement, and its verification task is closed as done
+  when:
+  - I look at the Shop Settings variant library screen and create further variant types
+  then:
+  - 'NO counter of the form "Variantes: N / 100" is rendered anywhere'
+  - creating variant types is never blocked by a size limit, and no cap constant or logic exists in the catalog source
+  - 'the count that DOES exist is a different thing: a per-entry USAGE count of how many products use an entry, not a count
+    of entries in the library'
+  - if a size counter or a cap ever appears, THAT is the deviation to report - it would contradict D4
+- title: The usage count is fetched on demand when deactivating, and only there
+  tags:
+  - ac-3
+  - happy-path
+  - usage-count
+  - deactivate
+  - rewritten-2026-09-04
+  given:
+  - a global variant type used by a known number of products
+  - 'NOTE: this scenario replaces the old "100 variant boundary" one, which had no subject after D4. It covers the path
+    where the warning the AC3 asked for actually lives.'
+  when:
+  - I deactivate that variant type from Shop Settings
+  then:
+  - the deactivate flow fetches the live usage count on demand and surfaces it to the admin before the change is committed
+  - the count is fetched at that moment and never eagerly for the whole list
+  - the same on-demand usage lookup is available per option, not only per category
+  - deactivation remains one resolution path for an in-use entry, not the only one - a hard delete is also allowed (D277)
+- title: The variant library is isolated per organization
+  tags:
+  - negative
+  - multi-tenant
+  - security
+  - missing-doc
+  given:
+  - organization A has a variant library containing "Talla" and "Color"
+  - organization B has its own separate Shop Settings
+  when:
+  - I sign in as a Shop Admin of organization B and open the "Variantes y opciones" section
+  then:
+  - none of organization A's variant types or options is visible
+  - organization B's own counter reflects only its own variant types
+  - no API response returned to organization B contains organization A's variant identifiers
+- title: Invalid variant definitions are rejected or their handling is documented
+  tags:
+  - negative
+  - validation
+  - missing-doc
+  given:
+  - the story defines no validation rules for the variant library
+  when:
+  - I try to save a variant type with no name, a variant type with zero options, two variant types with the same name, and
+    two options with the same label inside one variant type
+  then:
+  - each attempt either fails with a clear message or is accepted, and the actual behaviour is recorded per case
+  - no attempt leaves the library in a half-saved state where a variant type exists without its options
+  - no attempt corrupts the counter
+- title: An empty library is a valid state in Settings and in product creation
+  tags:
+  - negative
+  - empty-state
+  - edge-case
+  given:
+  - the global variant library has no variant types
+  when:
+  - I open the "Variantes y opciones" section and then start creating a new product
+  then:
+  - Shop Settings shows an empty state and the counter reads 0 of 100, with no error
+  - the product-creation variants step shows no library entries and still lets me define product-specific variants
+  - no crash, spinner hang, or blank screen occurs in either surface
+tags:
+- sh-1056
+- sh-1018
+- sh-1265
+- shop-settings
+- shop-2-0
+- variants
+- options
+- variant-library
+- catalog
+- multi-tenant
+- veevart-backend
+- veevart-frontend
+parameters: []
+links:
+  jira:
+  - key: SH-1056
+    url: https://veevart.atlassian.net/browse/SH-1056
+    type: story
+  - key: SH-1265
+    url: https://veevart.atlassian.net/browse/SH-1265
+    type: qa-subtask
+  - key: SH-1018
+    url: https://veevart.atlassian.net/browse/SH-1018
+    type: epic
+  - key: SH-1058
+    url: https://veevart.atlassian.net/browse/SH-1058
+    type: relates
+  external: []
+estimatedDuration: 90
+metadata:
+  createdBy: codex
+  createdAt: '2026-09-03T13:42:25Z'
+  updatedBy: codex
+  updatedAt: '2026-09-04T00:00:00Z'
+  version: 2
