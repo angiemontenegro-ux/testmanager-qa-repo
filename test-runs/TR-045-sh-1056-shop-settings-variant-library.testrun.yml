@@ -703,6 +703,8 @@ history:
   reason: Reejecucion sobre TC-73 v2. Los 4 FAIL se resolvieron como criterios obsoletos, no defectos; 0 FAIL. Sigue in-progress
     por 3 BLOCKED (SH-1058 Rejected) y 1 NOT-RUN (flujo de desactivar).
 metadata:
+  createdBy: codex
+  createdAt: '2026-09-03T13:50:00.000Z'
   parentTicket: SH-1056
   qaSubTask: SH-1265
   epic: SH-1018 Shop 2.0 Shop Settings
