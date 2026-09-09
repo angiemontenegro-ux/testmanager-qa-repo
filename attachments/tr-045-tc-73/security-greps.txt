@@ -1,0 +1,76 @@
+SECURITY REGRESSION - grep battery sobre los diffs de VeevartBackend#1390 y VeevartFrontend#635
+Fecha: 2026-09-03. Fuente: gh pr diff (no checkout local).
+
+== S1. SQL por concatenacion de strings ==
+1037:+      `Variant category '${name}' cannot be deleted because it still has ${optionCount} option(s). Remove or relocate them first.`,
+4105:+      `INSERT INTO ${SCHEMA}.products (id, tenant_id, name, handle, base_price, status)
+4110:+      `INSERT INTO ${SCHEMA}.product_options (id, tenant_id, product_id, name, position)
+4115:+      `INSERT INTO ${SCHEMA}.product_option_values (id, tenant_id, option_id, value, position)
+4166:+      .delete(`/v1/variant-library/types/${typeId}/options/${small.body.id}`)
+4170:+      .delete(`/v1/variant-library/types/${typeId}/options/${medium.body.id}`)
+4174:+      .delete(`/v1/variant-library/types/${typeId}`)
+4205:+      .delete(`/v1/variant-library/types/${typeId}`)
+4224:+      .delete(`/v1/variant-library/types/${typeId}/options/${optionId}`)
+4232:+      .delete(`/v1/variant-library/types/${typeId}`)
+(vacio arriba = sin concatenacion; TypeORM usa :params nombrados)
+-- uso de parametros nombrados en el repo BE --
+8
+-- query raw / manager.query --
+2030:+    await queryRunner.query(`
+2039:+    await queryRunner.query(
+2042:+    await queryRunner.query(
+2046:+    await queryRunner.query(`
+2057:+    await queryRunner.query(
+
+== S2. Secretos en el diff ==
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:1468:+import { ApiKeyOrCanonicalJwtGuard } from './guards/api-key-or-canonical-jwt.guard';
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:1532:+    'Tenant id for api-key callers. Ignored when a canonical JWT is presented (the verified claim wins); if sent alongside a JWT it must match the claim.',
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:1534:+@UseGuards(ApiKeyOrCanonicalJwtGuard)
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:4013:+import { ApiKeyOrCanonicalJwtGuard } from '../../src/infrastructure/entrypoints/api/guards/api-key-or-canonical-jwt.guard';
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:4069:+      .overrideGuard(ApiKeyOrCanonicalJwtGuard)
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:5164:+`ApiKeyOrCanonicalJwtGuard` are reused verbatim. The reorder requirement reuses
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:5287:+- Reuse `resolveCatalogTenantId` + `ApiKeyOrCanonicalJwtGuard`.
+/private/tmp/claude-501/-Users-veevart-Downloads-AuctiferaDX-main/cfec7009-fa1f-4f7b-8ba7-0b87a9ce5b38/scratchpad/tc73/be-1390.diff:5539:+- [x] 5.2 GREEN `variant-library.controller.ts`: `v1/variant-library` — types CRUD, nested `types/:id/options/*` CRUD + reorder, 2 usage-count GETs, `/active`; reuse `resolveCatalogTenantId` + `ApiKeyOrCanonicalJwtGuard`.
+(vacio = sin secretos)
+
+== S3. PII en logs ==
+(vacio = sin PII en logs)
+
+== S4. Auth / RBAC / guards tocados ==
+125:+ * Persistence contract for tenant-scoped VariantTypeOption aggregates — Shop
+134:+   * Case-insensitive lookup by label, scoped to ONE category, never
+160:+   * case-insensitively matches this option's label, scoped to the tenant —
+161:+   * a tenant-wide text match, never scoped to the parent category and never
+194:+ * Persistence contract for tenant-scoped VariantType (variant category)
+225:+   * scoped to the tenant. A text match, never a foreign key (design D2).
+1534:+@UseGuards(ApiKeyOrCanonicalJwtGuard)
+2011:+ * indexes on those tables are scoped per-parent (`product_id` /
+2072:+    // query scoped only by tenant.
+2186:+   * Case-insensitive, scoped to ONE category — backed by
+
+== S5. XSS / inyeccion en UI ==
+4348:+            const usageMatch = /\/options\/([^/]+)\/usage$/.exec(path);
+7177:+            const usageMatch = /^\/shop\/variant-library\/types\/([^/]+)\/usage$/.exec(path);
+7182:+            const optionsMatch = /^\/shop\/variant-library\/types\/([^/]+)\/options$/.exec(path);
+7879:+            const usageOptionMatch = /\/options\/([^/]+)\/usage$/.exec(path);
+(vacio = sin vectores de inyeccion en la UI)
+
+== S6. Dependencias nuevas ==
++        "./products/variant-library": "./src/products/variant-library/index.ts",
++        "./products/variant-library/messages/en": "./src/products/variant-library/messages/en.json",
++        "./products/variant-library/messages/fr": "./src/products/variant-library/messages/fr.json",
++        "@dnd-kit/core": ">=6.3.1",
++        "@dnd-kit/modifiers": ">=9.0.0",
++        "@dnd-kit/sortable": ">=10.0.0",
++        "@dnd-kit/utilities": ">=3.2.2",
+-- package.json del BE tocado? --
+0
+
+== S7. Aislamiento multi-tenant ==
+menciones de tenantId en el diff BE: 286
+todas las clausulas where de los repos llevan tenantId (verificado a mano, ver regression-results.txt)
+1470:+  resolveCatalogTenantId,
+1566:+    const tenantId = resolveCatalogTenantId(request, tenantHeader);
+1580:+    const tenantId = resolveCatalogTenantId(request, tenantHeader);
+1595:+    const tenantId = resolveCatalogTenantId(request, tenantHeader);
+1624:+    const tenantId = resolveCatalogTenantId(request, tenantHeader);

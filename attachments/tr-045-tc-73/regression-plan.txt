@@ -1,0 +1,28 @@
+PLAN DE REGRESION — TECNICA + SEGURIDAD
+TC-73 / TR-045 · SH-1056 · VeevartBackend#1390 + VeevartFrontend#635
+Fecha: 2026-09-03
+
+HECHO QUE ACOTA TODO EL PLAN: el backend es una ADICION PURA (+5162 / -0). Ningun archivo
+existente cambia de comportamiento; app.module.ts solo agrega imports, entities y providers.
+Toda la superficie de regresion real del backend son (a) el wiring del modulo y (b) la migracion.
+En el frontend solo 8 archivos tienen lineas borradas, 29 lineas en total, y ahi si hay
+regresion real: dos pantallas de Settings YA EN PRODUCCION se convirtieron en redirects.
+
+| # | Item | Tipo | Riesgo | Metodo de chequeo | Veredicto |
+|---|---|---|---|---|---|
+| T1 | /shop/settings/categories deja de renderizar CategoriesSettingsPage y pasa a redirect | Tecnica | Medium | leer el nuevo page.tsx + su test de redirect | TBD |
+| T2 | /shop/settings/locations idem | Tecnica | Medium | leer el nuevo page.tsx + su test de redirect | TBD |
+| T3 | nav-items.ts borra 3 hojas planas del sidebar (Locations entre ellas) | Tecnica | Medium | diff de nav-items.ts + nav-items.test.ts | TBD |
+| T4 | claves i18n movidas entre messages-en/fr y nav.json (riesgo de clave colgante) | Tecnica | Low | message-registry.test.ts + messages-parity.test.ts | TBD |
+| T5 | migracion crea 2 INDEX sobre tablas EXISTENTES (product_options, product_option_values) | Tecnica | Medium | leer la migracion; evaluar bloqueo de escritura en el deploy | TBD |
+| T6 | app.module.ts: 2 entities nuevas en el DataSource del modulo catalog | Tecnica | Low | diff de app.module.ts + CI (Build/Typecheck) | TBD |
+| T7 | el endpoint /active del item wizard hacia N+1 (1 query por categoria) | Tecnica | Medium | historial de review de la PR + get-active-variant-library.use-case | TBD |
+| S1 | SQL por concatenacion de strings en el codigo nuevo | Seguridad | High | grep de patrones SELECT/INSERT/UPDATE/DELETE + concatenacion | TBD |
+| S2 | Secretos, tokens o claves en el diff | Seguridad | High | grep password/api_key/secret/bearer/BEGIN/AKIA | TBD |
+| S3 | PII en logs nuevos | Seguridad | Medium | grep console/logger junto a email/phone/ssn/dob/address | TBD |
+| S4 | Guards / RBAC: los 11 endpoints nuevos quedan autenticados y tenant-scoped | Seguridad | High | leer variant-library.controller.ts (UseGuards + resolveCatalogTenantId) | TBD |
+| S5 | IDOR en las rutas anidadas types/:id/options/:optionId | Seguridad | High | leer el controller + los tests de validacion del padre en la URL | TBD |
+| S6 | XSS / inyeccion en la UI nueva (dangerouslySetInnerHTML, v-html, eval) | Seguridad | Medium | grep sobre el diff del frontend | TBD |
+| S7 | 4 dependencias nuevas @dnd-kit/* | Seguridad | Medium | GitHub Advisory DB por paquete (con control de validez) | TBD |
+| S8 | Aislamiento multi-tenant en cada query de los 2 repositorios nuevos | Seguridad | High | leer todas las clausulas where + tests cross-tenant del dev | TBD |
+| S9 | SSRF en las 7 rutas proxy del portal (fetch server-side hacia el backend) | Seguridad | Medium | leer como se construye la URL en las route.ts | TBD |

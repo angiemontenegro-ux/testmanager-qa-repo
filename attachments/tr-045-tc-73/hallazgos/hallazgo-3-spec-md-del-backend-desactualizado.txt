@@ -1,0 +1,32 @@
+HALLAZGO 3 — El spec.md del backend quedo documentando la conducta D8 que su propio codigo ya no tiene
+Severidad propuesta: Low (documentacion)  ·  No afecta ningun escenario del TC-73
+
+En la MISMA PR #1390 conviven dos versiones de la regla de borrado:
+
+CODIGO (vigente, D277) — src/application/use-cases/delete-variant-type.use-case.ts:
+  "Hard-deletes a variant category once the ONLY remaining precondition holds (design D6,
+   owner-confirmed): zero child options. D8 superseded by D277 — product usage no longer gates
+   a hard delete at all"
+  y el metodo execute() solo chequea countOptionsForType > 0. No hay chequeo de uso por producto.
+
+DOCUMENTACION (obsoleta, D8) — openspec/changes/shop-settings-variant-library/specs/
+shop-variant-library/spec.md, requerimiento "Delete or Deactivate-Only Based on Usage":
+  "The system MUST hard-delete a category or option only when referenced by NO product, counting
+   a reference from a product of ANY status. Otherwise it MUST refuse hard delete and allow
+   deactivation only."
+  con el escenario "Archived-only reference still blocks deletion ... THEN the system refuses
+  deletion", que el codigo actual NO cumple (y no debe cumplir).
+
+POR QUE PASO: la enmienda D277 se registro en design.md (commit 8c68493b7, "docs — records D8
+superseded-by-D277 in design.md") pero no se propago al spec.md del mismo change.
+
+CONTRASTE: el frontend SI lo corrigio. Su spec.md tiene el requerimiento
+"Hard delete is unconditional (D277 supersedes D8)" y ademas dejo anotado el desalineado
+cross-repo que existia en ese momento.
+
+IMPACTO: cero funcional. El riesgo es que el proximo que lea el spec.md del backend como fuente
+de verdad reimplemente la puerta de uso que el owner ya descarto — exactamente el error que la
+propia PR del frontend documenta haber detectado una vez.
+
+QUE CERRARIA ESTO: reescribir ese requerimiento del spec.md del backend igual que se hizo en el
+frontend. Cambio de una sola seccion de markdown.

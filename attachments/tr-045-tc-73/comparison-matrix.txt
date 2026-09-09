@@ -1,0 +1,24 @@
+MATRIZ TICKET vs IMPLEMENTACION (equivalente a la matriz de comparacion, para una PR sin SQL ni carga de datos)
+TC-73 / TR-045 · SH-1056
+
+| Item del ticket | Metrica | Esperado por SH-1056 | Implementado (PR #1390 + #635) | Delta | AC | Veredicto |
+|---|---|---|---|---|---|---|
+| Seccion "Variantes y opciones" en Shop Settings | existe | si | si, como panel del hub /shop/settings?section=variant-library | 0 | AC1 | PASS |
+| CRUD de tipos de variante | operaciones | crear, editar, eliminar | crear, renombrar, activar/desactivar, eliminar (D6: primero los valores) | +2 (toggle activo, reorder) | AC1 | PASS |
+| CRUD de opciones | operaciones | crear, editar, eliminar | crear (lote con coma), renombrar inline, activar/desactivar, eliminar, reordenar | +2 | AC1 | PASS |
+| Forma de dato variant_library[{id,name,options:[{id,label}]}] | tablas | 1 estructura anidada | 2 tablas: shop_variant_types + shop_variant_type_options (FK RESTRICT) | equivalente | AC1 | PASS |
+| Contador "Variantes: N / 100" | existe | si | NO existe ninguna clave ni componente | -1 (ausente) | AC1 | FAIL (hallazgo 1) |
+| Limite visual 100 | tope | 100 | ninguno; el spec declara "No Size Cap" y valida crear la 201 | sin tope | AC1 | FAIL (hallazgo 1) |
+| Biblioteca disponible para elegir al crear producto | endpoint de lectura | si | GET /v1/variant-library/active, solo activos, con id por opcion | 0 | AC2 | PASS (backend) |
+| Picker en la UI de creacion de producto | existe | si | NO en esta PR: es la PR2 / SH-1058 (Rejected en Jira) | fuera de alcance | AC2 | BLOCKED |
+| La biblioteca NO se auto-instancia como set por defecto | conducta | no auto-instanciar | por diseno D2 + D277 (multi-select explicito), verificable solo con la PR2 | no verificable aqui | AC2 | BLOCKED |
+| Advertencia al editar una variante en uso | dialogo | si | NO en renombrar (edicion inline, sin dialogo) | -1 | AC3 | FAIL (hallazgo 2) |
+| Advertencia al eliminar una variante en uso | dialogo | si | NO: borrado directo, sin chequeo de uso (D277) | -1 | AC3 | FAIL (hallazgo 2) |
+| Advertencia al desactivar una variante en uso | dialogo | no pedido | SI, con conteo de uso vivo | +1 | AC3 | PASS (extra) |
+| Los productos existentes no se rompen | integridad | no romper | garantizado por D2: el producto copia el texto, nunca el id | 0 | AC3 | PASS |
+| Multi-tenant por organizacion | aislamiento | si | tenant en cada query, 404 cross-tenant, guard por clase, e2e de aislamiento | 0 | (sin AC) | PASS |
+| Validaciones | reglas | no especificadas | no vacio, trim, tope 80 chars, duplicado case-insensitive (tenant-wide en categoria, por-categoria en opcion), 409 mapeado incluso en carrera concurrente | +5 | (sin AC) | PASS |
+| Estado vacio | pantalla | no especificado | empty state con copy de accion, en categorias y en valores | +1 | (sin AC) | PASS |
+
+TOTALES: 11 PASS · 4 FAIL (2 causas raiz) · 3 BLOCKED (todos por depender de la PR2 / SH-1058)
+Ningun delta quedo sin mapear a un AC o a un hallazgo.

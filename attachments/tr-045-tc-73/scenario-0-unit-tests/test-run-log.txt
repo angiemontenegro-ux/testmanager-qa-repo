@@ -1,0 +1,40 @@
+EJECUCION DE LA SUITE — DECLARACION EXPLICITA
+
+La suite NO se corrio localmente en este run.
+
+Motivo (modo remote-only del skill, paso 4):
+- VeevartBackend en disco (~/Downloads/VeevartBackend) esta en 5032509c del 2026-08-04, un mes
+  anterior al merge de la PR #1390 (2026-08-27). No contiene el modulo variant-library.
+- El clon de VeevartFrontend (~/Downloads/_clones/VeevartFrontend) tiene los refs remote-tracking
+  congelados y no es confiable para estado de ramas.
+- Clonar dos monorepos completos solo para correr la suite excede el costo razonable de este run.
+
+Evidencia usada en su lugar:
+1. Codigo fuente leido directamente del diff de cada PR (gh pr diff), guardado en disco.
+2. Tests del dev leidos y mapeados a los AC (ver coverage-matrix.txt).
+3. Estado de CI de ambas PRs (gh pr checks), verificado el 2026-09-03:
+
+   VeevartBackend#1390
+     backend-ci / Test        pass   5m56s
+     backend-ci / Lint        pass   1m58s
+     backend-ci / Typecheck   pass   1m35s
+     backend-ci / Build       pass   1m39s
+     backend-ci / CI          pass   3s
+     CDK governance (read-only synth)          pass  1m24s
+     Every in-code event has a sidecar         pass  9s
+     Reconcile catalog vs code                 pass  11s
+     AWS CodeBuild us-east-1 (veevart-latest)  pass
+
+   VeevartFrontend#635
+     lint                                      pass  17m20s
+     AWS CodeBuild us-east-1 (veevart-latest)  pass
+     cleanup-* (membership/pay-by-link/programs/shells)  skipping (teardown de shells efimeros, esperado)
+
+4. Plan de pruebas declarado por el dev en la PR #1390:
+   "pnpm nx test shop-catalog-api --skip-nx-cache — 164 archivos / 1773 tests, all green
+    (re-run fresh, not from cache, twice by the reviewer)" y, tras la enmienda D277,
+   "1760 passed + 13 skipped (1773 total, unchanged count), fresh re-run confirmed".
+   Esto es declaracion del dev respaldada por el job verde de CI, no ejecucion propia de QA.
+
+NINGUN veredicto de este test run afirma haber corrido la suite. Donde un escenario dice "passed",
+la prueba es el codigo fuente mas el test del dev citado por nombre, mas CI verde.

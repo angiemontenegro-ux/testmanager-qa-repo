@@ -1,0 +1,52 @@
+TESTS DEL DEV EN LAS PRS DE SH-1056
+Fuente: gh pr diff (modo remote-only: ninguno de los dos repos esta usable localmente).
+Fecha: 2026-09-03.
+
+== VeevartBackend#1390 (+5162 / -0) ==
+23 archivos de test nuevos, 94 bloques it(...) en el diff.
+
+test/domain/variant-type.spec.ts                                              dominio: invariantes de la categoria
+test/domain/variant-type-option.spec.ts                                       dominio: invariantes de la opcion
+test/application/use-cases/create-variant-type.use-case.spec.ts               crear categoria (duplicado case-insensitive tenant-wide)
+test/application/use-cases/create-variant-type-option.use-case.spec.ts        crear opcion (duplicado por categoria, no tenant-wide)
+test/application/use-cases/update-variant-type.use-case.spec.ts               rename + toggle active
+test/application/use-cases/update-variant-type-option.use-case.spec.ts        rename + toggle active de la opcion
+test/application/use-cases/delete-variant-type.use-case.spec.ts               D6 + D277 (borra aunque este en uso)
+test/application/use-cases/delete-variant-type-option.use-case.spec.ts        D277 a nivel de opcion
+test/application/use-cases/list-variant-type.use-case.spec.ts                 listado activos + inactivos
+test/application/use-cases/list-variant-type-option.use-case.spec.ts          listado de opciones de una categoria
+test/application/use-cases/get-active-variant-library.use-case.spec.ts        endpoint /active del item wizard
+test/application/use-cases/get-usage-variant-type.use-case.spec.ts            conteo de uso por nombre
+test/application/use-cases/get-usage-variant-type-option.use-case.spec.ts     conteo de uso por label
+test/application/use-cases/reorder-variant-type-option.use-case.spec.ts       reorder de set completo
+test/infrastructure/variant-library.controller-error-mapping.spec.ts          mapeo de errores de dominio a codigos HTTP
+test/infrastructure/persistence/repositories/*.integration.spec.ts            3 archivos, Testcontainers Postgres real
+test/infrastructure/persistence/repositories/variant-type-option-reorder-permutation.integration.spec.ts   permutacion completa con constraint DEFERRABLE
+test/e2e/variant-library.e2e-spec.ts                                          CRUD end-to-end, 409, /active, aislamiento entre tenants
+
+== VeevartFrontend#635 (+10364 / -29) ==
+41 archivos de test, 212 bloques it(...) en el diff.
+
+packages/shop/src/products/variant-library/hooks/*.test.tsx                   11 hooks (create/rename/delete/deactivate/add-values/reorder/queries)
+packages/shop/src/products/variant-library/api/*.test.ts                      cliente HTTP, mapeo de ApiError, cliente de categorias
+packages/shop/src/products/variant-library/components/VariantLibrarySettingsPage.test.tsx   pantalla de categorias
+packages/shop/src/products/variant-library/components/CategoryValuesPanel.test.tsx          panel de valores (chips inline)
+packages/shop/src/products/variant-library/components/DeactivateCategoryDialog.test.tsx     dialogo de desactivacion con conteo de uso
+packages/shop/src/products/variant-library/components/DeactivateValueDialog.test.tsx        idem a nivel de valor
+packages/shop/src/products/variant-library/schemas/option-category.ts (+tests)             validacion: no vacio, trim, tope 80 chars
+apps/shared/portal/app/api/shop/variant-library/**/route.test.ts              7 rutas proxy del portal (ADR-0017)
+apps/shared/portal/features/shop/settings/**                                  hub de Settings, sidebar, seccion activa
+apps/shared/portal/i18n/message-registry.test.ts + messages-parity.test.ts    paridad en/fr de las claves nuevas
+
+== CI ==
+BE #1390: backend-ci / Test PASS (5m56s), Lint PASS, Typecheck PASS, Build PASS, CDK governance PASS,
+          "Every in-code event has a sidecar" PASS, "Reconcile catalog vs code" PASS.
+          Plan de pruebas declarado en la PR: pnpm nx test shop-catalog-api --skip-nx-cache
+          -> 164 archivos / 1773 tests, 1760 pasados + 13 skipped, re-corridos en fresco dos veces.
+FE #635 : lint PASS (17m20s), AWS CodeBuild PASS. Los jobs de cleanup-* quedan en "skipping" (esperado,
+          son teardown de shells efimeros por issue-key).
+
+NOTA IMPORTANTE: la suite NO se corrio localmente. VeevartBackend en disco esta en un commit del
+2026-08-04 (un mes atras) y el clon de VeevartFrontend tiene los refs remotos congelados. Los veredictos
+de este run derivan de: (a) lectura del codigo fuente en el diff de la PR, (b) lectura de los tests del
+dev y sus aserciones, (c) el estado de CI de ambas PRs. No hay ejecucion local de la suite ni navegador.

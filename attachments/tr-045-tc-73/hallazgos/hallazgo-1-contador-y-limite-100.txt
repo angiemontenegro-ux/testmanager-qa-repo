@@ -1,0 +1,41 @@
+HALLAZGO 1 — El contador "Variantes: N / 100" y el limite de 100 NO se construyeron
+Severidad propuesta: Low  ·  Causa raiz de los FAIL de los escenarios 1 y 8, y del skipped del 9
+
+QUE PIDE EL TICKET (SH-1056, seccion DESIGN SPECIFICATIONS):
+  "A counter shown as 'Variantes: N / 100' (visual limit 100)."
+y en el AC1:
+  "Then it is saved to the global library / And the counter increases accordingly"
+
+QUE SE CONSTRUYO:
+  Nada de contador y ningun tope.
+
+EVIDENCIA:
+1. packages/shop/src/products/variant-library/messages/en.json no tiene NINGUNA clave de
+   contador. El arbol completo de claves es: sectionTitle, sectionDescription, newButton,
+   toolbar.*, list.{empty,emptyAction,noResults,aria}, category.*, status.*, modal.*, errors.*,
+   toasts.*. Ni "counter", ni "of 100", ni "N / 100", ni "variantCount".
+2. El spec.md del backend (openspec/changes/shop-settings-variant-library/specs/
+   shop-variant-library/spec.md) tiene un requerimiento titulado literalmente "No Size Cap":
+     "The system MUST NOT enforce any maximum on the number of categories, or options per category."
+   con el escenario: "GIVEN a tenant already has 200 categories WHEN the Store Manager creates a
+   201st THEN the creation succeeds".
+3. El spec.md del frontend tiene el requerimiento equivalente: "No size cap on the library".
+4. El cuerpo de la PR #1390 lo dice explicitamente:
+     "No size cap anywhere on the library (owner-confirmed) — the existing per-product
+      combination cap is a separate, unrelated concept."
+
+OJO CON EL FALSO POSITIVO: si se busca "100" en el diff del frontend SI aparece, pero es OTRA
+cosa. Los hits estan en documentos de openspec sobre la PR2 / SH-1058 y se refieren al
+"pre-generation combination counter" del item wizard, con MAX_VARIANTS (100) y MAX_OPTIONS (3):
+es el tope de COMBINACIONES POR PRODUCTO, no el tamano de la biblioteca global. La propia PR
+aclara que son conceptos distintos y sin relacion.
+
+LECTURA:
+No es un olvido del dev ni falta de tests. Es una decision del owner ("owner-confirmed") que
+quedo registrada en los dos spec.md y en el codigo, pero que NUNCA se reflejo en el ticket de
+Jira. El desalineado esta entre SH-1056 y la decision del owner.
+
+QUE CERRARIA ESTO (una de las dos, es decision de producto, no de QA):
+  (a) Actualizar SH-1056: quitar el contador y el limite 100 de DESIGN SPECIFICATIONS y la
+      frase "And the counter increases accordingly" del AC1. Cero cambio de codigo.
+  (b) Construir el contador (sin tope, o con el tope que decida producto).

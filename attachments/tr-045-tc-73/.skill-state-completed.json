@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "skill": "qa-test-executor",
+  "parentKey": "SH-1056",
+  "tcKey": "TC-73",
+  "trKey": "TR-045",
+  "prNumber": "VeevartBackend#1390 + VeevartFrontend#635",
+  "startedAt": "2026-09-03T13:50:00Z",
+  "lastUpdated": "2026-09-03T14:25:00Z",
+  "status": "completed",
+  "completedSteps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "currentStep": 12,
+  "data": {
+    "classification": {
+      "category": "Mixed (backend API + frontend UI, remote-only)",
+      "rationale": "BE #1390 +5162/-0 (NestJS/TypeORM, 2 new tables, CRUD controller) merged to develop 2026-08-27; FE #635 +10364/-29 (Next.js portal Shop Settings hub + variant-library CRUD) merged same minute. No SQL-extraction, no Salesforce metadata: no safesql, no sandbox load. Neither repo usable locally (VeevartBackend checkout 2026-08-04 stale; VeevartFrontend clone has frozen remote refs) -> remote-only PR mode per skill Step 4."
+    },
+    "prs": {
+      "be": {
+        "num": 1390,
+        "url": "https://github.com/Veevarts/VeevartBackend/pull/1390",
+        "merged": "2026-08-27T20:50:14Z",
+        "base": "develop",
+        "head": "feat/shop-settings-variant-library"
+      },
+      "fe": {
+        "num": 635,
+        "url": "https://github.com/Veevarts/VeevartFrontend/pull/635",
+        "merged": "2026-08-27T20:50:33Z",
+        "base": "develop",
+        "head": "feat/shop-settings-variant-library"
+      },
+      "promotion": {
+        "num": 1438,
+        "note": "chore(shop): promote develop -> staging SH-1056, merged"
+      }
+    },
+    "earlyFindings": [
+      "PR states 'No size cap anywhere on the library (owner-confirmed)' -> story's 'Variantes: N / 100' counter+limit likely NOT implemented",
+      "D8 superseded by D277: hard delete is UNCONDITIONAL, no usage gate, no confirmation dialog -> AC3 'a warning is shown' mechanism dropped by owner decision; products COPY the name/value text (D2), never reference the row id, so deletion cannot break products",
+      "AC2 consumer is SH-1058 = FE PR2 (item-wizard picker), separate stacked PR, and SH-1058 is Rejected in Jira -> scenarios 4/5 out of scope of this PR",
+      "DeactivateCategoryDialog/DeactivateValueDialog exist -> confirmation exists for DEACTIVATE but not for DELETE",
+      "BE E2E covers cross-tenant isolation; review reports 0 findings on tenant leak risk"
+    ],
+    "trTemplate": "test-runs/TR-043-sh-1096-unified-wizard-shell.testrun.yml",
+    "diffPaths": {
+      "be": "scratchpad/tc73/be-1390.diff",
+      "fe": "scratchpad/tc73/fe-635.diff"
+    },
+    "runFolder": "attachments/tr-045-tc-73",
+    "summary": {
+      "total": 12,
+      "passed": 4,
+      "failed": 4,
+      "blocked": 3,
+      "skipped": 1,
+      "passRate": 33
+    },
+    "technicalRegression": "7/7 PASS (T5 con observacion)",
+    "securityRegression": "9/9 PASS, 0 bloqueadores",
+    "owasp": {
+      "applicable": 6,
+      "pass": 6,
+      "fail": 0,
+      "na": 4
+    },
+    "defectsRaised": [],
+    "pendingAdjudication": "4 FAIL de baja severidad, 2 causas raiz; radicacion en Jira espera decision de Angie (regla 7b)",
+    "commitHeld": "SI - regla 10: el commit espera la adjudicacion de los FAIL",
+    "testRunPath": "test-runs/TR-045-sh-1056-shop-settings-variant-library.testrun.yml",
+    "keyCollision": "TR-044 quedo tomada por una corrida PARALELA de SH-1097 (TC-51/52/53) que estaba escribiendo attachments/tr-044-sh-1097 a las 08:57-09:00 del 2026-09-03. Se movio esta corrida a TR-045 porque la otra seguia en vuelo y su nombre de carpeta ya estaba embebido en la evidencia que generaba."
+  }
+}

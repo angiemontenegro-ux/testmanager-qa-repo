@@ -1,0 +1,128 @@
+RESULTADOS DE REGRESION — TECNICA + SEGURIDAD
+TC-73 / TR-045 · SH-1056 · VeevartBackend#1390 + VeevartFrontend#635
+Fecha: 2026-09-03. Metodo: lectura de codigo fuente en el diff + tests del dev + CI. Sin ejecucion local.
+
+== TECNICA: 7/7 sin regresion (1 con observacion operativa) ==
+
+T1  /shop/settings/categories -> redirect                                   PASS
+    page.tsx ahora hace redirect('/shop/settings?section=categories'). La pantalla no se borro:
+    CategoriesSettingsPage sigue existiendo y la renderiza el hub. Test del dev:
+    "redirects to the settings shell with the categories section pre-selected". Enlaces y
+    bookmarks viejos siguen funcionando.
+
+T2  /shop/settings/locations -> redirect                                     PASS
+    Identico, con su propio test: "redirects to the settings shell with the locations section
+    pre-selected".
+
+T3  nav-items.ts borra la hoja plana de Locations                            PASS
+    nav-items.test.ts asserta el estado final explicitamente: "carries exactly one
+    settings-related leaf: shop.settings", "does not carry standalone shop.locations or
+    shop.variant-library leaves", "points shop.settings at the consolidated settings hub route".
+    Regresion cubierta por test, no por inspeccion mia solamente.
+
+T4  claves i18n movidas (en/fr + nav.json)                                   PASS
+    message-registry.test.ts y messages-parity.test.ts cubren el arbol de claves y la paridad
+    en/fr. La PR ademas borro 5 claves i18n muertas del diseno anterior (rename por modal y
+    badge de uso eager), verificado en el historial de la PR.
+
+T5  migracion crea 2 INDEX sobre tablas EXISTENTES                          PASS CON OBSERVACION
+    1717200000000-AddVariantLibrary.ts crea, ademas de las 2 tablas nuevas:
+      CREATE INDEX idx_product_options_tenant_name       ON product_options (tenant_id, lower(name))
+      CREATE INDEX idx_product_option_values_tenant_value ON product_option_values (tenant_id, lower(value))
+    Ambos son CREATE INDEX simple, NO CONCURRENTLY, y una migracion de TypeORM corre dentro de
+    una transaccion (CONCURRENTLY no puede correr en transaccion, asi que esto es un tradeoff
+    conocido, no un descuido). Efecto: durante el deploy toma un lock ACCESS EXCLUSIVE sobre
+    product_options y product_option_values mientras construye el indice, o sea una pausa de
+    lectura/escritura en el catalogo de opciones de producto proporcional al tamano de esas
+    tablas en el tenant mas grande.
+    Esto NO lo ve ningun test: los Testcontainers arrancan con las tablas vacias.
+    No es un fallo de AC ni de seguridad. Es una nota de ventana de deploy. Las PRs ya se
+    promovieron a staging (PR #1438), asi que en staging la migracion ya corrio.
+
+T6  app.module.ts: 2 entities nuevas en el DataSource del modulo             PASS
+    Solo agrega imports, 2 entities, 1 controller y los providers de los 2 puertos con useFactory.
+    Ninguna linea existente modificada. CI: Build, Typecheck y Test verdes.
+
+T7  /active hacia N+1 (1 query por categoria)                                PASS
+    Corregido en la ronda 1 de review: get-active-variant-library.use-case ahora hace UNA
+    llamada batch findActiveByVariantTypeIds(activeTypes.map(t => t.id)) y agrupa en memoria.
+    Observacion ligada a T5/A04: como el spec declara "No Size Cap", el payload de /active
+    crece linealmente con el numero de categorias del tenant, sin tope. Con 200+ categorias
+    (caso que el propio spec declara valido) es una respuesta grande en una sola llamada.
+    Aceptado por el owner, se deja registrado.
+
+== SEGURIDAD: 9/9 PASS · 0 bloqueadores High/Critical ==
+
+S1  SQL por concatenacion                                                    PASS
+    Los repositorios usan QueryBuilder con parametros nombrados
+    (.where('vt.tenant_id = :tenantId', { tenantId }).andWhere('LOWER(vt.name) = LOWER(:name)', ...))
+    y find/findOne con objetos where. Los unicos template literals con SQL son:
+    (a) el DDL de la migracion, sin ninguna entrada de usuario;
+    (b) los INSERT de fixtures dentro de test/e2e/variant-library.e2e-spec.ts.
+    Ninguno en camino de produccion con input del cliente. Ver security-greps.txt seccion S1.
+
+S2  Secretos en el diff                                                      PASS
+    Cero. Los hits del grep son el nombre de la clase ApiKeyOrCanonicalJwtGuard y su
+    documentacion. Sin claves, tokens, .env ni bloques BEGIN.
+
+S3  PII en logs                                                              PASS
+    Cero coincidencias. De hecho la PR no agrega NINGUN logging (ver A09).
+
+S4  Guards / autenticacion de los endpoints nuevos                           PASS
+    variant-library.controller.ts lleva @UseGuards(ApiKeyOrCanonicalJwtGuard) a nivel de clase,
+    o sea cubre los 11 endpoints. El guard es reutilizado verbatim, no modificado.
+    El tenant se resuelve con resolveCatalogTenantId(request, tenantHeader) en CADA metodo, y la
+    regla documentada es: el header de tenant solo aplica a llamadores con api-key; si viene un
+    JWT canonico gana el claim verificado, y si llegan ambos tienen que coincidir. En el portal,
+    las 7 rutas proxy toman el tenantId de session.tenantId (server-side), nunca del cliente, y
+    devuelven 401 si no hay sesion.
+
+S5  IDOR en rutas anidadas types/:id/options/:optionId                       PASS
+    Era un hallazgo real de la ronda 1 de review y esta cerrado: tres use cases validan
+    if (!option || option.variantTypeId !== variantTypeId) throw VariantTypeOptionNotFoundError.
+    Tests del dev: "refuses PATCH/DELETE/usage on an option when the URL names a DIFFERENT
+    category than the option's own", "Fix #1: deleteVariantTypeOption threads the URL category
+    id into the use case", idem para getVariantTypeOptionUsage.
+
+S6  XSS / inyeccion en la UI                                                 PASS
+    Cero dangerouslySetInnerHTML, v-html, eval(, new Function(, document.write, child_process.
+    Los unicos hits del grep son expresiones regulares de test que parsean paths de mock.
+
+S7  Dependencias nuevas @dnd-kit/*                                           PASS
+    4 paquetes en packages/shop/package.json: @dnd-kit/core >=6.3.1, @dnd-kit/sortable >=10.0.0,
+    @dnd-kit/modifiers >=9.0.0, @dnd-kit/utilities >=3.2.2.
+    Consulta a la GitHub Advisory DB (ecosystem=npm) por cada uno: cero advisories.
+    CONTROL DE VALIDEZ: la misma consulta con affects=lodash devuelve 3 advisories
+    (GHSA-r5fr-rjxr-66jc high, GHSA-f23m-r3pf-42rh medium, GHSA-xxjr-mmjv-4gpg medium), asi que
+    el endpoint si responde y el "cero" de @dnd-kit no es un falso negativo por consulta vacia.
+    Versiones actuales en el registro: @dnd-kit/core 6.3.1, @dnd-kit/sortable 10.0.0 — los pisos
+    declarados son los ultimos publicados.
+    Observacion de higiene: los rangos son ">=" (piso sin techo). No es una vulnerabilidad, pero
+    deja la puerta abierta a que un major futuro entre sin revision. No se abre defecto.
+    No se pudo correr npm audit: el repo no esta clonado localmente (modo remote-only).
+
+S8  Aislamiento multi-tenant en cada query                                   PASS
+    286 menciones de tenantId en el diff del backend. Revisadas a mano todas las clausulas de los
+    dos repositorios nuevos: find({ where: { tenantId } }), findOne({ where: { id, tenantId } }),
+    .where('vt.tenant_id = :tenantId'), .where('po.tenant_id = :tenantId'),
+    count({ where: { variantTypeId, tenantId } }). Ninguna query sin tenant.
+    Un id de otro tenant devuelve 404, no un array vacio silencioso — hay test explicito para eso.
+    Tests del dev: "cross-tenant read returns nothing: tenant B never sees tenant A's category",
+    "throws VariantTypeNotFoundError for a cross-tenant category id (never a silent empty array)",
+    "allows the same name for a different tenant", "findByVariantTypeId and findById never cross
+    tenants", "countUsageByLabel/countUsageByName ... scoped to the tenant", mas el e2e de
+    aislamiento. Es la zona que la PR declara de maxima revision: tabla nueva tenant-scoped en un
+    repo donde TenantAwareRepository nunca se implemento, revisada especificamente por fuga
+    cross-tenant, 0 hallazgos.
+
+S9  SSRF en las rutas proxy del portal                                       PASS CON OBSERVACION
+    El fetch server-side es
+      fetch(`${getCatalogApiBaseUrl()}/v1/variant-library/types/${id}`, ...)
+    El host NO es controlable por el cliente: sale de getCatalogApiBaseUrl(), configuracion del
+    servidor. Sin control de host no hay SSRF.
+    Observacion: el segmento `id` se interpola crudo, sin encodeURIComponent. Next.js decodifica
+    los params de ruta dinamica, asi que un `%2F` podria en teoria inyectar un segmento extra y
+    apuntar a OTRO endpoint del MISMO backend interno, con los mismos headers de auth y el mismo
+    tenant de sesion. No sale del host, no escala privilegios y el backend exige guard + tenant en
+    cada ruta, asi que el impacto real es muy bajo. Endurecimiento sugerido:
+    encodeURIComponent(id). No se abre defecto.

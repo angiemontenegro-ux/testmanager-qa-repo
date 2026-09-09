@@ -1,0 +1,57 @@
+HALLAZGO 2 — La advertencia del AC3 existe solo al DESACTIVAR, no al renombrar ni al eliminar
+Severidad propuesta: Low  ·  Causa raiz de los FAIL de los escenarios 6 y 7
+
+QUE PIDE EL TICKET (SH-1056, AC3):
+  "Given a global variant is used by existing products
+   When I edit or remove it in Settings
+   Then a warning is shown and existing products are not silently broken"
+y en DESIGN SPECIFICATIONS:
+  "Editing/removing a global variant does not retroactively delete it from products already
+   using it (soft handling / warn)."
+
+QUE SE CONSTRUYO:
+  - DESACTIVAR: si hay advertencia, y ademas con conteo real de uso. DeactivateCategoryDialog y
+    DeactivateValueDialog muestran deactivateDialog.usageNote con el count vivo, traido por
+    demanda en el momento del intento. Tests del dev asertan el texto con "count":4.
+  - RENOMBRAR: sin dialogo. La edicion es inline (el chip se convierte en input + Save en su
+    lugar), por decision de UX para igualar el patron del item wizard.
+  - ELIMINAR: sin dialogo, sin confirmacion y sin chequeo de uso. Test del dev, textual:
+      "deletes an IN-USE value directly too, with no usage check and no blocked/offer-deactivation
+       dialog"
+    y el docblock del use case del backend:
+      "D8 superseded by D277 — product usage no longer gates a hard delete at all"
+
+LA SEGUNDA MITAD DEL AC3 SI SE CUMPLE, Y POR UNA RAZON DE FONDO:
+El producto COPIA el texto del nombre/valor de la biblioteca en el momento de seleccionarlo y
+NUNCA guarda el id de la fila (diseno D2, "copy-not-reference", ratificado en D239 y D277). Por
+eso borrar o renombrar una entrada de la biblioteca no puede afectar a ningun producto que ya la
+copio: no hay foreign key que romper ni cascada que disparar. El spec lo dice explicitamente:
+"Renaming MUST NOT retroactively change a product that already copied the prior name".
+Tests del dev que lo prueban: "hard-deletes a category with zero options even when referenced by
+a product", "hard-deletes an option even when referenced by a product".
+
+Esta es la respuesta a la pregunta que el TC-73 dejo abierta sobre la estrategia de retencion:
+no es snapshot, ni soft delete, ni delete bloqueado. Es copia en el momento de la seleccion, o
+sea que no hay nada que retener.
+
+UNICA GUARDA VIVA EN DELETE (D6):
+Una categoria que todavia tiene valores hijos rechaza el borrado con 409 VARIANT_TYPE_HAS_OPTIONS
+y el mensaje "This category still has values — delete them first, then try again.". Es una regla
+de consistencia estructural del agregado, NO tiene nada que ver con el uso por productos. No hay
+equivalente a nivel de valor individual.
+
+HISTORIA DE LA DECISION (esta en el cuerpo de las dos PRs):
+D8 (bloquear el borrado si esta en uso) fue reemplazada por D277 (borrado incondicional) tras un
+review en vivo del owner sobre la PR del frontend. Se quitaron los chequeos countUsageByName /
+countUsageByLabel de los dos use cases de borrado, se borraron las clases de error
+VariantTypeInUseError / VariantTypeOptionInUseError y se actualizaron los tests que asertaban el
+409 anterior para que ahora asserten borrado exitoso. Los endpoints GET .../usage se conservaron
+como superficie informativa, ya no como puerta de borrado.
+
+DESALINEADO DE DOCUMENTACION DETECTADO DE PASO (ver hallazgo 3).
+
+QUE CERRARIA ESTO (decision de producto):
+  (a) Actualizar el AC3 de SH-1056 para que diga lo que se decidio: advertencia con conteo de uso
+      al DESACTIVAR; renombrado y borrado directos, sin advertencia, porque el producto copia el
+      texto y no puede romperse. Cero cambio de codigo.
+  (b) Agregar confirmacion al borrado (contradice D277 y el patron de UX elegido).
