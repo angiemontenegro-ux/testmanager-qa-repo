@@ -1,0 +1,109 @@
+schemaVersion: "1.0"
+id: "29aeb00c-17af-47ab-8de6-ad2af40822f2"
+key: "TC-77"
+title: "Discount authoring — fixed-amount (AMOUNT_OFF) discounts"
+description: "Coverage for fixed-amount discounts, which had NONE until now. TC-2 asserted the engine was percent-only and that fixed-amount authoring had been removed, so nobody ever wrote cases for a capability the engine has supported since 2026-07-03 (guardSupportedDiscountType: 'AMOUNT_OFF is intentionally valid for EVERY module'). Product confirmed it again on 2026-09-07 (Martin Campo): 'El motor debe permitir agregar porcentages o valores fijo. por ejemplo 5 usd de descuento'.
+
+Two things make this case worth reading before executing it.
+
+FIRST, amounts travel in MINOR UNITS. 500 is $5.00, 1 is one cent, and the ceiling of 100,000,000 is $1,000,000.00. A value that looks like currency is a bug in the caller.
+
+SECOND, the validation is SPLIT ACROSS TWO LAYERS and the layer decides the error code. An amount that is PRESENT but out of bounds is rejected by the DTO (@IsInt, @Min(1), @Max(100000000)), so the wire answer is VALIDATION_FAILED. Only an ABSENT amount slips past @IsOptional() to the aggregate's guardAmountOffRange, which is the sole route to AMOUNT_OFF_OUT_OF_RANGE. Expecting the domain code anywhere else means expecting an error the API cannot return."
+type: "functional"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "The admin has permission to manage discounts and the Discounts Engine is reachable."
+  - "The engine supports both PERCENT_OFF and AMOUNT_OFF discount types (product confirmed 2026-09-07)."
+  - "Amounts are submitted in minor units via amountMinorUnits; the percentage field plays no part in a fixed-amount discount."
+scenarios:
+  - title: "Create a fixed-amount Discount Code and persist the amount"
+    tags:
+      - "happy-path"
+      - "persistence"
+    given:
+      - "the admin submits a discount with discount_type = AMOUNT_OFF and amountMinorUnits = 500 (five dollars)"
+    when:
+      - "the engine validates the payload"
+    then:
+      - "the engine creates the Promotion with discount_type = AMOUNT_OFF and amountMinorUnits = 500"
+      - "the amount survives the round trip untouched — no unit conversion and no rounding"
+      - "currentUsage is 0 and created_at / updated_at are recorded"
+  - title: "Accept the extremes of the amount range"
+    tags:
+      - "boundary"
+      - "happy-path"
+    given:
+      - "the admin submits a fixed-amount discount"
+    when:
+      - "amountMinorUnits is 1 (one cent) or 100000000 (one million dollars)"
+    then:
+      - "the engine accepts both — the range is 1..100,000,000 inclusive"
+      - "the persisted amount equals the submitted amount in each case"
+  - title: "Reject an amount that is present but out of bounds"
+    tags:
+      - "negative"
+      - "boundary"
+    given:
+      - "the admin submits a fixed-amount discount"
+    when:
+      - "amountMinorUnits is 0, negative, fractional (e.g. 1.5), or above 100000000"
+    then:
+      - "the engine returns 400 with error code VALIDATION_FAILED — the DTO rejects it before the aggregate is reached"
+      - "the engine does not persist any record"
+      - "NOT AMOUNT_OFF_OUT_OF_RANGE: expecting the domain code here is expecting an error the API cannot return for a present-but-invalid amount"
+  - title: "Reject a fixed-amount discount with no amount at all"
+    tags:
+      - "negative"
+    given:
+      - "the admin submits a discount with discount_type = AMOUNT_OFF"
+    when:
+      - "amountMinorUnits is missing or null"
+    then:
+      - "the engine returns 400 with error code AMOUNT_OFF_OUT_OF_RANGE"
+      - "the engine does not persist any record"
+      - "This is the ONLY path that reaches guardAmountOffRange, because the DTO marks the field optional"
+  - title: "Tolerate a stray percentage on a fixed-amount discount"
+    tags:
+      - "edge-case"
+    given:
+      - "the admin submits a discount with discount_type = AMOUNT_OFF, a valid amountMinorUnits, and a non-null percentage"
+    when:
+      - "the engine validates the payload"
+    then:
+      - "the engine accepts the payload — guardDiscountValue switches on discount_type and validates only the matching field, so the two value fields are NOT mutually exclusive"
+      - "the stray percentage is persisted but plays no part in validation"
+      - "WORTH PINNING: a future mutual-exclusion rule would be a breaking change for anyone relying on this"
+  - title: "[NEEDS SERVICE TOKEN] The ignored percentage must stay inert at evaluation time"
+    tags:
+      - "risk"
+      - "blocked"
+    given:
+      - "a fixed-amount promotion was saved carrying a stray percentage"
+    when:
+      - "the promotion is evaluated against a cart"
+    then:
+      - "only the fixed amount is applied; the persisted percentage never reaches the discount math"
+      - "BLOCKED: the evaluation routes are service-token only and reject the staff token QA authenticates with, the same blocker as TC-4, TC-5 and TC-6"
+      - "Priority when unblocked is HIGH — a percentage leaking into pricing would be a live money defect, not a validation nit"
+tags:
+  - "sh-844"
+  - "discount-authoring"
+  - "amount-off"
+  - "coverage-gap"
+  - "product-ruled"
+parameters: []
+links:
+  jira:
+    - key: "SH-844"
+      url: "https://veevart.atlassian.net/browse/SH-844"
+      type: "story"
+  external: []
+estimatedDuration: 30
+metadata:
+  createdBy: "angiemontenegro-ux"
+  createdAt: "2026-09-08T00:00:00Z"
+  updatedBy: "angiemontenegro-ux"
+  updatedAt: "2026-09-08T00:00:00Z"
+  version: 1
