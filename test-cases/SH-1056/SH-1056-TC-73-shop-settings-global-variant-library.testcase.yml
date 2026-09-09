@@ -280,13 +280,13 @@ links:
     type: story
   - key: SH-1265
     url: https://veevart.atlassian.net/browse/SH-1265
-    type: qa-subtask
+    type: task
   - key: SH-1018
     url: https://veevart.atlassian.net/browse/SH-1018
     type: epic
   - key: SH-1058
     url: https://veevart.atlassian.net/browse/SH-1058
-    type: relates
+    type: story
   external: []
 estimatedDuration: 90
 metadata:
