@@ -1,0 +1,240 @@
+schemaVersion: "1.0"
+id: "dd8db2f5-f5a3-4ff8-975c-f360f66b8717"
+key: "TC-83"
+title: "POS — Limits enforcement at Apply and at Pay, write-back to Applied Discounts"
+description: "QA coverage for SH-1293 (POS — Limits enforcement at Apply and at Pay, write-back to Applied Discounts), QA Sub-task SH-1300, under epic SH-1287 (POS — Discount redemption, Discount Engine V2).
+
+IMPLEMENTATION DOMAIN — TRACED END TO END (2026-09-10). Unlike the other cases in this epic, the limit enforcement for the CURRENT app is provably server-side in AuctiferaDX, and the chain has been verified hop by hop:
+  1. The iOS POS performs NO usage-limit check on the device. DiscountCode.swift:18-67 (repo Veevarts/POS @ 80b5a40e) carries only value, type, discountType, customerFacingCode and five eligibility booleans — there is no limit field at all.
+  2. The POS posts the purchase to `/Auctifera/pos/v2/purchase` (ApexRestEndpoint.purchaseV2, POSApp.swift:31, sent from POSPurchase.swift:783).
+  3. That URL is served by POSServicePurchaseV2.cls:16, whose @HttpPost is a thin wrapper delegating to POSServicePurchase.createPOSPurchase() (POSServicePurchaseV2.cls:130-133).
+  4. That path calls DiscountHandler.validateUsageLimits(req, allPosDiscounts) at POSServicePurchase.cls:2950.
+  5. The POS Discounts are then inserted — shouldInsertDiscounts defaults to true (POSServicePurchase.cls:53) and gates the insert at :2989; nothing outside tests sets it false — and POSDiscountTriggerHandler.afterInsert increments Current_Overall_Usage__c (:74-77, 386-445).
+So the AuctiferaDX counter behaviour IS this POS's live server path, not legacy code. The Apex citations below are load-bearing.
+
+Per the story, the Salesforce mirror of the Applied Discount record is OUT of scope, so the V2 write-back itself is verified in the app DB and the Applied Discounts tab.
+
+DEPENDENCY. The epic states SH-1293 is blocked by SH-1288, SH-1289 and SH-1290 — a discount has to be applicable before its counters can be consumed. Execute TC-78, TC-79 and TC-80 first.
+
+TWO CLIENT-SIDE FACTS THAT SHARPEN THIS STORY:
+  - There is NO pre-check at Apply on the device, so today a cashier can attach an exhausted code and only discover it when the purchase is written. SH-1293's eligibility greying is therefore new UI work, not a re-skin.
+  - There is NO re-check at tender. validationToUpsertPOSPurchaseInSalesforce (SummaryViewController.swift:2218-2295) validates gift-card codes, buyer presence and a non-empty cart only, and POS/Payment/ contains zero references to discounts. SH-1293's hard block at Pay is genuinely new behaviour on both sides.
+
+SCOPE: counter semantics (Overall per sale, unit cap per unit, Per Person lifetime, Per Person Daily per contact per calendar day in org tz, AND logic when both are set), partial consumption on the unit cap, pre-check at Apply and hard re-check at Pay, consumption only on successful payment, the anonymous-contact block, and the per-line write-back visible in Applied Discounts.
+
+CRITICAL — WHAT THE CURRENT SERVER PATH ALREADY DOES vs WHAT SH-1293 ADDS. Verified against the AuctiferaDX Apex that serves the endpoint traced above. Read 'today' below as 'the live behaviour of this POS's backend', not as legacy code:
+  - The backend counters count TRANSACTIONS, never units: COUNT_DISTINCT(POS_Purchase__c) at DiscountHandler.cls:157-170 and COUNT() of POS Purchases at DiscountCodeOveralLimitUpdateBatch.cls:51-61. A '1 per person' code today discounts an unlimited number of units in one basket. V2's unit cap is a new concept — give it real coverage.
+  - PARTIAL CONSUMPTION DOES NOT EXIST server-side (no quantity field on POS_Discount__c) and neither does a RE-CHECK AT PAY (validateUsageLimits has exactly one caller, POSServicePurchase.cls:2950, at transaction write). Scenarios 2 and 8 are new functionality.
+  - THE AND LOGIC DOES MATCH: the three backend counters are sequential guard clauses at DiscountHandler.cls:64, 101 and 110, so any one tripping blocks. Consistent with Fix 21 v2.
+  - THE BACKEND IS EVENTUALLY CONSISTENT AND SAYS SO. Discount_Code__c.Overall_limit__c is documented as 'It has a rare margin of error to apply the limit', the counter is incremented optimistically (POSDiscountTriggerHandler.cls:74-77, 386-445) and repaired by a batch every 2 minutes (DiscountCodeOveralLimitUpdateBatch.cls:99-108); re-submitting a transaction double-counts until it runs. SH-1293 promises the cashier a HARD block at Pay, which is a stronger guarantee than the current backend can make. Scenario 8 must therefore be executed as a genuine two-terminal race, not simulated by editing a counter.
+  - PER-DAY TIMEZONE CHANGES. the backend buckets by DAY_ONLY(convertTimezone(CreatedDate)) against Date.today() (DiscountHandler.cls:169, 187-189), i.e. the running user's timezone. V2 specifies org tz, which is the correct fix — scenario 5 must be run across a real midnight boundary in org time.
+  - THE MEMBER AUDIT TRAIL IS ALREADY UNRELIABLE, which is exactly what this story's write-back replaces: Discount_Source__c = 'Applied' records are created (POSServicePurchase.cls:3427, 3452) but roll up to nothing (POSDiscountTriggerHandler.cls:145-171 handles only null/Custom/Manual and :89 skips 'Applied'). Treat scenario 10 as the story's core value, not a nice-to-have.
+
+OPEN RISK 1 — D7 IS A REGRESSION FOR VOIDS, NOT A DEFERRAL. The epic puts 'refunds / voids releasing usage counters' out of scope, but the backend DOES release the overall counter on cancel: POSPurchaseTriggerHandler.cls:317-331 detects the transition to Canceled with a non-zero discount and calls updateDiscountCodes(..., SUBSTRACT), decrementing at POSDiscountTriggerHandler.cls:435-437, and both counting paths exclude canceled sales. Refunds genuinely do nothing today. Scenario 11 records the void case as missing-doc so the loss is visible rather than silently accepted.
+
+OPEN RISK 2 — A REFUND PERMANENTLY BURNS A LIFETIME LIMIT. Per Person is lifetime, so a customer who buys and returns can never use that discount again, with no support path defined. Raised in the epic refinement; no scenario asserts a behaviour because none is specified.
+
+OPEN RISK 3 — WRITE-BACK FOR AN ENTIRE ORDER CODE HAS NO LINE. The story records per redeemed line including 'line' and 'units', but by D3 an Entire order code touches no line. Scenario 12 records the gap.
+
+OPEN RISK 4 — SCALE. the backend's per-person usage query logs a warning at 20k aggregate rows and fails at 50k (DiscountHandler.cls:196-209), so a popular long-lived code eventually breaks checkout for everyone. Worth confirming the V2 counter store has no equivalent ceiling; not asserted as a scenario because the story is silent."
+type: "integration"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "TC-78, TC-79 and TC-80 have been executed, so applying automatic, code and custom discounts is known to work."
+  - "The POS is signed in to TWO terminals, identified as T2 and a second terminal, both against the same org. The second terminal is required for the race scenario and cannot be substituted by editing counters directly."
+  - "The org timezone is known and it is possible to observe or simulate a midnight boundary in that timezone for the daily-reset scenario."
+  - "The code 'SHOP10' ($10 off) exists with a Shop rule configured as: Overall Usage Limit 500, '# of available discounted items' 100 with 98 already used, Per Person 1, Per Person Daily 1."
+  - "The client 'Ana' exists and is selectable; her prior redemption history for SHOP10 can be seeded and reset between scenarios."
+  - "Catalog fixture: 'Museum tote bag' at $10.00 or more so a $10 off code is meaningful per unit."
+  - "The discount's Applied Discounts tab and its Redemptions metric on the Details tab are both reachable for verification."
+scenarios:
+  - title: "Overall counts one use per sale regardless of quantity"
+    tags:
+      - "ac-1"
+      - "counters"
+      - "overall-limit"
+    given:
+      - "the cart has 'Museum tote bag' x 2 and 'Ana' is selected"
+    when:
+      - "'SHOP10' is applied and the sale is paid"
+    then:
+      - "Overall usage increases by exactly 1, not by 2"
+      - "this matches current backend semantics, where the counter counts transactions"
+  - title: "Unit cap counts units and supports partial consumption"
+    tags:
+      - "ac-2"
+      - "counters"
+      - "unit-cap"
+      - "partial-consumption"
+    given:
+      - "the cart has 'Museum tote bag' x 3 and the unit cap has 2 remaining (98 of 100 used)"
+    when:
+      - "'SHOP10' is applied"
+    then:
+      - "2 units are discounted and 1 is charged at full price"
+      - "the line row reads '− $20.00 · SHOP10 · 2 of 3 items'"
+      - "after payment, '# of available discounted items' reads 100 of 100 used"
+      - "EXECUTOR NOTE: the row label collides with SH-1292's verbatim format — see TC-82 scenario 9. Assert the amount and the split; flag the label rather than failing on it."
+  - title: "Unit cap fully exhausted greys the code"
+    tags:
+      - "ac-3"
+      - "negative"
+      - "unit-cap"
+    given:
+      - "'# of available discounted items' is 100 of 100 used"
+    when:
+      - "the cashier opens Discount → Discount code"
+    then:
+      - "'SHOP10' is greyed with the subtitle 'Usage limit reached'"
+      - "the row cannot be selected"
+  - title: "Per Person is lifetime"
+    tags:
+      - "ac-4"
+      - "negative"
+      - "per-person"
+    given:
+      - "'Ana' redeemed 'SHOP10' last week and Per Person is 1"
+    when:
+      - "the cashier opens Discount → Discount code with 'Ana' selected"
+    then:
+      - "'SHOP10' is greyed with the subtitle 'Usage limit reached for this client'"
+      - "the limit does not reset with time, confirming lifetime semantics"
+  - title: "Per Person Daily resets at midnight in org timezone"
+    tags:
+      - "ac-5"
+      - "per-person-daily"
+      - "timezone"
+    given:
+      - "Per Person is Unlimited, Per Person Daily is 1, and 'Ana' redeemed today"
+    when:
+      - "the code list is opened today and again after midnight in the ORG timezone"
+    then:
+      - "'SHOP10' is greyed today"
+      - "'SHOP10' is eligible again the next calendar day in org time"
+      - "EXECUTOR NOTE: the backend buckets by the running user's timezone, so run this with a terminal user whose timezone differs from the org's to prove the org tz is the one in force."
+  - title: "AND logic when both per-person limits are set"
+    tags:
+      - "ac-6"
+      - "edge-case"
+      - "per-person"
+      - "per-person-daily"
+    given:
+      - "Per Person is 3 and Per Person Daily is 1, and 'Ana' redeemed once today so her lifetime count is 1"
+    when:
+      - "the cashier opens Discount → Discount code with 'Ana' selected"
+    then:
+      - "'SHOP10' is greyed today because the daily limit is reached even though the lifetime limit has room"
+      - "the block lifts the next day while the lifetime limit still permits 2 more"
+  - title: "Anonymous contact cannot use per-person rules"
+    tags:
+      - "ac-7"
+      - "negative"
+      - "anonymous-contact"
+    given:
+      - "the sale has no client selected"
+      - "'SHOP10' carries a Per Person limit, and a separate Automatic rule also carries one"
+    when:
+      - "the cashier opens Discount → Discount code and adds a line matching the automatic rule"
+    then:
+      - "'SHOP10' is greyed with the subtitle 'Select a client to use this code'"
+      - "the Automatic rule with Per Person set is silently not applied, with no error shown"
+      - "EXECUTOR NOTE: the backend throws Discounts_not_allowed_on_Mock_Contacts (DiscountHandler.cls:255-271) instead of greying out. The V2 behaviour is the improvement — verify no exception surfaces to the cashier."
+  - title: "Hard re-check at Pay when another terminal consumed the last unit"
+    tags:
+      - "ac-8"
+      - "edge-case"
+      - "race-condition"
+      - "regression"
+    given:
+      - "'SHOP10' is applied on terminal T2 with exactly one unit remaining on the cap"
+      - "the second terminal completes a sale consuming that last unit before T2 taps Pay"
+    when:
+      - "the cashier on T2 taps 'Pay'"
+    then:
+      - "payment is blocked with the message 'This discount is no longer available. Remove it to continue.'"
+      - "the discount is cleared from the sale and the cashier can proceed after removing it"
+      - "no counter is over-consumed: the final unit count never exceeds the cap"
+      - "EXECUTOR NOTE: run this as a real two-terminal race. the backend cannot make this guarantee (its overall counter is optimistic with a 2-minute repair batch and its own field help admits 'a rare margin of error'), so this scenario is the proof that the V2 counter is transactional."
+  - title: "Consumption happens only on successful payment"
+    tags:
+      - "ac-9"
+      - "counters"
+      - "negative"
+    given:
+      - "'SHOP10' is applied to a sale and all counters are recorded beforehand"
+    when:
+      - "the sale is cleared or abandoned before paying"
+    then:
+      - "no counter changes: Overall, unit cap, Per Person and Per Person Daily are all unchanged"
+      - "no Applied Discount record is written for the abandoned sale"
+  - title: "Redemption appears in Applied Discounts with full attribution"
+    tags:
+      - "ac-10"
+      - "write-back"
+      - "happy-path"
+    given:
+      - "a sale on terminal T2 with client 'Ana', 2 units discounted by 'SHOP10' for $20.00 total"
+    when:
+      - "the sale is paid"
+    then:
+      - "the discount's Applied Discounts tab lists the sale with channel 'POS', terminal 'T2', the cashier, the client 'Ana', units 2 and amount $20.00"
+      - "the record also carries the discount, the rule, the sale, the line, the reason if one was captured, and a timestamp"
+      - "the Redemptions metric on the Details tab increases accordingly"
+  - title: "A voided sale should release the counter — REGRESSION AGAINST CURRENT BEHAVIOUR, D7 says out of scope"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "regression"
+      - "counters"
+    given:
+      - "'SHOP10' was applied and the sale was paid, consuming 1 Overall use and 2 units"
+    when:
+      - "the sale is voided or canceled"
+    then:
+      - "BLOCKED — per D7 nothing is released, so the counters stay consumed."
+      - "This is a REGRESSION, not merely a deferral: the backend releases the overall counter on cancel today (POSPurchaseTriggerHandler.cls:317-331 to POSDiscountTriggerHandler.cls:435-437, with both counting paths excluding Canceled sales). Refunds genuinely do nothing today, so deferring those is defensible; deferring voids removes working behaviour."
+      - "Record the observed behaviour and route to Product with the recommendation to split D7 into refunds (defer) and voids (keep). Do not sign the story off as complete without an explicit decision on this."
+  - title: "Write-back for an Entire order code — MISSING FROM SPEC"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "write-back"
+      - "entire-order"
+    given:
+      - "an Entire order code is applied to a multi-line sale and the sale is paid"
+    when:
+      - "the discount's Applied Discounts tab is inspected"
+    then:
+      - "BLOCKED — the story specifies write-back per redeemed LINE including 'line' and 'units', but by D3 an Entire order code touches no line."
+      - "Record what is written for 'line' and 'units' and route the question to Product: one order-level record, one record per contributing line, or a null line."
+tags:
+  - "sh-1293"
+  - "sh-1287"
+  - "sh-1300"
+  - "pos-module"
+  - "discount-engine"
+  - "usage-limits"
+  - "applied-discounts"
+  - "write-back"
+parameters: []
+links:
+  jira:
+    - key: "SH-1293"
+      url: "https://veevart.atlassian.net/browse/SH-1293"
+      type: "story"
+    - key: "SH-1300"
+      url: "https://veevart.atlassian.net/browse/SH-1300"
+      type: "qa-subtask"
+    - key: "SH-1287"
+      url: "https://veevart.atlassian.net/browse/SH-1287"
+      type: "epic"
+  external: []
+estimatedDuration: 120
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-08T21:40:25Z"
+  updatedBy: "claude"
+  updatedAt: "2026-09-10T00:00:00Z"
+  version: 2

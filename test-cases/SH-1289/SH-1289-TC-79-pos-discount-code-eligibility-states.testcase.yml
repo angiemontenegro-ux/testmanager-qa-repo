@@ -1,0 +1,272 @@
+schemaVersion: "1.0"
+id: "75f6b157-5936-41ef-8103-48307bf6517b"
+key: "TC-79"
+title: "POS — Apply a discount code with live eligibility states"
+description: "QA coverage for SH-1289 (POS — Apply a discount code with live eligibility states), QA Sub-task SH-1296, under epic SH-1287 (POS — Discount redemption, Discount Engine V2).
+
+REVISION 2 (2026-09-10) — REBASED against Veevarts/POS `origin/main` @ 80b5a40e (2026-09-08). Revision 1 used the AuctiferaDX package as the baseline, which was wrong: the discount-code screen is native iOS.
+
+WHAT THE CODE LIST ACTUALLY IS TODAY. DiscountCode maps Auctifera__Discount_Code__c — the model documents it at DiscountCode.swift:16 — and carries exactly: Value, Type, Discount_Type, Customer_Facing_Code, and FIVE eligibility booleans (Gift_Shop, Tickets, Membership, Courses, Rentals) at :34-53. That is the whole shape.
+
+THREE CAPABILITIES THIS STORY NEEDS THAT DO NOT EXIST AT ALL. Reported as 'not found in code', so budget them as new work, not as re-skins:
+  - NO usage-limit field of any kind on DiscountCode (:18-67). So 'Usage limit reached' greying is entirely new, and the limit itself is only enforced server-side at purchase write — the full chain is traced in TC-83.
+  - NO per-person or per-contact concept on the device. Code eligibility is the five booleans and nothing else, so 'Select a client to use this code' is entirely new.
+  - NO expiry or active-window field on DiscountCode. So 'Expired <date>' and 'Starts <date>' are new too. The only date-driven greying today is expired TICKETS during transaction edit (DiscountCodeViewController.swift:430-433).
+
+THE VERBATIM COPY IN THIS STORY IS ALL NEW COPY. None of the epic's strings exist. What exists today, for the executor to recognise as the old state:
+  - 'Discount is not eligible for this item' (DiscountCodeViewController.swift:479)
+  - 'Please select a discount first' (:475)
+  - 'discount code is not eligible for shop' / 'for tickets' / 'for this item' (SummaryItemEditViewController.swift:272, :278, :300)
+  - 'Event exclusive' / 'Offer exclusive' chips (Labels.swift:334, :338)
+  - 'No discounts found' (Labels.swift:540)
+  - '<name> does not support discounts' for exempt items (SaleItem.swift:562)
+Repo convention: user-facing strings live in POS/Common/Labels/Labels.swift, overridable from posMetadata.labels. There is NO Localizable.strings file. Since SH-1289 declares its copy verbatim, those strings must come from Labels.swift and not be hardcoded — that is checkable in the diff, which is stronger than eyeballing the screen.
+
+A BLOCKER THE STORY DOES NOT MENTION: AMOUNT-TYPE CODES CANNOT BE USED AT CART LEVEL TODAY. The cart-level code search is hard-wired to percentage-only — getDiscount(by:onlyPercentage:) is called with true from every cart-level entry point (DiscountCodeViewController.swift:536, :548, :567) and the app explains it to the operator: 'Discount codes of type amount are not available to use at the transaction level, to use them please go to each item added to the summary and assign the discount' (Labels.swift:541), short form at :542. The epic's SHOP10 ($10 off) applied from the cart, and the whole 'Entire order' notion for fixed amounts, run straight into this. Scenario 13 records it.
+
+D2 IS A BIGGER CHANGE THAN IT READS. D2 allows one code per SALE. Today a single LINE accepts unlimited codes — add(discountCode:) appends with only an identity dedupe (SaleItem.swift:569-575) and they all share one base, so two 50% codes give 100% off (see TC-81 scenario 12). There is also an 'apply to all lines' loop (DiscountCodeViewController.swift:206-211). So D2 is a hard restriction of shipped behaviour.
+
+EXISTING GREYING USES ALPHA, NOT DISABLED STATE. Both mechanisms set alpha to 0.5 and toggle isUserInteractionEnabled (DiscountCodeTableViewCell.swift:68-74, ItemTableViewCell.swift:67-81). If SH-1289 expects a genuinely non-selectable control, assert selection is refused, not just that the row looks dim — and check accessibility, since alpha alone does not convey disabled state to VoiceOver.
+
+CARRY-OVER DEBT COVERED HERE: scenario 14. See the epic's no-port checklist."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Build under test is the native iOS POS (repo Veevarts/POS). Record the commit or build number in the run."
+  - "The sale contains 'Logo t-shirt' ($28.00, Shop) unless a scenario states otherwise."
+  - "Discount fixtures on Auctifera__Discount_Code__c, all Active and POS-enabled: SHOP10 ($10 off, Gift_Shop eligible); TICKETS15 (15% off, Tickets eligible); SUMMER25 (25% off, applies to the whole order); SPRING20 (20% off, Gift_Shop eligible, window ended May 31 2026)."
+  - "A discount whose rules are all Automatic exists, to confirm it never appears in the code list."
+  - "A barcode or QR for SHOP10 is available for the scan path, matching its Customer Facing Code."
+  - "The client 'Ana' exists for the per-person scenarios; the sale starts with no client selected."
+  - "Because expiry, usage limits and per-person limits do not exist on the device today, the corresponding scenarios are NEW-CAPABILITY checks. If the build under test has not implemented them yet, mark them not-run against this build rather than FAIL."
+scenarios:
+  - title: "List shows only code discounts available at POS with a derived module chip"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "module-chip"
+    given:
+      - "the discount fixtures above are Active with Available at POS on"
+    when:
+      - "the cashier opens Discount → Discount code"
+    then:
+      - "'SHOP10' shows the chip 'Shop only'"
+      - "'TICKETS15' shows the chip 'Tickets only'"
+      - "'SUMMER25' shows the chip 'All categories'"
+      - "a discount whose only rules are Automatic does not appear in the list at all"
+      - "each row shows the code in bold, the chip, the internal description and the value formatted as '$10 off' or '25% off'"
+      - "EXECUTOR NOTE: the chip slot exists today but carries exclusivity text ('Event exclusive' / 'Offer exclusive', Labels.swift:334, :338), not a module name. Confirm the new module chip replaced it rather than sitting alongside it, and that Courses/Rentals-eligible codes are handled — the device reads both flags (DiscountCode.swift:34, :45) while the epic drops both from scope."
+  - title: "Ineligible codes are greyed with the exact reason subtitle"
+    tags:
+      - "ac-2"
+      - "negative"
+      - "verbatim-copy"
+      - "new-capability"
+    given:
+      - "the cart contains only the Shop line, so no ticket line is eligible"
+      - "'SPRING20' has an active window that ended May 31 2026"
+    when:
+      - "the cashier opens Discount → Discount code"
+    then:
+      - "'TICKETS15' is greyed with a crossed icon and the italic subtitle 'No eligible tickets in cart'"
+      - "'SPRING20' is greyed with the italic subtitle 'Expired May 31, 2026'"
+      - "neither row can be SELECTED — tapping is refused, not merely dimmed"
+      - "eligible rows are ordered before ineligible ones"
+      - "EXECUTOR NOTE: DiscountCode has no expiry field today, so the 'Expired' state is new end to end and may require a backend field as well. Existing greying is alpha 0.5 plus isUserInteractionEnabled (DiscountCodeTableViewCell.swift:68-74) — verify VoiceOver announces the row as unavailable, not just visually faded."
+  - title: "Search filters case-insensitively and an exact match selects the row"
+    tags:
+      - "ac-3"
+      - "happy-path"
+      - "search"
+    given:
+      - "the Discount code tab is open with the input placeholder 'Search or scan a code'"
+    when:
+      - "the cashier types 'shop10'"
+    then:
+      - "the list filters case-insensitively and the 'SHOP10' row is selected"
+      - "scanning the SHOP10 barcode with the 'Scan' button produces the same selection"
+      - "EXECUTOR NOTE: the current placeholder is 'Search Discount Code' (Discount.storyboard) — assert the new string. Run the scan path on real hardware, not by typing."
+  - title: "Unknown code shows the inline message and blocks Apply"
+    tags:
+      - "ac-4"
+      - "negative"
+      - "verbatim-copy"
+    given:
+      - "the Discount code tab is open"
+    when:
+      - "the cashier types 'NOPE99'"
+    then:
+      - "the inline message 'No discount matches that code' is shown"
+      - "'Apply discount' is disabled"
+      - "EXECUTOR NOTE: today this path shows 'No discounts found' (Labels.swift:540) and the search state 'Searching for <code>' (DiscountCodeViewController.swift:224). Assert the new inline message and confirm it is inline, not an alert."
+  - title: "Apply a Specific items code to matching lines only"
+    tags:
+      - "ac-5"
+      - "happy-path"
+      - "specific-items"
+    given:
+      - "the sale contains 'Logo t-shirt' ($28.00, Shop) and 'Monet — Adult' ticket ($20.00)"
+    when:
+      - "the cashier selects 'SHOP10' and taps 'Apply discount'"
+    then:
+      - "the 'Logo t-shirt' line shows '− $10.00 · SHOP10'"
+      - "the ticket line shows no code discount row"
+      - "EXECUTOR NOTE: SHOP10 is a fixed AMOUNT code, so per scenario 13 it cannot currently be applied from the cart at all. If the build still filters amount codes at cart level, run this from the per-item edit screen and record the restriction."
+  - title: "Apply an Entire order code — totals only, no line rows"
+    tags:
+      - "ac-6"
+      - "happy-path"
+      - "entire-order"
+    given:
+      - "the sale contains 'Logo t-shirt' ($28.00) with no other discount applied"
+    when:
+      - "the cashier selects 'SUMMER25' and taps 'Apply discount'"
+    then:
+      - "no line shows a code discount row"
+      - "the totals block shows 'Discount −$7.00'"
+      - "EXECUTOR NOTE: today an order-level discount is implemented as a per-CATEGORY custom discount that is pro-rated onto the lines, so it DOES reach the lines. 'Totals only' is new presentation — cross-check TC-82 scenario 4."
+  - title: "One code per sale — applying a second replaces the first"
+    tags:
+      - "ac-7"
+      - "edge-case"
+      - "slot-d2"
+      - "new-capability"
+    given:
+      - "'SHOP10' is applied to the sale"
+    when:
+      - "the cashier applies 'SUMMER25'"
+    then:
+      - "'SHOP10' is no longer applied and its row is gone"
+      - "only 'SUMMER25' is reflected in the sale and in the totals"
+      - "EXECUTOR NOTE: this is a hard restriction of shipped behaviour, not a refinement. Today a single line accepts unlimited codes (SaleItem.swift:569-575) and there is an 'apply to all lines' loop (DiscountCodeViewController.swift:206-211). Capture the pre-change behaviour, then verify the replacement is announced to the cashier rather than silent — swapping away a code the customer handed over needs to be visible."
+  - title: "Remove discount clears the code but not automatic discounts"
+    tags:
+      - "ac-8"
+      - "happy-path"
+      - "removal"
+    given:
+      - "'SHOP10' is applied and the automatic 'Summer apparel sale' is on the same line"
+    when:
+      - "the cashier taps 'Remove discount'"
+    then:
+      - "the 'SHOP10' row disappears"
+      - "the 'Summer apparel sale' row remains and the total is recalculated"
+  - title: "Per-person code requires a client — greyed with the client reason"
+    tags:
+      - "ac-9"
+      - "negative"
+      - "anonymous-contact"
+      - "verbatim-copy"
+      - "new-capability"
+    given:
+      - "'SHOP10' has Per Person Limit = 1"
+      - "the sale has no client selected, so the anonymous contact applies (D5)"
+    when:
+      - "the cashier opens Discount → Discount code"
+    then:
+      - "'SHOP10' is greyed with the italic subtitle 'Select a client to use this code'"
+      - "selecting the client 'Ana' returns the row to a selectable state"
+      - "EXECUTOR NOTE: entirely new. Today code eligibility ignores the client completely — a no-client sale is fully supported and codes are unaffected by it. The server-side equivalent throws for a mock contact (see TC-83 scenario 7), so today the cashier discovers the problem only at purchase write."
+  - title: "Reason prompt fires when the discount requires one"
+    tags:
+      - "ac-10"
+      - "edge-case"
+      - "reason-prompt"
+      - "new-capability"
+    given:
+      - "'SHOP10' has Require Discount Reason on"
+    when:
+      - "the cashier selects 'SHOP10' and taps 'Apply discount'"
+    then:
+      - "a reason prompt opens and the discount is not applied until a reason is entered"
+      - "cancelling the prompt leaves the sale with no code applied"
+      - "EXECUTOR NOTE: no reason capture exists anywhere in the POS today. Verify the reason survives to the line label (TC-82) and to the write-back (TC-83) — a prompt whose value is dropped is worse than no prompt."
+  - title: "Per-person limit already consumed — copy collides with SH-1293"
+    tags:
+      - "missing-doc"
+      - "negative"
+      - "needs-clarification"
+      - "verbatim-copy"
+    given:
+      - "'SHOP10' has Per Person Limit = 1 and the client 'Ana' already redeemed it previously"
+      - "'Ana' is selected on the sale"
+    when:
+      - "the cashier opens Discount → Discount code"
+    then:
+      - "SH-1293 specifies the subtitle 'Usage limit reached for this client' for this case"
+      - "SH-1289's own verbatim list offers only the shorter 'Usage limit reached', with no per-client variant"
+      - "BLOCKED on the copy collision — record what the implementation shows, then resolve which string is canonical between SH-1289 and SH-1293 before deciding PASS or FAIL."
+  - title: "Remove discount and line-level Custom discounts — MISSING FROM SPEC"
+    tags:
+      - "missing-doc"
+      - "edge-case"
+      - "needs-clarification"
+      - "removal"
+    given:
+      - "'SHOP10' is applied and a Custom discount from SH-1290 is on the sale"
+    when:
+      - "the cashier taps 'Remove discount' from the Discount code tab"
+    then:
+      - "BLOCKED — SH-1289 states only that it clears the code and leaves Automatic rules. It is silent on whether the button's scope also covers Custom discounts."
+      - "Record the observed behaviour and route the question to Product; do not assert either outcome as expected."
+      - "Related: TC-78 scenario 12 shows that changing the client currently wipes manual discounts wholesale, so the ownership of 'what clears what' needs one coherent answer across the epic."
+  - title: "Fixed-amount code applied from the cart — BLOCKED BY A CURRENT RESTRICTION"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "fixed-amount"
+      - "entire-order"
+    given:
+      - "'SHOP10' is a fixed $10 off code"
+    when:
+      - "the cashier searches for it from the cart-level Discount code tab"
+    then:
+      - "BLOCKED — record whether the code is returned at all."
+      - "Today the cart-level search is hard-wired to percentage-only: getDiscount(by:onlyPercentage: true) at DiscountCodeViewController.swift:536, :548, :567, and the app tells the operator 'Discount codes of type amount are not available to use at the transaction level, to use them please go to each item added to the summary and assign the discount' (Labels.swift:541)."
+      - "SH-1289 uses a fixed-amount code (SHOP10) as its main worked example and SH-1291 defines an Entire order base, both of which assume amount codes work above the line. Product needs to say whether this restriction is lifted, and if so what the Entire order base is for a fixed amount."
+  - title: "CARRY-OVER: user-facing strings must come from Labels and never interpolate an Optional"
+    tags:
+      - "no-port"
+      - "regression"
+      - "verbatim-copy"
+    given:
+      - "a Discount Exempt shop item on the sale, and a membership line on the same sale"
+    when:
+      - "the cashier tries to apply a discount code to the exempt item, and then to the membership line with a code that is not membership-eligible"
+    then:
+      - "the exempt message names the item cleanly, with no Swift wrapper text"
+      - "the membership rejection says membership, not shop"
+      - "every string asserted in this case resolves from Labels.swift rather than a hardcoded literal in the touched files"
+      - "DEFECT NOT TO PORT: today SaleItem.swift:562 and :612 interpolate String(describing:) of an Optional, so the operator literally sees 'Optional(\"Mug\") does not support discounts'. And SummaryItemEditViewController.swift:284 shows 'discount code is not eligible for shop' for the MEMBERSHIP case, copied from the branch above it. Both are exactly the class of defect a verbatim-copy contract is supposed to prevent."
+tags:
+  - "sh-1289"
+  - "sh-1287"
+  - "sh-1296"
+  - "pos-module"
+  - "discount-engine"
+  - "discount-code"
+  - "eligibility-states"
+  - "ios"
+  - "no-port"
+parameters: []
+links:
+  jira:
+    - key: "SH-1289"
+      url: "https://veevart.atlassian.net/browse/SH-1289"
+      type: "story"
+    - key: "SH-1296"
+      url: "https://veevart.atlassian.net/browse/SH-1296"
+      type: "qa-subtask"
+    - key: "SH-1287"
+      url: "https://veevart.atlassian.net/browse/SH-1287"
+      type: "epic"
+  external: []
+estimatedDuration: 70
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-08T21:40:25Z"
+  updatedBy: "claude"
+  updatedAt: "2026-09-10T00:00:00Z"
+  version: 2

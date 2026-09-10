@@ -1,0 +1,221 @@
+schemaVersion: "1.0"
+id: "ac269e10-eb14-46ac-a6a4-4cbc18cc11f5"
+key: "TC-80"
+title: "POS — Custom discount on a line (% or $) with a mandatory reason"
+description: "QA coverage for SH-1290 (POS — Custom discount on a line (% or $) with a reason), QA Sub-task SH-1297, under epic SH-1287 (POS — Discount redemption, Discount Engine V2).
+
+REVISION 2 (2026-09-10) — REBASED. Revision 1 was verified against the AuctiferaDX Salesforce Apex, which was the wrong baseline: the POS is the native iOS app (repo Veevarts/POS) and computes discounts on the device. All findings below come from Veevarts/POS `origin/main` @ 80b5a40e (2026-09-08).
+
+THE STORY'S CENTRAL PREMISE DOES NOT MATCH THE SHIPPED APP. SH-1290 is written as 'Custom discount on a LINE', and D1 allocates 'max 1 Custom discount per line'. In the current POS the custom discount is not a per-line concept at all:
+  - It is applied per CATEGORY. Discount.DiscountApplicability has exactly three values — Ticket, Membership, Shop (POS/Model/Discount.swift:26-28) — and :51-56 states it outright: 'a single discount can only be applied to a single category, if you need to apply discounts to multiple categories you can create multiple discounts'.
+  - The operator picks a category tile, not a line. CustomDiscountViewController.swift:124-129, gated by :216-224 which refuses with 'Please enter a discount value and select a category first'.
+  - The resulting amount is then PRO-RATED across every eligible line as a percentage, and written onto each line's discountType/discountValue (CartItem.swift:69-79, SummaryViewController.swift:1840-1843). So a line's Discount_Value__c reaching Salesforce is a derived pro-rata percentage, never a number an operator typed.
+  - Multiple custom discounts per category stack additively — addDiscountToCart appends a row per discount, comment included: 'we add any discount we receive' (SummaryViewController.swift:1636), summed at :1809, :1812.
+Consequence for execution: the per-line scenarios below cannot be executed as written against the current build. Where a scenario says 'pick the line', the executor must record whether a per-line control exists at all. If it does not, that is the finding — do NOT mark the scenario blocked and move on, and do NOT invent a per-line path.
+
+WHAT ALREADY EXISTS — the ceiling is half-built, so scope it accordingly:
+  - Percentage is already hard-capped at 100, in two places: the type toggle re-validates an existing value (CustomDiscountViewController.swift:43-48) and each keystroke is rejected (:246-253), both with the verbatim message 'Percentage discount can't be greater than 100'.
+  - Amount is already capped at the selected category's subtotal, with a 0.01 tolerance and a $0.01 minimum (:73-111), messages 'Discount can't be greater than <amount>. Please try again', 'Discount cannot be less than $0.01. Please try again', and 'You cannot apply a discount to a category with a subtotal of $0.00. Please try again'.
+  - Input is limited to 2 decimal places (:257).
+So the sanity caps exist. What does NOT exist is a POLICY ceiling (no way to say 'this cashier cannot exceed 20%'), reason capture, or an approval gate — see below.
+
+WHAT DOES NOT EXIST — verified by search, reported as 'not found in code':
+  - NO reason field of any kind on the custom discount, free text or picklist. The only inputs are the value field, the Amount/Percentage toggle and the three category tiles. (SaleItem.miscellaneousReason at SaleItem.swift:124 is a miscellaneous-ITEM price reason, unrelated.)
+  - NO manager approval or PIN gate. A repo-wide search for managerApproval / requiresApproval / pinCode / supervisor / overrideCode returns only Stripe's authorization_code.
+  - Consequence: a cashier can zero out any category up to its subtotal with no justification and no audit trail beyond Discount_Source__c = 'Custom'. Martin approved adding a ceiling and a reason on 2026-09-09; the open definitions are whether the ceiling is global or per role, and whether the reason persists to Salesforce (no such field exists in the AuctiferaDX package today, and SH-1293 puts the Salesforce mirror out of scope).
+
+D4 IS A RELAXATION OF CURRENT BEHAVIOUR, NOT A CONTINUATION. D4 allows a Custom discount on a Discount Exempt item. In the current POS the exempt flag blocks BOTH the discount code (SaleItem.swift:561) AND the custom discount (:654, plus exclusion from the pro-rata base at CartItem.swift:76 and from the category subtotal at CustomDiscountViewController.swift:104-105). Scenario 6 asserts D4 as written, but the executor must know it is a deliberate loosening — and if consignment or artist-royalty items rely on the flag, it is a contractual question, not a UX one. Note the field's own definition in AuctiferaDX is unconditional: 'Marks this Shop Item as discount exempt (Discount can't be applied)'.
+
+CARRY-OVER DEBT COVERED HERE. Two defects in the current implementation that this story is the natural place to prevent — scenarios 10 and 11. See the epic's no-port checklist."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Build under test is the native iOS POS (repo Veevarts/POS). Record the commit or build number in the run."
+  - "The Discount → Custom discount tab is reachable. In the current build it offers a % / $ toggle, an amount field and three CATEGORY tiles (Ticket / Membership / Shop) — not a line picker. Record what the build under test actually offers."
+  - "The sale contains 'Ceramic mug' ($16.00) unless a scenario states otherwise."
+  - "Catalog fixtures: 'Ceramic mug' $16.00; 'Exhibition catalog — Monet' $35.00 marked Discount Exempt; at least one ticket line for the cross-slot scenarios."
+  - "For scenario 5, a discount that puts an engine discount of exactly $6.00 on the 'Ceramic mug' line is available (automatic or code, either satisfies the precondition)."
+  - "The org has no discount-reason picklist configured — none exists in the product today. If the build under test offers one, note it in the run: SH-1290 allows both shapes."
+scenarios:
+  - title: "Percentage custom discount reaches the line"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "percentage"
+    given:
+      - "the sale contains 'Ceramic mug' ($16.00) with no other discount"
+    when:
+      - "the cashier opens Discount → Custom discount, selects '%', enters 25 with the reason 'Damaged item', and applies it so it reaches that line"
+    then:
+      - "the line shows '− $4.00 · Custom · Damaged item' in red"
+      - "the sale total is recalculated to reflect the $4.00 reduction"
+      - "EXECUTOR NOTE: record whether the discount was targeted at the LINE or at the Shop CATEGORY. In the current build it is the category, and the $4.00 arrives as a pro-rated percentage (CartItem.swift:77-79). If the build still behaves that way, this scenario documents the gap against D1 rather than passing."
+  - title: "Fixed amount custom discount reaches the line"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "fixed-amount"
+    given:
+      - "the sale contains 'Ceramic mug' ($16.00) with no other discount"
+    when:
+      - "the cashier selects '$', enters 5 with the reason 'Goodwill', and applies it"
+    then:
+      - "the line shows '− $5.00 · Custom · Goodwill'"
+      - "EXECUTOR NOTE: with more than one line in the category, a $5 category-level amount pro-rates across lines and no single line will show '− $5.00'. Run this with exactly one line in the category first, then repeat with two lines and record the split."
+  - title: "Reason is mandatory"
+    tags:
+      - "ac-3"
+      - "negative"
+      - "validation"
+      - "new-capability"
+    given:
+      - "the Custom discount tab is open with a target selected"
+    when:
+      - "the cashier enters 25% and leaves the reason empty"
+    then:
+      - "'Apply discount' is disabled"
+      - "entering any non-empty reason enables it"
+      - "EXECUTOR NOTE: there is NO reason field in the current build at all, so this is entirely new UI. Verify the field exists, is mandatory, and that its value survives to the line label and to the write-back in SH-1293."
+  - title: "Percentage over 100 is blocked with the verbatim message"
+    tags:
+      - "ac-4"
+      - "negative"
+      - "validation"
+      - "verbatim-copy"
+      - "regression"
+    given:
+      - "the Custom discount tab is open with '%' selected"
+    when:
+      - "the cashier enters 120"
+    then:
+      - "the inline error 'Discount cannot exceed 100%' is shown"
+      - "'Apply discount' is disabled"
+      - "EXECUTOR NOTE: this cap already exists but with DIFFERENT copy — today it is an alert reading \"Percentage discount can't be greater than 100\" (CustomDiscountViewController.swift:45, :249). SH-1290 specifies an inline error with new wording. Assert the new string and confirm the old alert is gone. Also test the toggle path: switching from $ to % with a value above 100 re-validates today (:43-48)."
+  - title: "Amount over the remaining line price is blocked with the verbatim message"
+    tags:
+      - "ac-5"
+      - "negative"
+      - "validation"
+      - "verbatim-copy"
+      - "stacking"
+    given:
+      - "'Ceramic mug' already carries an engine discount of $6.00, leaving $10.00 of remainder"
+    when:
+      - "the cashier selects '$' and enters 11"
+    then:
+      - "the inline error 'Discount cannot exceed the item price' is shown"
+      - "entering 10 or less is accepted, confirming the ceiling is the remainder after engine discounts and not the list price"
+      - "EXECUTOR NOTE: today the ceiling is the CATEGORY subtotal minus exempt items, not the line remainder (CustomDiscountViewController.swift:104-105), and the message names the category amount. Verify the ceiling moved to the line remainder as SH-1290 requires."
+  - title: "Custom discount is allowed on a Discount Exempt item"
+    tags:
+      - "ac-6"
+      - "edge-case"
+      - "discount-exempt"
+      - "behaviour-change"
+    given:
+      - "'Exhibition catalog — Monet' ($35.00) is marked Discount Exempt and is on the sale"
+    when:
+      - "the cashier applies a 10% custom discount with the reason 'Manager approval'"
+    then:
+      - "the line shows '− $3.50 · Custom · Manager approval'"
+      - "no engine discount row appears on the same line, confirming D4 blocks only Automatic and code discounts there"
+      - "EXECUTOR NOTE: this is a DELIBERATE LOOSENING. Today the exempt flag blocks the custom discount too (SaleItem.swift:654), excludes the line from the pro-rata base (CartItem.swift:76) and deducts it from the ceiling (CustomDiscountViewController.swift:104-105). Confirm the exempt banner 'Item not eligible for Discounts' (DiscountExemptWarningView.swift:18) is updated or removed accordingly, since leaving it up while the discount applies is contradictory."
+  - title: "Only one custom discount per line — reopening edits instead of adding"
+    tags:
+      - "ac-7"
+      - "edge-case"
+      - "slot-d1"
+    given:
+      - "'Ceramic mug' already has a custom discount applied"
+    when:
+      - "the cashier opens Custom discount for 'Ceramic mug' again"
+    then:
+      - "the existing type, amount and reason are shown for editing"
+      - "no second custom row can be added to the same line"
+      - "EXECUTOR NOTE: the current build does the opposite — it appends a new discount row per application and sums them (SummaryViewController.swift:1636, :1809). This scenario is the single-slot enforcement from D1 and must be tested as new behaviour, including applying twice in a row."
+  - title: "Removing the custom discount restores the line"
+    tags:
+      - "ac-8"
+      - "happy-path"
+      - "removal"
+    given:
+      - "'Ceramic mug' shows '− $4.00 · Custom · Damaged item'"
+    when:
+      - "the cashier removes the custom discount"
+    then:
+      - "the line shows no custom row"
+      - "the sale total returns to the pre-discount amount"
+      - "EXECUTOR NOTE: also verify removal after a client change. Today changing the buyer wipes all manual discounts wholesale (SummaryViewController.swift:594-596 → removeManualDiscounts at :1250-1272); confirm that is still intended under the three-slot model."
+  - title: "No policy ceiling and no approval gate — MISSING FROM SPEC"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "audit"
+    given:
+      - "a cashier with an ordinary POS role and a category of any subtotal"
+    when:
+      - "the cashier applies a 100% custom discount with the reason 'x'"
+    then:
+      - "per SH-1290 as written this is ALLOWED: the only caps are sanity caps (100% and the subtotal), there is no per-role maximum and no manager PIN — both explicitly out of scope."
+      - "BLOCKED as an expectation — record the observed behaviour but do not fail the story for it."
+      - "Martin approved adding a ceiling and a reason on 2026-09-09. The open definitions are: global ceiling or per role/profile, and whether the reason persists to Salesforce. Until those land, this scenario documents the exposure."
+  - title: "CARRY-OVER: the ceiling must not shrink when the cashier switches tabs"
+    tags:
+      - "no-port"
+      - "regression"
+      - "edge-case"
+      - "discount-exempt"
+    given:
+      - "the cart contains a Discount Exempt item of $35.00 plus at least one discountable Shop line"
+    when:
+      - "the cashier switches between the Discount code tab and the Custom discount tab three times, then opens Custom discount and enters an amount just under the expected ceiling"
+    then:
+      - "the allowed ceiling is identical on every visit — the exempt subtotal is deducted exactly once"
+      - "the rejection message, if any, names the same figure every time"
+      - "DEFECT NOT TO PORT: today shopDiscountExempt is declared once (DiscountViewController.swift:52) and accumulated with += inside discountCodesTouchUpInside (:170), never reset. Three tab switches deduct $105 instead of $35, silently shrinking the ceiling and producing a rejection figure that corresponds to nothing. The replacement must derive the exempt subtotal purely per evaluation, not accumulate it in view-controller state."
+  - title: "CARRY-OVER: applying a Custom discount must not erase the automatic discount"
+    tags:
+      - "no-port"
+      - "regression"
+      - "slot-d1"
+      - "cross-module"
+    given:
+      - "a ticket line carrying an automatic member benefit, visible as its own discount row"
+    when:
+      - "the cashier applies a Custom discount that reaches that ticket line"
+    then:
+      - "both rows survive: the automatic member benefit AND the custom discount"
+      - "the member benefit amount is unchanged by the custom discount being applied or removed"
+      - "DEFECT NOT TO PORT: today the pro-rata step sets additionalDiscountAmount = 0 on ticket lines (SummaryViewController.swift:1843, CartItem.swift:73), so a courtesy discount silently destroys the member benefit and nobody notices until the customer compares the receipt. D1's independent slots fix this by construction — this scenario is the proof."
+tags:
+  - "sh-1290"
+  - "sh-1287"
+  - "sh-1297"
+  - "pos-module"
+  - "discount-engine"
+  - "custom-discount"
+  - "discount-exempt"
+  - "ios"
+  - "no-port"
+parameters: []
+links:
+  jira:
+    - key: "SH-1290"
+      url: "https://veevart.atlassian.net/browse/SH-1290"
+      type: "story"
+    - key: "SH-1297"
+      url: "https://veevart.atlassian.net/browse/SH-1297"
+      type: "qa-subtask"
+    - key: "SH-1287"
+      url: "https://veevart.atlassian.net/browse/SH-1287"
+      type: "epic"
+  external: []
+estimatedDuration: 60
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-08T21:40:25Z"
+  updatedBy: "claude"
+  updatedAt: "2026-09-10T00:00:00Z"
+  version: 2

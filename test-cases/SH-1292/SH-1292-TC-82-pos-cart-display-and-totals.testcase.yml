@@ -1,0 +1,227 @@
+schemaVersion: "1.0"
+id: "c7415991-96f4-4731-932a-7db84963ea53"
+key: "TC-82"
+title: "POS — Cart display and totals: discount rows under the line, discount included in Pay"
+description: "QA coverage for SH-1292 (POS — Cart display and totals), QA Sub-task SH-1299, under epic SH-1287 (POS — Discount redemption, Discount Engine V2).
+
+REVISION 2 (2026-09-10) — REBASED against Veevarts/POS `origin/main` @ 80b5a40e (2026-09-08). Revision 1 used the AuctiferaDX package as the baseline, which was wrong for a UI story.
+
+DEPENDENCY — DO NOT EXECUTE BEFORE SH-1291. The epic states SH-1291 blocks SH-1292. Every figure asserted here is produced by the calculation story, so running this against a broken calculation yields display FAILs that are really math FAILs. Confirm TC-81 scenarios 1-3 pass first.
+
+THE CUSTOM DISCOUNT IS NOT RENDERED UNDER THE LINE TODAY — IT IS ITS OWN CART SECTION. This is the biggest presentation change in the story:
+  - The cart has a dedicated section literally titled 'Custom Discounts' (CartItem.swift:233).
+  - Its rows are rendered by SummaryDiscountTableViewCell.swift:19 from text built at Discount.swift:121, :123 as '<applicability> <amount>' or '<applicability> <percentage>' — i.e. 'Shop $-5.00', keyed to the CATEGORY, with no item name and no reason.
+  - The cart total explicitly skips them when summing, because they are already itemised: 'Custom Discounts are already itemized, no need to add them up' (SummaryViewController.swift:1446-1448).
+So SH-1292's 'third red row under the line reading Custom · <reason>' requires moving the custom discount out of its own section and onto the line, and inventing the reason label. Scenario 3 is new work, and scenario 10 records the structural question.
+
+WHAT ALREADY EXISTS on the display side:
+  - Totals labels: 'Subtotal' (Labels.swift:134), 'Discount' (:129 total_discount_label), 'Total Discount' (:912), all overridable from posMetadata.labels.
+  - The app already tells the operator which tax model produced the figures: 'Discount calculated after taxes' / 'Discount calculated before taxes' (Labels.swift:322, :326), and the receipt prints it (Printer.swift:1821, :1861).
+  - A negative-total guard at tender: 'A negative transaction can't be processed, please add some items or remove discounts to proceed' (SummaryViewController.swift:926-929). Worth a look while here — with a real clamp in place this alert should become unreachable.
+  - The exempt banner 'Item not eligible for Discounts' / 'Items not eligible for Discounts' (DiscountExemptWarningView.swift:18).
+
+CURRENCY FORMATTING IS BANKERS-ROUNDED AT DISPLAY. Every amount on screen goes through toCurrency() -> rounded(to: 2, using: .bankers) (Decimal+.swift:17-22, :38-43) with a .currencyAccounting formatter (Formatter+.swift:35-42). SH-1291 asks for half-up per line, so displayed cents can shift. Any figure asserted in this case must be reconciled against TC-81 scenario 10 rather than judged on its own.
+
+REPO CONVENTION FOR THE VERBATIM CONTRACT. Strings live in POS/Common/Labels/Labels.swift with a posMetadata override; there is no Localizable.strings. Since this story fixes copy verbatim, assert the strings resolve from Labels.swift and are not hardcoded in the touched views — checkable in the diff.
+
+OPEN RISK — THE CUSTOM REASON PRINTS ON THE CUSTOMER'S RECEIPT. Scenario 8 asserts the receipt mirrors the cart rows, which is what the story says, and the Custom row carries 'Custom · <reason>'. That means internal wording such as 'Damaged item' or 'Manager approval' reaches the customer. The story specifies it; whether it should is an open product question, so treat a generic receipt label as a spec change request rather than a defect.
+
+NOTE ON THE DISCOUNT PILL. The story says the totals Discount pill 'today renders green' and must align to the same red as the line rows. That is a deliberate change, so a green pill after implementation is a genuine FAIL, not a pre-existing condition to be excused.
+
+CARRY-OVER DEBT COVERED HERE: scenario 11. See the epic's no-port checklist."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Build under test is the native iOS POS (repo Veevarts/POS). Record the commit or build number in the run."
+  - "SH-1291 / TC-81 calculation coverage has passed, or its failures are known and accounted for."
+  - "A receipt printer or receipt preview is available; hardware printing is required for the receipt scenario, not just a preview."
+  - "The org tax rate is 8% for the worked totals, and After Tax Discount Model is off (before-tax default)."
+  - "Catalog fixture: 'Logo t-shirt · Small · White' at $28.00 in Category Apparel."
+  - "Discount fixtures: the automatic 'Summer apparel sale' at 20% with a customer-facing name set; the code 'SHOP10' at $10 off; the Entire order code 'SUMMER25' at 25%; a Custom discount can be applied with a free-text reason."
+  - "The red used by line discount rows is the coral #D85A30 family at 13px per the story. Capture a screenshot for every colour assertion rather than judging by eye."
+  - "Test on at least two device sizes. Three stacked discount rows plus a struck-through list price is a significant vertical growth per line, and the iOS QA checklist calls for relative sizing — a cart that scrolls or truncates on a smaller device is a finding."
+scenarios:
+  - title: "Automatic discount row under the line with the struck-through list price"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "line-row"
+    given:
+      - "'Logo t-shirt' at $28.00 carries the automatic 'Summer apparel sale' at 20%"
+    when:
+      - "the cashier views the cart"
+    then:
+      - "a red row under the line reads '− $5.60 · Summer apparel sale'"
+      - "the line price on the right reads '$22.40' with '$28.00' struck through above it"
+      - "the source label is the discount's customer-facing name, not its internal description"
+  - title: "Code row is labelled with the code and ordered after the automatic"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "line-row"
+      - "ordering"
+    given:
+      - "the same line already shows the automatic row"
+    when:
+      - "'SHOP10' is applied to that line"
+    then:
+      - "a second red row reads '− $10.00 · SHOP10'"
+      - "the rows appear in stacking order: automatic first, then code"
+  - title: "Custom row is labelled with the reason and sits third"
+    tags:
+      - "ac-3"
+      - "happy-path"
+      - "line-row"
+      - "ordering"
+      - "new-capability"
+    given:
+      - "the line shows the automatic and code rows, standing at $12.40"
+    when:
+      - "a 10% custom discount with the reason 'Damaged item' is applied"
+    then:
+      - "a third red row reads '− $1.24 · Custom · Damaged item'"
+      - "the line shows at most three discount rows, matching the three slots in D1"
+      - "EXECUTOR NOTE: this is new presentation, not a restyle. Today the custom discount lives in a separate cart section titled 'Custom Discounts' (CartItem.swift:233) rendered as '<category> <amount>' with no item name and no reason (Discount.swift:121, SummaryDiscountTableViewCell.swift:19). Verify the old section is gone rather than duplicated, and that the cart total does not double-count now that the row moved — today totals deliberately skip that section (SummaryViewController.swift:1446-1448)."
+  - title: "Entire order discount shows in the totals block only"
+    tags:
+      - "ac-4"
+      - "entire-order"
+      - "totals"
+    given:
+      - "the Entire order code 'SUMMER25' is applied to the sale"
+    when:
+      - "the cashier views the cart"
+    then:
+      - "no line shows a 'SUMMER25' row"
+      - "the totals block 'Discount' row includes the order discount in its sum"
+      - "EXECUTOR NOTE: today an order-level discount is pro-rated ONTO the lines as a percentage (CartItem.swift:69-79, SummaryViewController.swift:1840-1843), so it does reach them. 'Totals only' means that pro-rata write must stop — confirm the lines' own discountValue is no longer being overwritten, since that field also travels to Salesforce."
+  - title: "Pay button includes discounts and tax"
+    tags:
+      - "ac-5"
+      - "happy-path"
+      - "totals"
+      - "pay"
+    given:
+      - "Subtotal $28.00, Discount −$15.60 and Tax $0.99 on the sale"
+    when:
+      - "the cashier views the totals block"
+    then:
+      - "'Total' reads '$13.39'"
+      - "the button reads 'Pay $13.39'"
+      - "Subtotal is stated at list prices, and Discount is the sum of all line-level and order-level discounts, shown negative"
+      - "EXECUTOR NOTE: the payment path rounds the pending amount separately (SummaryViewController.swift:333, :769, :909) and compares the total at 3 decimals (:995). Confirm the amount actually tendered equals the Pay label to the cent, not just that the label looks right."
+  - title: "Discount pill in totals uses the same red as the line rows"
+    tags:
+      - "ac-6"
+      - "styling"
+      - "regression"
+    given:
+      - "the sale has at least one line discount and the totals block is visible"
+    when:
+      - "the Discount pill and the line rows are compared, with a screenshot captured"
+    then:
+      - "the 'Discount' pill and its amount render in the same red as the line discount rows"
+      - "the pre-change green rendering called out in the story is gone"
+      - "the same colour holds in both light and dark appearance if the app supports both"
+  - title: "Removing a discount clears its row and restores the total"
+    tags:
+      - "ac-7"
+      - "removal"
+      - "totals"
+    given:
+      - "the line shows an automatic row and a code row"
+    when:
+      - "the code is removed"
+    then:
+      - "only the automatic row remains on the line"
+      - "Total and the Pay button amount are both recalculated"
+  - title: "Receipt mirrors the cart"
+    tags:
+      - "ac-8"
+      - "receipt"
+      - "happy-path"
+    given:
+      - "a sale with an automatic row, a code row and a custom row on one line, plus an order-level discount"
+    when:
+      - "the sale is paid and the receipt is printed on hardware"
+    then:
+      - "the receipt shows each discount row under its item, with the same source labels as the cart"
+      - "the receipt totals show the Discount line"
+      - "the printed figures match the cart figures to the cent"
+      - "EXECUTOR NOTE: the receipt already prints which tax model was used (Printer.swift:1821, :1861) — confirm that line survives. Print on a real printer: column widths on thermal paper are the usual failure mode for three stacked rows per item, and a preview will not show truncation."
+  - title: "Partial-consumption row label — FORMAT COLLIDES WITH SH-1293"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "line-row"
+    given:
+      - "a line of 3 units where the code's unit cap only covers 2, per the SH-1293 partial-consumption case"
+    when:
+      - "the cashier views the cart"
+    then:
+      - "BLOCKED — SH-1293 specifies '− $20.00 · SHOP10 · 2 of 3 items' while SH-1292 fixes the format as '− $X.XX · <source>' with no unit-count suffix and no scenario for it."
+      - "Record what the implementation renders and route the ownership question to Product: either SH-1292's format grows a suffix, or SH-1293 drops it."
+      - "Do not record PASS or FAIL on the label shape until that is settled."
+  - title: "Where does the Custom discount live in the cart — MISSING FROM SPEC"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "line-row"
+    given:
+      - "a sale with custom discounts affecting more than one category, for example Shop and Ticketing"
+    when:
+      - "the cashier views the cart"
+    then:
+      - "BLOCKED — SH-1292 describes the custom discount as a row under its line, but says nothing about the existing 'Custom Discounts' cart section, and SH-1290 is written per line while the shipped app is per category."
+      - "Record whether the section still exists, whether it is now empty, and whether a category-wide custom discount is shown once or repeated on every affected line."
+      - "This needs one coherent answer across SH-1290 and SH-1292 before either can be signed off."
+  - title: "CARRY-OVER: discount copy must resolve from Labels and never leak Swift wrappers"
+    tags:
+      - "no-port"
+      - "regression"
+      - "verbatim-copy"
+    given:
+      - "a Discount Exempt item and a membership line on the same sale"
+    when:
+      - "every discount-related message reachable from the cart and the discount screens is exercised"
+    then:
+      - "no message contains 'Optional(' or any other Swift wrapper text"
+      - "no message names the wrong module for the line it refers to"
+      - "each asserted string resolves from Labels.swift rather than a hardcoded literal in the touched views"
+      - "DEFECT NOT TO PORT: today SaleItem.swift:562 and :612 interpolate String(describing:) of an Optional, producing 'Optional(\"Mug\") does not support discounts' on screen, and SummaryItemEditViewController.swift:284 shows the shop message for the membership case. A story that fixes copy verbatim is the right place to stop both from surviving the rewrite."
+tags:
+  - "sh-1292"
+  - "sh-1287"
+  - "sh-1299"
+  - "pos-module"
+  - "discount-engine"
+  - "cart-display"
+  - "totals"
+  - "receipt"
+  - "ios"
+  - "no-port"
+parameters: []
+links:
+  jira:
+    - key: "SH-1292"
+      url: "https://veevart.atlassian.net/browse/SH-1292"
+      type: "story"
+    - key: "SH-1299"
+      url: "https://veevart.atlassian.net/browse/SH-1299"
+      type: "qa-subtask"
+    - key: "SH-1287"
+      url: "https://veevart.atlassian.net/browse/SH-1287"
+      type: "epic"
+    - key: "SH-1291"
+      url: "https://veevart.atlassian.net/browse/SH-1291"
+      type: "blocked-by"
+  external: []
+estimatedDuration: 55
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-08T21:40:25Z"
+  updatedBy: "claude"
+  updatedAt: "2026-09-10T00:00:00Z"
+  version: 2
