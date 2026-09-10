@@ -1,0 +1,242 @@
+schemaVersion: "1.0"
+id: "4b5c7e1e-9d3d-4a3e-80cd-284bbbe735a8"
+key: "TC-78"
+title: "POS — Automatic Discount Engine V2 rules apply by themselves on every cart change"
+description: "QA coverage for SH-1288 (POS — Automatic rules apply by themselves when lines are added to the cart), QA Sub-task SH-1295, under epic SH-1287 (POS — Discount redemption, Discount Engine V2).
+
+REVISION 2 (2026-09-10) — REBASED. Revision 1 described the AuctiferaDX Salesforce package as the baseline. Wrong baseline: the POS is the native iOS app (repo Veevarts/POS) and it applies and computes these discounts on the device. Findings below are from Veevarts/POS `origin/main` @ 80b5a40e (2026-09-08).
+
+HOW AUTOMATIC DISCOUNTS ACTUALLY WORK TODAY. They are AppliedDiscount rows that arrive attached to shop items, and the member/non-member split is resolved by WHAT THE SERVER RETURNS, not by a client-side gate:
+  - The device requests shop items with a membership id: parameters['membershipId'] = membership?.id (ShopItem.swift:355), called from SummaryViewController.swift:679-682 and ShopItemsView.swift:212.
+  - With no client selected the device falls back to POSApp.shared.generalAccessMembership, so ONLY non-member AppliedDiscount rows come back. That is the real mechanism behind 'the member-gated rule waits for a client' — the rule is not filtered on the device, it simply is not in the response.
+  - isMemberDiscount is membershipProgramId != nil || allMembers (AppliedDiscount.swift:57-61).
+  - Application happens in two passes inside SaleItem.calculateAmounts(): non-member first on the LIST price (SaleItem.swift:615-627), then member on the REMAINDER (:632-640).
+
+AC-7 IS A REPLACEMENT, NOT A DESCRIPTION. D1 says one Automatic slot per line and 'the highest discount amount wins'. The shipped code applies EVERY matching automatic discount and accumulates them (SaleItem.swift:615-640) — there is no comparison, no winner and no slot. So scenario 7 is new behaviour to be built and tested, and the tie-break gap in scenario 11 only matters once the slot exists at all. Treat both as design questions, not as bugs against the current app.
+
+A SECOND, SHARPER PROBLEM WITH AC-6. The story says removing the client removes member-gated discounts only and leaves the rest untouched. Today, changing the buyer runs removeManualDiscounts() whenever the resolved membership changes (SummaryViewController.swift:594-596 -> :1250-1272), which drops the entire Custom Discounts cart section AND nils posDiscounts on every line. So removing a member client currently wipes the cashier's manually applied codes and custom discounts as collateral damage. Scenario 12 covers it.
+
+SCOPE: evaluation on every cart mutation, the eligibility gates, Membership Program as a gate, the (new) single automatic slot, and per-line display of the resulting row.
+
+NOTE ON COUNTERS. 'Rule counters not exhausted' appears in the story's eligibility list. On the device there is no discount-code usage counter at all — see TC-83, where the whole limit chain is traced. There IS an existing quantity cap for member-priced tickets via Auctifera__Rule_Overall_Limit__c (AppliedDiscount.swift:50-51, resolved in Exhibition.swift:204-275, enforced in OffersView.swift:441-487), which is a different concept and must not be confused with redemption limits.
+
+DISCOUNT EXEMPT IS SHOP-ONLY. There is no isDiscountExempt on ReservationItem or Membership — not found in code. Scenario 8 is therefore only meaningful for shop lines; do not report its absence on tickets as a defect.
+
+CARRY-OVER DEBT COVERED HERE: scenario 13. See the epic's no-port checklist."
+type: "functional"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Build under test is the native iOS POS (repo Veevarts/POS). Record the commit or build number in the run."
+  - "The register can add Shop, Ticketing and Membership lines to a sale, in an org whose timezone is known."
+  - "The discount 'Summer apparel sale' exists: Active, available at POS, Shop rule with Category = Apparel, Redemption = Automatic, active window Jun 1 - Sep 30 2026, 20% off, and it is NOT membership-gated."
+  - "The discount 'Gold member benefit' exists: Active, available at POS, Shop rule with All Items, Membership Program = Gold, Redemption = Automatic, 10% off."
+  - "Catalog fixtures: 'Logo t-shirt' $28.00 in Category Apparel; 'Museum tote bag' $18.00 outside Apparel; 'Exhibition catalog — Monet' $35.00 in Apparel and marked Discount Exempt."
+  - "Contact fixtures: 'Ana' holds an active Gold membership; 'Luis' holds an active Silver membership only."
+  - "The business date at execution is inside Jun 1 - Sep 30 2026. If executing outside that window, shift the rule's active window rather than the assertions."
+  - "Because member resolution happens server-side, capture the shop-item response (or at least the discount rows shown) when a scenario turns on client selection — a missing discount may be an absent server row rather than a client bug."
+scenarios:
+  - title: "Automatic Shop rule applies when a matching line is added"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "automatic"
+    given:
+      - "the discount 'Summer apparel sale' is Active with Available at POS on"
+      - "its Shop rule targets Category = Apparel with Redemption = Automatic inside its active window"
+    when:
+      - "the cashier adds 'Logo t-shirt' ($28.00, Category Apparel) to the sale"
+    then:
+      - "the line shows a red discount row '− $5.60 · Summer apparel sale'"
+      - "the sale total reflects the discount without any cashier action"
+  - title: "Rule outside its active window does not apply"
+    tags:
+      - "ac-2"
+      - "negative"
+      - "active-window"
+    given:
+      - "the rule's active window ended on Aug 31 2026 and the business date is Sep 8 2026"
+    when:
+      - "the cashier adds 'Logo t-shirt' to the sale"
+    then:
+      - "no discount row is shown on the line"
+      - "the line price stays at the full $28.00"
+  - title: "Discount not available at POS does not apply"
+    tags:
+      - "ac-3"
+      - "negative"
+      - "pos-availability"
+    given:
+      - "the discount 'Summer apparel sale' has Available at POS off and is otherwise eligible"
+    when:
+      - "the cashier adds 'Logo t-shirt' to the sale"
+    then:
+      - "no discount row is shown on the line"
+  - title: "Member-gated rule waits for a client to be selected"
+    tags:
+      - "ac-4"
+      - "membership-gate"
+      - "happy-path"
+    given:
+      - "'Gold member benefit' has a Shop rule with All Items and Membership Program = Gold"
+      - "the sale has no client selected"
+    when:
+      - "the cashier adds 'Museum tote bag' to the sale"
+    then:
+      - "no discount row is shown on the line"
+      - "after the cashier selects the client 'Ana', who holds an active Gold membership, the line shows '− $1.80 · Gold member benefit'"
+      - "EXECUTOR NOTE: with no client the device queries shop items under generalAccessMembership (SummaryViewController.swift:679-682), so the member row is absent from the response rather than filtered locally. Confirm the shop-item request is re-issued on client selection — if the cart is not re-fetched, the discount will never appear no matter how the rule is configured."
+  - title: "Client in a different membership program does not qualify"
+    tags:
+      - "ac-5"
+      - "negative"
+      - "membership-gate"
+    given:
+      - "the client 'Luis' holds an active Silver membership only"
+    when:
+      - "the cashier selects 'Luis' on a sale containing 'Museum tote bag'"
+    then:
+      - "no 'Gold member benefit' row appears on any line"
+  - title: "Removing the client removes member-gated discounts only"
+    tags:
+      - "ac-6"
+      - "edge-case"
+      - "recalculation"
+    given:
+      - "'Ana' is selected and both 'Summer apparel sale' and 'Gold member benefit' rows are visible on the sale"
+    when:
+      - "the cashier removes the client from the sale"
+    then:
+      - "'Gold member benefit' rows disappear"
+      - "'Summer apparel sale' rows remain and the total is recalculated accordingly"
+      - "EXECUTOR NOTE: see scenario 12 — today this same action also wipes manually applied codes and custom discounts. Assert here that the NON-member automatic survives, and use scenario 12 for the manual-discount collateral."
+  - title: "Two Automatic rules match the same line — the highest amount wins (NEW BEHAVIOUR)"
+    tags:
+      - "ac-7"
+      - "edge-case"
+      - "slot-d1"
+      - "new-capability"
+    given:
+      - "'Ana' (Gold) is selected"
+      - "'Logo t-shirt' matches both 'Summer apparel sale' (20% = $5.60) and 'Gold member benefit' (10% = $2.80)"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "the line shows exactly one automatic row '− $5.60 · Summer apparel sale'"
+      - "no second automatic row is present, per the one-Automatic-slot rule in D1"
+      - "the total discount on the line is $5.60, NOT $8.40"
+      - "EXECUTOR NOTE: this is the single most important scenario in the case. The shipped app applies BOTH and accumulates (SaleItem.swift:615-640), so the pre-change figure is $8.40 — and because member discounts compute on the remainder, the exact pre-change number depends on which rule is member-gated. Capture the before figure explicitly so the change is documented, not assumed."
+  - title: "Discount Exempt item receives no automatic discount"
+    tags:
+      - "ac-8"
+      - "negative"
+      - "discount-exempt"
+    given:
+      - "'Exhibition catalog — Monet' is marked Discount Exempt and sits in Category Apparel"
+    when:
+      - "the cashier adds it to the sale"
+    then:
+      - "no discount row is shown on the line"
+      - "the line is charged at the full $35.00"
+      - "EXECUTOR NOTE: exempt is a shop-item concept only (ShopItem.swift:121, surfaced at SaleItem.swift:276-280); there is no equivalent on tickets or memberships, so do not report its absence there. Expect the exempt banner 'Item not eligible for Discounts' (DiscountExemptWarningView.swift:18) on the discount screens."
+  - title: "Ticketing and Memberships lines follow the same evaluation"
+    tags:
+      - "ac-9"
+      - "cross-module"
+      - "happy-path"
+    given:
+      - "a Ticketing rule for Program / Events = 'Monet' with Redemption = Automatic and dates taken from the Program schedule"
+      - "a Memberships rule with Membership Program = Family as its scope and Redemption = Automatic"
+    when:
+      - "the cashier adds one 'Monet — Adult' ticket and one 'Family membership' to the sale"
+    then:
+      - "each line shows its own matching automatic discount row"
+      - "the Shop evaluation on other lines in the same cart is unaffected"
+      - "EXECUTOR NOTE: the three line types are computed by three separate implementations (SaleItem, ReservationItem, Membership). 'The same evaluation' is an aspiration in this story, not current fact — record any divergence in the resulting amounts and cross-reference TC-81 scenario 9."
+  - title: "Quantity change recalculates the line discount"
+    tags:
+      - "ac-10"
+      - "recalculation"
+      - "happy-path"
+    given:
+      - "'Logo t-shirt' x1 shows '− $5.60'"
+    when:
+      - "the cashier changes the quantity to 2"
+    then:
+      - "the line shows '− $11.20 · Summer apparel sale'"
+      - "removing a line or clearing the cart likewise re-evaluates the remaining lines"
+      - "EXECUTOR NOTE: SaleItem.swift:592 computes amount = quantity x itemSubtotal before any discount, and the amount didSet re-pushes the code base (:69-77), so recalculation should cascade. Confirm rather than assume."
+  - title: "Two Automatic rules tie on amount — MISSING FROM SPEC, do not record a result"
+    tags:
+      - "missing-doc"
+      - "edge-case"
+      - "needs-clarification"
+      - "slot-d1"
+    given:
+      - "two Automatic rules both match 'Logo t-shirt' and both compute exactly $5.60"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "BLOCKED — D1 defines only 'the highest discount amount wins' and specifies no tie-break. Do not assert which rule is shown and do not record PASS or FAIL until Product rules."
+      - "This only becomes testable once the single-slot behaviour from scenario 7 exists; today both rules apply and the question does not arise."
+      - "Once ruled, the expected outcome must be deterministic and stated in D1 (candidate tie-breaks: the member-gated rule wins, the earliest active window wins, or the lowest rule id wins)."
+  - title: "Removing the client must not wipe manually applied discounts"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "edge-case"
+      - "regression"
+    given:
+      - "'Ana' (Gold) is selected, a discount code has been applied to a line, and a custom discount is on the sale"
+    when:
+      - "the cashier removes the client from the sale"
+    then:
+      - "BLOCKED pending a product decision — record what happens to the code and the custom discount."
+      - "Today changing the buyer triggers removeManualDiscounts() whenever the resolved membership changes (SummaryViewController.swift:594-596 -> :1250-1272), dropping the whole Custom Discounts cart section and nilling posDiscounts on every line. So the cashier silently loses work they did by hand."
+      - "AC-6 only specifies that member-gated automatics disappear. It says nothing about manual discounts, and under the three-slot model of D1 the Code and Custom slots are independent of membership — so wiping them looks wrong. Needs an explicit ruling."
+  - title: "CARRY-OVER: an exempt item with applied discounts must not leave stale line totals"
+    tags:
+      - "no-port"
+      - "regression"
+      - "discount-exempt"
+      - "edge-case"
+    given:
+      - "'Exhibition catalog — Monet' is marked Discount Exempt AND sits in a category matched by an active automatic rule"
+      - "the line has already been priced once in the cart"
+    when:
+      - "the cart is re-evaluated, for example by changing the quantity or selecting a client"
+    then:
+      - "the line total, its tax and the cart total are all internally consistent"
+      - "either the exempt line never receives an applied discount upstream, or the failure is surfaced and blocks tender — never a silently stale line"
+      - "DEFECT NOT TO PORT: today SaleItem.calculateAmounts() returns (false, '… does not support discounts') at :610-613 BEFORE assigning subtotal, taxAmount and total (:687-698), and the caller discards the result with `_ =` (CartItem.swift:275-277). The line keeps values from the previous calculation and the cart total keeps summing them, with no error shown. This is a silent money defect and the replacement must not reproduce it."
+tags:
+  - "sh-1288"
+  - "sh-1287"
+  - "sh-1295"
+  - "pos-module"
+  - "discount-engine"
+  - "automatic-rules"
+  - "membership-gate"
+  - "ios"
+  - "no-port"
+parameters: []
+links:
+  jira:
+    - key: "SH-1288"
+      url: "https://veevart.atlassian.net/browse/SH-1288"
+      type: "story"
+    - key: "SH-1295"
+      url: "https://veevart.atlassian.net/browse/SH-1295"
+      type: "qa-subtask"
+    - key: "SH-1287"
+      url: "https://veevart.atlassian.net/browse/SH-1287"
+      type: "epic"
+  external: []
+estimatedDuration: 60
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-08T21:40:25Z"
+  updatedBy: "claude"
+  updatedAt: "2026-09-10T00:00:00Z"
+  version: 2

@@ -1,0 +1,262 @@
+schemaVersion: "1.0"
+id: "605c2c04-ee6b-4739-a235-b9d1d6b3a91a"
+key: "TC-81"
+title: "POS — Stacking and calculation order per line, before and after tax"
+description: "QA coverage for SH-1291 (POS — Stacking and calculation order per line, before/after tax), QA Sub-task SH-1298, under epic SH-1287 (POS — Discount redemption, Discount Engine V2). This is the calculation story: SH-1292 (display) is blocked by it, so a defect here invalidates the display coverage too.
+
+REVISION 2 (2026-09-10) — REBASED. Revision 1 verified this story against the AuctiferaDX Salesforce Apex. That was the wrong baseline: the POS is the native iOS app (repo Veevarts/POS) and it computes discounts on the device. Every V1-Apex claim from revision 1 has been removed and replaced with findings from Veevarts/POS `origin/main` @ 80b5a40e (2026-09-08).
+
+WHERE THE MATH ACTUALLY LIVES. Salesforce returns discount DEFINITIONS; the device multiplies and sends final currency amounts back. Owners of the line total:
+  - Shop: SaleItem.calculateAmounts() — POS/Model/Salesforce Objects/Shop/SaleItem.swift:591
+  - Ticket: ReservationItem.calculateAmounts() — .../Ticketing/ReservationItem.swift:764
+  - Membership: Membership.calculateTotal() — .../Donation & Membership/Membership.swift:466
+  - Cart total: SummaryViewController.updateAmounts() — POS/POS/Summary/Controller/SummaryViewController.swift:1387, which only SUMS already-computed line values.
+So every figure in this case is asserted against on-device arithmetic, and the payload sent to Salesforce carries the result, not the inputs.
+
+THE ACTUAL ORDER OF OPERATIONS TODAY (SaleItem.swift:591-701), which is what D3 has to either match or deliberately replace:
+  1. applied NON-member discounts, each computed on the LIST price, accumulated (:615-627)
+  2. subtotal -= that accumulation (:629)
+  3. applied MEMBER discounts, computed on the REMAINDER (:632-640)
+  4. discount codes, on the remainder after applied discounts but BEFORE the custom discount (:91-104 posDiscountAmount + POSDiscount.swift:178)
+  5. custom discount, on the remainder (:645-660)
+  6. clamp to the line ceiling (:669-677)
+
+D1 CONTRADICTS THE SHIPPED CODE IN THREE WAYS. This is the core finding and it is not a QA nit — it changes what the story is:
+  a. UNLIMITED automatic discounts per line. SaleItem.swift:615-640 loops over every shopItem.discounts entry in two passes and accumulates. There is no 'highest wins' and no slot.
+  b. UNLIMITED discount codes per line, deduped only by identity (:569-575), and EVERY code shares the same base because posDiscountAmount is re-pushed into each record (:91-104, :161-165). Two 50% codes therefore give 100% off, not 75%. Scenario 12 covers this.
+  c. The CUSTOM discount is not per-line at all — it is per CATEGORY (Ticket / Membership / Shop, Discount.swift:26-28, documented at :51-56), then pro-rated onto each line as a percentage (CartItem.swift:69-79, SummaryViewController.swift:1840-1843). A line's Discount_Value__c is a derived pro-rata percentage, not an operator-entered number.
+
+THE PERCENTAGE BASE IS INCONSISTENT TODAY — four different answers in one codebase. Any single statement in the epic of the form 'the percentage is computed on X' will be wrong for at least one case:
+  - applied non-member % -> LIST price (SaleItem.swift:622, :624)
+  - applied member % -> REMAINDER (SaleItem.swift:638)
+  - custom % on a SHOP line -> REMAINDER (SaleItem.swift:657)
+  - custom % on a TICKET line -> LIST price (ReservationItem.swift:774, :776)
+Scenario 9 records this as the highest-priority product question in the story.
+
+TWO THINGS THE EPIC TREATS AS NEW THAT ALREADY EXIST — do not spec or test them as new functionality:
+  - THE CLAMP ALREADY EXISTS on all three line types: SaleItem.swift:669-677, ReservationItem.swift:789-797, Membership.swift:198-208, plus zero-floors at SaleItem.swift:684-695 and Membership.swift:531-539. Revision 1 wrongly called this new. Scenario 4 is now regression protection.
+  - THE AFTER-TAX MODEL ALREADY EXISTS end to end: PaymentsSettings.swift:19, :36 reads Auctifera__After_Tax_Discount_Model__c, all four calculators branch on it, an edited transaction reuses its original model (SummaryViewController.swift:157-161), it ships as discountsAfterTaxes (PurchaseRequest.swift:39), and the receipt prints which model was used (Printer.swift:1821, :1861).
+
+ROUNDING IS A REAL CHANGE, BUT NOT THE ONE REVISION 1 DESCRIBED. There is NO rounding in the discount math — everything stays Decimal at full precision. Rounding happens only at display, via NSDecimalRound with .bankers (half-to-even) at 2 decimals (Decimal+.swift:38-43), and the decimal formatter deliberately keeps 200 fraction digits to stay exact (Formatter+.swift:21-26). SH-1291 asks for half-up per line with totals as sums of rounded lines. That is a genuine behavioural change in two dimensions at once: the mode (bankers -> half-up) and the granularity (display-only -> per line). Scenario 10.
+
+OPEN RISK — THE AFTER-TAX AC CANNOT FAIL AS WRITTEN. The story's only after-tax scenario is 20% off $100 at 8% tax, and both models yield 86.40 because 108 x 0.8 is identically 100 x 0.8 x 1.08. Only a FIXED AMOUNT can discriminate. The code confirms why: a fixed amount is taken verbatim in both models (SaleItem.swift:658-659, POSDiscount.swift:175-176), while the subtotal derivation divides the discount back out of the tax (SaleItem.swift:686-690), so the pre-tax effect differs. Scenario 8 adds that case."
+type: "integration"
+priority: "high"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "Build under test is the native iOS POS (repo Veevarts/POS). Record the commit or build number in the run — the figures below were derived from origin/main @ 80b5a40e."
+  - "The org's tax rate and the After Tax Discount Model setting are both known and can be changed between runs. The setting is read from Auctifera__After_Tax_Discount_Model__c on POS metadata (PaymentsSettings)."
+  - "After Tax Discount Model is OFF (the default, before-tax) unless a scenario states otherwise. Record the value actually in force for every scenario."
+  - "The tax rate used across the worked examples is 8% unless a scenario states otherwise."
+  - "Discount fixtures allow putting, on one line and independently: applied discounts (member and non-member, percentage and fixed), discount codes (percentage and fixed), and a custom discount."
+  - "Catalog fixtures: a $100.00 line for the reference example, 'Logo t-shirt' $28.00, 'Exhibition catalog' $35.00 marked Discount Exempt."
+  - "Line totals are read from the cart, not from the receipt, except in the rounding scenario where both are compared."
+  - "For the custom-discount scenarios, note that the current app applies a custom discount per CATEGORY, not per line. Where a scenario says 'add a custom discount to that line', capture whether the app offers a per-line control at all — if it does not, that is the finding, not a blocked step."
+scenarios:
+  - title: "Automatic + Code + Custom on one line — the reference example"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "stacking"
+      - "slot-d1"
+    given:
+      - "a $100.00 line carrying an automatic $10 benefit and a code discount of $15"
+    when:
+      - "a 20% custom discount is applied so it reaches that line"
+    then:
+      - "the engine discount is $25.00, computed as 100 - 10 - 15 = 75 remaining"
+      - "the custom discount is $15.00, computed as 75 x 20% on the remainder"
+      - "the line total is $60.00"
+      - "EXECUTOR NOTE: the shipped order (applied non-member on list, then applied member on remainder, then codes, then custom) can produce this same figure for these inputs. Capture the per-step breakdown, not just the $60.00, so the order is actually proven."
+  - title: "Percentage engine discounts are each computed on the list price"
+    tags:
+      - "ac-2"
+      - "stacking"
+      - "list-price-base"
+    given:
+      - "a $28.00 line with an automatic 20% rule and a code of $10"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "the engine discount is $15.60, the sum of $5.60 and $10.00, each taken from the list price"
+      - "the line total is $12.40"
+      - "EXECUTOR NOTE: today only a NON-member applied rule uses the list price (SaleItem.swift:622). If the 20% rule is member-gated it currently computes on the remainder instead (:638) and this figure will differ. Run it both ways and record both."
+  - title: "Custom percentage applies on the remainder, not the list price"
+    tags:
+      - "ac-3"
+      - "stacking"
+      - "remainder-base"
+    given:
+      - "the line from the previous scenario standing at $12.40 after engine discounts"
+    when:
+      - "a 10% custom discount is applied"
+    then:
+      - "the custom discount is $1.24, not $2.80"
+      - "the line total is $11.16"
+      - "EXECUTOR NOTE: true for a SHOP line today (SaleItem.swift:657). A TICKET line computes the custom percentage on the LIST price instead (ReservationItem.swift:774) — see scenario 9."
+  - title: "Discounts never take a line below zero — ALREADY IMPLEMENTED, regression protection"
+    tags:
+      - "ac-4"
+      - "edge-case"
+      - "clamp"
+      - "regression"
+      - "no-port"
+    given:
+      - "a $28.00 line with no other discount"
+    when:
+      - "a code worth $30 is applied"
+    then:
+      - "the code discount shown is $28.00, clamped to the line price"
+      - "the line total is $0.00 and never negative"
+      - "no error is raised to the cashier — the clamp is silent per D3"
+      - "EXECUTOR NOTE: this clamp exists today (SaleItem.swift:669-677, ReservationItem.swift:789-797, Membership.swift:198-208). Treat it as regression protection, not new functionality. Also exercise a MEMBERSHIP line: Membership.swift:221 calls fatalError on a positive discount where shop and ticket clamp silently, so a bad value crashes the app instead of being absorbed."
+  - title: "Entire order code applies after line-level discounts and skips Discount Exempt lines"
+    tags:
+      - "ac-5"
+      - "entire-order"
+      - "discount-exempt"
+    given:
+      - "lines: 'Logo t-shirt' $28.00 with an automatic -$5.60, and 'Exhibition catalog' $35.00 marked Discount Exempt"
+    when:
+      - "the Entire order code 'SUMMER25' (25%) is applied"
+    then:
+      - "the order discount is $5.60, being 25% of the $22.40 remaining after line-level discounts"
+      - "the exempt line's $35.00 is excluded from the base entirely"
+      - "no line shows a code discount row"
+      - "EXECUTOR NOTE: today the exempt subtotal is deducted from the custom-discount ceiling (CustomDiscountViewController.swift:104-105), which is the closest existing analogue. Verify the exclusion against the ORDER-level base specifically, and watch for the shopDiscountExempt accumulation defect (DiscountViewController.swift:52, :170) which inflates the deduction after toggling tabs."
+  - title: "Before-tax model (default) — discount then tax on the discounted base"
+    tags:
+      - "ac-6"
+      - "tax"
+      - "before-tax"
+    given:
+      - "the org has After Tax Discount Model off and the tax rate is 8%"
+      - "a $100.00 line with a 20% discount"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "tax is $6.40, computed on the discounted $80.00"
+      - "the line total with tax is $86.40"
+  - title: "After-tax model with a percentage — same result, confirms equivalence"
+    tags:
+      - "ac-7"
+      - "tax"
+      - "after-tax"
+    given:
+      - "the org has After Tax Discount Model on and the tax rate is 8%"
+      - "a $100.00 line with a 20% discount"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "the discount is computed on the grossed-up $108.00 as $21.60"
+      - "the tax line is recalculated to $6.40"
+      - "the line total with tax is $86.40 — identical to the before-tax model, which is expected and not a defect for a percentage"
+      - "EXECUTOR NOTE: passing this scenario proves nothing about the setting. Scenario 8 is the one that discriminates. Also confirm the receipt prints which model was used (Printer.swift:1821, :1861) — that already exists."
+  - title: "After-tax model with a FIXED AMOUNT — the case the story is missing"
+    tags:
+      - "missing-doc"
+      - "tax"
+      - "after-tax"
+      - "fixed-amount"
+      - "edge-case"
+    given:
+      - "the tax rate is 8% and the line is $100.00"
+      - "the discount is a fixed $20 off, not a percentage"
+    when:
+      - "the same sale is priced with After Tax Discount Model off and then on"
+    then:
+      - "with the setting OFF the line total with tax is $86.40, being (100 - 20) x 1.08"
+      - "with the setting ON the line total with tax is $88.00, being 108 - 20"
+      - "the two totals MUST differ — if they match, the setting is not being honoured for fixed amounts"
+      - "GAP NOTE: SH-1291 has no fixed-amount after-tax AC, so this expectation is derived arithmetically. The code explains why it matters: a fixed amount is taken verbatim in both models (SaleItem.swift:658-659, POSDiscount.swift:175-176) while the subtotal derivation divides the discount back out of the tax (SaleItem.swift:686-690). Product consequence flagged in the epic refinement: the same '$20 off' campaign delivers a different real discount across orgs."
+  - title: "The percentage base is inconsistent across discount kinds and product families"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "cross-module"
+      - "stacking"
+      - "no-port"
+    given:
+      - "a Shop line and a Ticket line of the same price"
+      - "each carries one applied member discount, one applied non-member discount, and one custom percentage of the same rate"
+    when:
+      - "both lines are priced"
+    then:
+      - "BLOCKED on a product ruling — D3 states one order for all line types, but the shipped app uses four different percentage bases."
+      - "Applied non-member uses the LIST price (SaleItem.swift:622, :624). Applied member uses the REMAINDER (:638). Custom on a shop line uses the REMAINDER (:657). Custom on a TICKET line uses the LIST price (ReservationItem.swift:774, :776)."
+      - "Record all four computed figures. Do not record PASS or FAIL until D3 states which base is canonical for every discount kind and every line type."
+      - "Related defect to verify while here: applying the custom ticket discount zeroes the ticket's automatic discount (SummaryViewController.swift:1843, CartItem.swift:73)."
+  - title: "Rounding moves from bankers-at-display to half-up per line"
+    tags:
+      - "ac-8"
+      - "rounding"
+      - "regression"
+    given:
+      - "a cart whose line discounts produce a third decimal, for example a 15% discount on a $9.99 line"
+    when:
+      - "the cart, the payment amount and the receipt are compared"
+    then:
+      - "each line discount is rounded half-up to cents"
+      - "the totals block equals the sum of the rounded line values, with no separate rounding of the total"
+      - "EXECUTOR NOTE: this is a change in BOTH mode and granularity. Today there is no rounding in the math at all — Decimal keeps full precision, the formatter deliberately retains 200 fraction digits (Formatter+.swift:21-26), and rounding happens only at display via NSDecimalRound with .bankers, half-to-even (Decimal+.swift:38-43). Expect cent-level movement against current figures. Also check the payment path, which rounds the pending amount separately (SummaryViewController.swift:333, :769, :909, :1082, :1159) and compares the total at 3 decimals (:995)."
+  - title: "Quantity multiplies the line before discounts"
+    tags:
+      - "ac-9"
+      - "quantity"
+      - "happy-path"
+    given:
+      - "'Logo t-shirt' at $28.00 with quantity 2, an automatic 20% rule and a code of $10"
+    when:
+      - "the cart is evaluated"
+    then:
+      - "the engine discount is $21.20, the sum of $11.20 and $10.00"
+      - "the percentage applies to the extended line amount of $56.00, not to the unit price"
+      - "EXECUTOR NOTE: SaleItem.swift:592 computes amount = quantity x itemSubtotal before any discount, so this should hold. Confirm rather than assume."
+  - title: "Two discount codes on one line — D1 says impossible, the app allows it and they share a base"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "slot-d1"
+      - "edge-case"
+      - "regression"
+    given:
+      - "one line at $100.00 with no other discount"
+      - "two distinct discount codes, each 50% off, both eligible for that line"
+    when:
+      - "both codes are applied to the line"
+    then:
+      - "BLOCKED on the D1 ruling — record what the app actually does, do not assert a slot limit that is not implemented."
+      - "Today both codes attach (SaleItem.swift:569-575 dedupes only identical codes) and both compute against the SAME base (posDiscountAmount, :91-104, re-pushed at :161-165), so the combined discount is 100%, clamped to the line price — NOT 75%."
+      - "Repeat with two automatic applied discounts on one line: SaleItem.swift:615-640 accumulates all of them with no 'highest wins' and no slot."
+      - "This is the concrete evidence that D1's three-slot model is a replacement of shipped behaviour, not a description of it. It needs an explicit product decision and, if D1 stands, its own migration note for carts in flight."
+tags:
+  - "sh-1291"
+  - "sh-1287"
+  - "sh-1298"
+  - "pos-module"
+  - "discount-engine"
+  - "stacking"
+  - "tax"
+  - "rounding"
+  - "ios"
+parameters: []
+links:
+  jira:
+    - key: "SH-1291"
+      url: "https://veevart.atlassian.net/browse/SH-1291"
+      type: "story"
+    - key: "SH-1298"
+      url: "https://veevart.atlassian.net/browse/SH-1298"
+      type: "qa-subtask"
+    - key: "SH-1287"
+      url: "https://veevart.atlassian.net/browse/SH-1287"
+      type: "epic"
+  external: []
+estimatedDuration: 120
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-08T21:40:25Z"
+  updatedBy: "claude"
+  updatedAt: "2026-09-10T00:00:00Z"
+  version: 2
