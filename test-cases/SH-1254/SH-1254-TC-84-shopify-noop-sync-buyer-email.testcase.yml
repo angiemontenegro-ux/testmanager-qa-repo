@@ -1,0 +1,230 @@
+schemaVersion: "1.0"
+id: "83a906bb-3e90-411b-92d3-3fda9ea12684"
+key: "TC-84"
+title: "Shopify — a no-op fulfillment sync must not email the buyer \"Your purchase has been modified\""
+description: "QA coverage for SH-1254 (Shopify fulfillment sync emails buyers 'Your purchase has been modified' for orders that never changed), QA Sub-task SH-1310. Reported by two customers in cases 00177800 (MacRostie Art Center, order POS-18100, buyer Laura Holderfield) and 00174605 (American Airlines CR Smith Museum), both Escalated to Product. No epic: SH-1254 is a standalone Bug.
+
+IMPLEMENTATION DOMAIN. Server-side Apex in AuctiferaDX. Validates PR #2650 (https://github.com/Veevarts/AuctiferaDX/pull/2650), branch bug/no-op-shopify-sync-emails-buyer-SH-1254, head 1dd841ea74. CI green on that head (lint, build, test). The PR was OPEN with ctapascov requested since 2026-09-04.
+
+THE DEFECT. POSServicePurchase raised Auctifera__Tech_Transaction_Edited__c from req.isTransactionEdit alone, with no comparison against the stored order. Shopify sets that flag on a plain fulfillment too, resending the order unchanged — the repo's own shopifyOrderUpdateTestFulfillment fixture documents that payload shape. The active 'POS Purchase is Edited' workflow rule then emails Client__c on the false-to-true transition AND resets the flag via the Update_Transaction_Edited field update, re-arming the loop, so N syncs produced N emails.
+
+THE FIX, READ FROM THE DIFF. A new isCustomerVisibleEdit() helper. Before anything is written, right after handleTransactionIdForUpdate resolves the purchase, the code snapshots Auctifera__Total__c and Auctifera__Total_Number_of_Items__c into preEditTotal / preEditItemCount, guarded by 'req.isTransactionEdit && req.posPurchaseId != null'. Both assignment sites (the upsert/delete branch and the 'else if' branch that a no-op resend actually reaches) now require isCustomerVisibleEdit() to be true. The comparison is an OR on those two fields only.
+
+ORDERING VERIFIED. handleTransactionIdForUpdate is called at POSServicePurchase.cls:1897 and sets request.posPurchaseId from the existing ClientPurchase matched by transactionId; the snapshot sits immediately after. So the Shopify update path does populate posPurchaseId and the guard is reachable — this was the load-bearing question for whether the fix engages at all, and it holds.
+
+TWO COVERAGE GAPS FOUND WHILE READING THE FIX, both scenarios below, both Product decisions rather than PR defects:
+  - Scenario 8, BLIND SPOT: because only total and item count are compared, an edit that swaps an item or a variant at the same price and quantity is classified as a no-op and the buyer is never notified.
+  - Scenarios 9 and 10, FAIL-OPEN: when the baseline cannot be loaded (posPurchaseId null, purchase row not found) or either recalculated total is null, isCustomerVisibleEdit returns true and the pre-fix behaviour persists. Conservative by design, but the original bug stays reachable by those paths.
+
+SCOPE. no-op resend classification, real-edit classification, both flag-assignment branches, the OR detection on total and item count, the fail-open paths, the Prevent_Email_Notification__c interaction, the workflow rule and its reset, and the SH-877 non-regression.
+
+NOT SH-877. SH-877 is Done and also referenced case 00174605, but it fixed duplicate order CONFIRMATION emails with an idempotency guard in purchaseSendEmail. This is the Tech_Transaction_Edited__c plus 'POS Purchase is Edited' path, untouched by that fix. Scenario 13 guards it.
+
+IDEMPOTENCY IS NOT ADDED. The fix does not touch the Update_Transaction_Edited field update, so there is still no ceiling: it reduces how often the flag is raised, it does not make the email idempotent.
+
+EVIDENCE NOTE. Support could not replicate case 00177800 (Was_Support_Able_to_replicate_c__c = No), so QA's replication is the only proof of the customer path. Assert on email counts from Email Logs or the test inbox, never only on the flag value."
+type: "integration"
+priority: "medium"
+status: "active"
+format: "gherkin"
+preconditions:
+  - "PR #2650 deployed to the test org, or the two POSServicePurchaseEmailNotificationTest tests running against that branch."
+  - "The 'POS Purchase is Edited' workflow rule is ACTIVE and its email alert POS_Purchase_is_edited points at the Package_Templates/POS_Purchase template."
+  - "A POS Purchase created from Shopify exists with Prevent_Email_Notification__c = false and a Client__c whose inbox is reachable."
+  - "The Shopify fulfillment webhook can be replayed, or the creation payload can be POSTed to /Auctifera/pos/v2/purchase with ', \"isTransactionEdit\": true' appended."
+  - "Email Logs or the test contact's inbox is available to COUNT emails sent. The flag value alone is not acceptable evidence, because the workflow rule resets it inside the same transaction."
+  - "Catalog fixture matching the unit tests: a $10.00 shop item with a Red and a Black variant, plus a $20.00 standard shipping expense."
+  - "The branch is 4 commits behind main. Either rebase before validating or confirm the delta does not touch POSServicePurchase."
+scenarios:
+  - title: "A no-op fulfillment resend must not classify the sync as a customer-visible edit"
+    tags:
+      - "ac-1"
+      - "happy-path"
+      - "no-op-sync"
+    given:
+      - "a Shopify order already synced as a POS Purchase with Prevent_Email_Notification__c false"
+    when:
+      - "Shopify resends the identical order with isTransactionEdit true and no other change"
+    then:
+      - "Auctifera__Tech_Transaction_Edited__c stays false"
+      - "no 'Your purchase has been modified' email is sent to the buyer"
+      - "EXECUTOR NOTE: this resend reaches the 'else if' branch, not the upsert branch, because there is nothing to upsert or delete. Confirm which branch ran before trusting a PASS."
+  - title: "Repeated no-op resends stay silent, closing the N-syncs-N-emails loop"
+    tags:
+      - "ac-1"
+      - "regression"
+      - "no-op-sync"
+      - "idempotency"
+    given:
+      - "the same unchanged order has been resent once with the edit flag and produced no email"
+    when:
+      - "the identical payload is resent three more times"
+    then:
+      - "the buyer receives zero emails across all four syncs"
+      - "the email log count for the buyer is unchanged from the baseline"
+  - title: "A real order edit must still mark the transaction and notify the buyer"
+    tags:
+      - "ac-2"
+      - "happy-path"
+      - "real-edit"
+    given:
+      - "a synced POS Purchase with quantity 2 and total 80"
+    when:
+      - "Shopify sends the order with quantity 3, total 110 and isTransactionEdit true"
+    then:
+      - "Auctifera__Tech_Transaction_Edited__c is raised"
+      - "the buyer receives exactly one 'Your purchase has been modified' email"
+      - "EXECUTOR NOTE: this mirrors realOrderEditMustStillMarkTransactionAsEdited, the test that guards against a wholesale suppression fix. It must not be skipped."
+  - title: "A price-only edit that leaves the item count untouched is still detected"
+    tags:
+      - "ac-2"
+      - "edge-case"
+      - "real-edit"
+    given:
+      - "a synced POS Purchase with 2 items totalling 80"
+    when:
+      - "the order is resent with the same 2 items totalling 95 and isTransactionEdit true"
+    then:
+      - "the flag is raised because Auctifera__Total__c changed while the count did not"
+      - "the buyer is notified"
+  - title: "A quantity-only edit that leaves the total untouched is still detected"
+    tags:
+      - "ac-2"
+      - "edge-case"
+      - "real-edit"
+    given:
+      - "a synced POS Purchase whose Total__c would be unchanged by the edit"
+    when:
+      - "the order is resent with a different Total_Number_of_Items__c and isTransactionEdit true"
+    then:
+      - "the flag is raised because the item count changed while the total did not"
+      - "the buyer is notified"
+      - "EXECUTOR NOTE: scenarios 4 and 5 together prove the comparison is an OR, not an AND. Construct them so exactly one side of the OR fires."
+  - title: "Case 00177800 regression evidence, order POS-18100"
+    tags:
+      - "regression-evidence"
+      - "macrostie"
+      - "no-op-sync"
+    given:
+      - "the MacRostie Art Center scenario is reproduced with buyer Laura Holderfield"
+    when:
+      - "the fulfillment webhook resends order POS-18100 unchanged with the edit flag"
+    then:
+      - "no modification email reaches the buyer"
+      - "the case's reported symptom of one email per day is not reproducible"
+      - "EXECUTOR NOTE: support could not replicate this case, so this scenario is the only evidence of the real customer path. Capture the email log for the window."
+  - title: "Case 00174605 regression evidence, American Airlines CR Smith Museum"
+    tags:
+      - "regression-evidence"
+      - "cr-smith-museum"
+      - "no-op-sync"
+    given:
+      - "the second reporting org's order shape is reproduced"
+    when:
+      - "the order is resent unchanged with the edit flag"
+    then:
+      - "no modification email is sent"
+      - "the fix is confirmed against both reporting customers, not only the first"
+  - title: "BLIND SPOT: an edit with identical total and identical item count is never notified — MISSING FROM SPEC"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "edge-case"
+      - "blind-spot"
+    given:
+      - "a synced POS Purchase with 1 unit of the Red variant at 10.00"
+    when:
+      - "the order is edited to 1 unit of the Black variant at the same 10.00 with isTransactionEdit true"
+    then:
+      - "BLOCKED — isCustomerVisibleEdit compares only Total__c and Total_Number_of_Items__c, so both sides match and the flag stays false."
+      - "The buyer is never told their purchase changed, which is arguably a real customer-visible edit. The story does not define this case."
+      - "Record the observed behaviour and route to Product. Do not sign SH-1254 off as complete without an explicit decision here."
+  - title: "Fail-open when the pre-edit baseline cannot be loaded"
+    tags:
+      - "edge-case"
+      - "fail-open"
+      - "needs-clarification"
+    given:
+      - "an edit request where req.posPurchaseId is null or the purchase row is not found"
+    when:
+      - "the sync runs with isTransactionEdit true"
+    then:
+      - "isCustomerVisibleEdit returns true, the flag is raised and the email is sent exactly as before the fix"
+      - "EXECUTOR NOTE: confirm a plain Shopify fulfillment cannot reach this path. handleTransactionIdForUpdate populates posPurchaseId at cls:1897 immediately before the snapshot, so it should be unreachable from Shopify — but it throws ShopifyException on a missing ClientPurchase, so check what happens for a POS-mobile edit that carries no transactionId."
+  - title: "Fail-open when the recalculated totals come back null"
+    tags:
+      - "edge-case"
+      - "fail-open"
+      - "negative"
+    given:
+      - "a POS Purchase whose Total__c or Total_Number_of_Items__c is null after the rollup"
+    when:
+      - "the sync runs with isTransactionEdit true"
+    then:
+      - "the flag is raised because the comparison has no usable baseline"
+      - "the buyer receives the modification email"
+      - "EXECUTOR NOTE: null and zero are deliberately NOT equivalent for the guard clause but ARE equivalent inside the comparison via zeroIfNull. A record with a null total fails open; one with a real 0 total compares as 0. Exercise both."
+  - title: "Prevent_Email_Notification__c still suppresses the email independently of the flag"
+    tags:
+      - "regression"
+      - "workflow-rule"
+      - "happy-path"
+    given:
+      - "a POS Purchase with Prevent_Email_Notification__c true"
+    when:
+      - "a real edit raises Auctifera__Tech_Transaction_Edited__c"
+    then:
+      - "the workflow rule criteria are unmet so no email is sent"
+      - "the flag is NOT reset by the rule, which is the property both unit tests rely on to observe it after DML"
+  - title: "Shipping-or-expense-only change: is it customer-visible? — MISSING FROM SPEC"
+    tags:
+      - "missing-doc"
+      - "needs-clarification"
+      - "expenses"
+    given:
+      - "a synced order carrying a 20.00 standard shipping expense"
+    when:
+      - "only the shipping amount changes and the item lines stay identical"
+    then:
+      - "BLOCKED — the story does not say whether Total__c includes expenses, so it does not say whether this must notify."
+      - "Record whether the flag is raised and route the question to Product."
+  - title: "No regression on SH-877 order confirmation idempotency"
+    tags:
+      - "regression"
+      - "sh-877"
+    given:
+      - "SH-877 added an idempotency guard in purchaseSendEmail for duplicate order confirmations"
+    when:
+      - "a new Shopify order is created and then resent"
+    then:
+      - "exactly one order confirmation email is sent"
+      - "the SH-877 behaviour is untouched by this change"
+tags:
+  - "sh-1254"
+  - "sh-1310"
+  - "shop-module"
+  - "shopify-sync"
+  - "pos-purchase"
+  - "email-notifications"
+  - "workflow-rule"
+  - "macrostie"
+  - "cr-smith-museum"
+parameters: []
+links:
+  jira:
+    - key: "SH-1254"
+      url: "https://veevart.atlassian.net/browse/SH-1254"
+      type: "bug"
+    - key: "SH-1310"
+      url: "https://veevart.atlassian.net/browse/SH-1310"
+      type: "qa-subtask"
+  external:
+    - name: "PR #2650 — the fix under test"
+      url: "https://github.com/Veevarts/AuctiferaDX/pull/2650"
+    - name: "Case 00177800 — MacRostie Art Center"
+      url: "https://veevart.lightning.force.com/lightning/r/Case/500Vs00001Qf15aIAB/view"
+estimatedDuration: 120
+metadata:
+  createdBy: "codex"
+  createdAt: "2026-09-10T18:30:51Z"
+  version: 1
